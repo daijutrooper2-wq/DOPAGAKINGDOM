@@ -1,0 +1,1957 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ドパガキングダム RPG EX</title>
+    <!-- Tailwind CSS for layout utility -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Pixel Font Import -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=DotGothic16&display=swap" rel="stylesheet">
+    <!-- Firebase Standard Imports for Online Multiplayer -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot, deleteDoc, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global Firebase state & configs
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'dopa-kingdom-rpg';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "dummy-key",
+            authDomain: "dummy.firebaseapp.com",
+            projectId: "dummy-project",
+            storageBucket: "dummy.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:123456789"
+        };
+
+        window.fbApp = null;
+        window.fbDb = null;
+        window.fbAuth = null;
+        window.fbUser = null;
+        window.fbDoc = doc;
+        window.fbSetDoc = setDoc;
+        window.fbGetDoc = getDoc;
+        window.fbUpdateDoc = updateDoc;
+        window.fbOnSnapshot = onSnapshot;
+        window.fbDeleteDoc = deleteDoc;
+        window.fbCollection = collection;
+        window.fbAppId = appId;
+
+        window.initFirebaseOnline = async function() {
+            if (window.fbDb) return true;
+            try {
+                window.fbApp = initializeApp(firebaseConfig);
+                window.fbDb = getFirestore(window.fbApp);
+                window.fbAuth = getAuth(window.fbApp);
+
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    const userCred = await signInWithCustomToken(window.fbAuth, __initial_auth_token);
+                    window.fbUser = userCred.user;
+                } else {
+                    const userCred = await signInAnonymously(window.fbAuth);
+                    window.fbUser = userCred.user;
+                }
+                return true;
+            } catch (err) {
+                console.warn("Firebase Auth / Offline fallback:", err);
+                return false;
+            }
+        };
+    </script>
+    <style>
+        body {
+            font-family: 'DotGothic16', monospace, sans-serif;
+            background-color: #090a10;
+            color: #ffffff;
+            user-select: none;
+            overflow-x: hidden;
+        }
+
+        .font-pixel {
+            font-family: 'Press Start 2P', 'DotGothic16', cursive;
+        }
+
+        /* Retro NES/SNES Style Frame Borders */
+        .pixel-box {
+            background-color: #000000;
+            border: 4px solid #ffffff;
+            box-shadow: 
+                inset -4px -4px 0px #4a4a4a,
+                inset 4px 4px 0px #dfdfdf,
+                0px 6px 0px rgba(0,0,0,0.6);
+            border-radius: 4px;
+        }
+
+        .pixel-box-gold {
+            background-color: #1a0f00;
+            border: 4px solid #ffd700;
+            box-shadow: 
+                inset -4px -4px 0px #8b6508,
+                inset 4px 4px 0px #fff8dc,
+                0px 6px 0px rgba(0,0,0,0.6);
+            border-radius: 4px;
+        }
+
+        .pixel-box-dark {
+            background-color: #0b0c10;
+            border: 4px solid #3a3f58;
+            box-shadow: inset -4px -4px 0px #1f2338, inset 4px 4px 0px #5c638a;
+            border-radius: 4px;
+        }
+
+        /* Retro Button Styles */
+        .pixel-btn {
+            background: linear-gradient(to bottom, #4a5568, #2d3748);
+            border: 3px solid #e2e8f0;
+            border-bottom-width: 5px;
+            color: #ffffff;
+            text-shadow: 1px 1px 0px #000;
+            transition: all 0.08s ease;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .pixel-btn:hover {
+            background: linear-gradient(to bottom, #718096, #4a5568);
+            transform: translateY(-1px);
+        }
+
+        .pixel-btn:active {
+            transform: translateY(3px);
+            border-bottom-width: 2px;
+        }
+
+        .pixel-btn-primary {
+            background: linear-gradient(to bottom, #3182ce, #2b6cb0);
+            border-color: #bee3f8;
+        }
+        .pixel-btn-primary:hover {
+            background: linear-gradient(to bottom, #4299e1, #3182ce);
+        }
+
+        .pixel-btn-danger {
+            background: linear-gradient(to bottom, #e53e3e, #c53030);
+            border-color: #fed7d7;
+        }
+        .pixel-btn-danger:hover {
+            background: linear-gradient(to bottom, #f56565, #e53e3e);
+        }
+
+        .pixel-btn-success {
+            background: linear-gradient(to bottom, #38a169, #276749);
+            border-color: #c6f6d5;
+        }
+        .pixel-btn-success:hover {
+            background: linear-gradient(to bottom, #48bb78, #38a169);
+        }
+
+        .pixel-btn-warning {
+            background: linear-gradient(to bottom, #d69e2e, #b7791f);
+            border-color: #fefcbf;
+        }
+
+        .pixel-btn-purple {
+            background: linear-gradient(to bottom, #8b5cf6, #6d28d9);
+            border-color: #ddd6fe;
+        }
+        .pixel-btn-purple:hover {
+            background: linear-gradient(to bottom, #a78bfa, #7c3aed);
+        }
+
+        .pixel-btn-disabled {
+            background: #2d3748 !important;
+            border-color: #4a5568 !important;
+            color: #718096 !important;
+            cursor: not-allowed !important;
+            transform: none !important;
+        }
+
+        /* Dynamic HP Bar Transitions */
+        .hp-bar-fill {
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.4s ease;
+        }
+
+        /* Canvas Smooth Pixelation */
+        canvas {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0d0f18;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4a5568;
+            border-radius: 4px;
+        }
+
+        /* Retro Animations */
+        @keyframes pop-float {
+            0% { transform: translateY(0) scale(0.8); opacity: 0; }
+            20% { transform: translateY(-10px) scale(1.2); opacity: 1; }
+            80% { transform: translateY(-25px) scale(1); opacity: 1; }
+            100% { transform: translateY(-35px) scale(0.9); opacity: 0; }
+        }
+        .floating-text {
+            animation: pop-float 1.1s ease-out forwards;
+        }
+
+        @keyframes cutin-anim {
+            0% { transform: scale(0.2) rotate(-8deg); opacity: 0; }
+            40% { transform: scale(1.15) rotate(2deg); opacity: 1; }
+            80% { transform: scale(1) rotate(0deg); opacity: 1; }
+            100% { opacity: 1; }
+        }
+        .animate-cutin {
+            animation: cutin-anim 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-2 sm:p-4 bg-slate-950">
+
+    <!-- MAIN CONTAINER -->
+    <div id="app" class="w-full max-w-4xl min-h-[660px] flex flex-col justify-between pixel-box-dark relative overflow-hidden p-3 sm:p-5">
+        
+        <!-- HEADER / TOP STATUS BAR -->
+        <header class="w-full pixel-box p-3 mb-3 flex flex-wrap items-center justify-between gap-2 bg-slate-900">
+            <div class="flex items-center gap-3">
+                <span class="text-xl sm:text-2xl text-amber-400 font-bold tracking-wider font-pixel cursor-pointer" onclick="renderHomeScreen()">👑 ドパガキングダム</span>
+                <span class="text-xs bg-slate-800 text-amber-300 px-2 py-0.5 rounded border border-amber-600 font-bold">Ver 2.2 EX</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="pixel-box-gold px-3 py-1 flex items-center gap-2">
+                    <span class="text-amber-300 text-xs font-bold">DOPA:</span>
+                    <span id="dopa-count" class="text-amber-400 font-bold text-lg font-pixel">1000</span>
+                </div>
+                <button id="btn-sound-toggle" onclick="audioSystem.toggleSound()" class="pixel-btn text-xs px-2 py-1">
+                    🔊 効果音: <span id="sound-status">ON</span>
+                </button>
+                <button id="btn-bgm-toggle" onclick="audioSystem.toggleBGM()" class="pixel-btn text-xs px-2 py-1">
+                    🎵 BGM: <span id="bgm-status">OFF</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- DYNAMIC CONTENT CONTAINER -->
+        <main id="screen-container" class="flex-1 flex flex-col justify-center items-center w-full relative">
+            <!-- Screen content injected via JS -->
+        </main>
+
+        <!-- FOOTER / SYSTEM MESSAGES -->
+        <footer class="w-full mt-3 text-center text-xs text-slate-500 border-t border-slate-800 pt-2 flex justify-between items-center px-2">
+            <span>© 2026 DOPAGA KINGDOM RPG EX</span>
+            <span class="text-slate-400 text-[11px]">8-Bit Retro Battle Engine Powered</span>
+        </footer>
+    </div>
+
+    <!-- MODAL / NOTIFICATION OVERLAY -->
+    <div id="modal-overlay" class="fixed inset-0 bg-black/85 hidden flex items-center justify-center p-4 z-50">
+        <div class="pixel-box bg-slate-900 max-w-md w-full p-5 text-center relative border-amber-400">
+            <h3 id="modal-title" class="text-xl font-bold text-amber-400 mb-3 font-pixel"></h3>
+            <div id="modal-body" class="text-slate-200 mb-6 text-sm leading-relaxed whitespace-pre-line max-h-80 overflow-y-auto text-left"></div>
+            <div id="modal-actions" class="flex justify-center gap-3">
+                <button onclick="closeModal()" class="pixel-btn pixel-btn-primary px-6 py-2 font-bold text-sm">閉じる</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 2D PIXEL ART CHARACTER RENDERER
+        // ==========================================
+        class CharacterRenderer {
+            static drawCharacter(canvas, charId, isMiniZou = false) {
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                const w = canvas.width;
+                const h = canvas.height;
+                ctx.clearRect(0, 0, w, h);
+                ctx.imageSmoothingEnabled = false;
+
+                ctx.fillStyle = '#0f172a';
+                ctx.fillRect(0, 0, w, h);
+
+                ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                ctx.beginPath();
+                ctx.ellipse(w / 2, h - 10, w * 0.38, h * 0.09, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                const pixelSize = Math.max(2, Math.floor(w / 32));
+                const offsetX = Math.floor((w - 32 * pixelSize) / 2);
+                const offsetY = Math.floor((h - 32 * pixelSize) / 2);
+
+                const drawPx = (x, y, color, sizeX = 1, sizeY = 1) => {
+                    ctx.fillStyle = color;
+                    ctx.fillRect(offsetX + x * pixelSize, offsetY + y * pixelSize, sizeX * pixelSize, sizeY * pixelSize);
+                };
+
+                if (isMiniZou) {
+                    this.drawMiniZou(drawPx);
+                    return;
+                }
+
+                switch (charId) {
+                    case 'ndaihyo':
+                        this.drawNdaihyo(drawPx);
+                        break;
+                    case 'pasha':
+                        this.drawPasha(drawPx);
+                        break;
+                    case 'iwaba':
+                        this.drawIwaba(drawPx);
+                        break;
+                    case 'momo':
+                        this.drawMomo(drawPx);
+                        break;
+                    case 'moenan':
+                        this.drawMoenan(drawPx);
+                        break;
+                    case 'asaiomizu':
+                        this.drawAsaiomizu(drawPx);
+                        break;
+                    default:
+                        this.drawGeneric(drawPx);
+                }
+            }
+
+            static drawNdaihyo(p) {
+                for (let y = 14; y <= 27; y++) {
+                    for (let x = 9; x <= 22; x++) p(x, y, '#1e293b');
+                }
+                for (let y = 14; y <= 24; y++) p(15, y, '#ffffff', 2, 1);
+                p(15, 16, '#ef4444', 2, 3);
+
+                for (let y = 6; y <= 13; y++) {
+                    for (let x = 10; x <= 21; x++) p(x, y, '#fde047');
+                }
+                for (let x = 9; x <= 22; x++) p(x, 5, '#0f172a');
+                for (let y = 6; y <= 9; y++) {
+                    p(9, y, '#0f172a');
+                    p(22, y, '#0f172a');
+                }
+                p(12, 6, '#0f172a', 3, 2);
+
+                p(11, 8, '#38bdf8', 3, 2);
+                p(17, 8, '#38bdf8', 3, 2);
+                p(14, 8, '#94a3b8', 3, 1);
+
+                for (let i = 0; i < 9; i++) {
+                    p(6 - Math.floor(i/3), 21 - i, '#b45309', 2, 2);
+                }
+                p(6, 22, '#f87171', 2, 3);
+            }
+
+            static drawPasha(p) {
+                for (let y = 14; y <= 28; y++) {
+                    for (let x = 8; x <= 23; x++) p(x, y, '#2e1065');
+                }
+                for (let x = 8; x <= 23; x++) p(x, 28, '#f59e0b');
+                for (let y = 14; y <= 28; y++) p(15, y, '#f59e0b');
+
+                for (let y = 6; y <= 13; y++) {
+                    for (let x = 11; x <= 20; x++) p(x, y, '#fde047');
+                }
+
+                for (let x = 10; x <= 21; x++) p(x, 5, '#1e1b4b');
+                for (let y = 6; y <= 11; y++) {
+                    p(10, y, '#1e1b4b');
+                    p(21, y, '#1e1b4b');
+                }
+                p(15, 6, '#1e1b4b');
+                p(15, 7, '#1e1b4b');
+
+                p(13, 9, '#ef4444');
+                p(18, 9, '#ef4444');
+
+                p(6, 16, '#38bdf8', 3, 5);
+                p(7, 17, '#ffffff', 1, 3);
+
+                p(22, 16, '#94a3b8', 3, 3);
+                p(23, 15, '#c084fc', 2, 2);
+            }
+
+            static drawIwaba(p) {
+                for (let y = 14; y <= 27; y++) {
+                    for (let x = 9; x <= 22; x++) p(x, y, '#15803d');
+                }
+                for (let y = 15; y <= 26; y++) {
+                    p(9, y, '#f97316', 3, 1);
+                    p(20, y, '#f97316', 3, 1);
+                }
+
+                for (let y = 6; y <= 13; y++) {
+                    for (let x = 10; x <= 21; x++) p(x, y, '#4ade80');
+                }
+
+                for (let x = 9; x <= 22; x++) p(x, 5, '#94a3b8');
+                for (let y = 6; y <= 10; y++) {
+                    p(9, y, '#94a3b8');
+                    p(22, y, '#94a3b8');
+                }
+                p(15, 6, '#475569');
+
+                p(12, 8, '#000000', 8, 3);
+                p(13, 9, '#38bdf8', 2, 1);
+                p(17, 9, '#38bdf8', 2, 1);
+
+                p(13, 14, '#facc15', 6, 2);
+                p(6, 17, '#64748b', 3, 4);
+            }
+
+            static drawMomo(p) {
+                for (let y = 13; y <= 28; y++) {
+                    for (let x = 7; x <= 24; x++) p(x, y, '#ec4899');
+                }
+                for (let y = 15; y <= 26; y++) {
+                    for (let x = 12; x <= 19; x++) p(x, y, '#be185d');
+                }
+                p(14, 18, '#fef08a', 4, 4);
+
+                for (let y = 5; y <= 12; y++) {
+                    for (let x = 10; x <= 21; x++) p(x, y, '#fbcfe8');
+                }
+                for (let x = 9; x <= 22; x++) p(x, 4, '#db2777');
+                for (let y = 5; y <= 9; y++) {
+                    p(9, y, '#db2777');
+                    p(22, y, '#db2777');
+                }
+                p(15, 5, '#9d174d');
+
+                p(12, 8, '#831843', 2, 2);
+                p(18, 8, '#831843', 2, 2);
+
+                p(5, 14, '#7e22ce', 3, 4);
+                p(6, 13, '#22c55e', 2, 1);
+            }
+
+            static drawMiniZou(p) {
+                for (let y = 10; y <= 26; y++) {
+                    for (let x = 8; x <= 24; x++) p(x, y, '#60a5fa');
+                }
+                for (let y = 8; y <= 18; y++) {
+                    p(4, y, '#93c5fd', 4, 1);
+                    p(24, y, '#93c5fd', 4, 1);
+                }
+                p(12, 12, '#1e3a8a', 2, 3);
+                p(20, 12, '#1e3a8a', 2, 3);
+                p(13, 13, '#ffffff', 1, 1);
+                p(21, 13, '#ffffff', 1, 1);
+
+                p(15, 16, '#3b82f6', 3, 7);
+                p(16, 21, '#3b82f6', 4, 3);
+
+                p(20, 20, '#7e22ce', 4, 5);
+                p(21, 19, '#22c55e', 2, 1);
+            }
+
+            static drawMoenan(p) {
+                for (let y = 14; y <= 27; y++) {
+                    for (let x = 10; x <= 21; x++) p(x, y, '#991b1b');
+                }
+                p(13, 16, '#f87171', 6, 2);
+
+                for (let y = 7; y <= 13; y++) {
+                    for (let x = 10; x <= 21; x++) p(x, y, '#ffedd5');
+                }
+
+                p(15, 1, '#ef4444', 2, 6);
+                p(15, 1, '#fde047', 2, 2);
+                p(11, 3, '#ef4444', 3, 5);
+                p(8, 5, '#ef4444', 3, 4);
+                p(7, 4, '#fde047', 2, 2);
+                p(18, 3, '#ef4444', 3, 5);
+                p(21, 5, '#ef4444', 3, 4);
+                p(22, 4, '#fde047', 2, 2);
+
+                p(12, 9, '#000000', 3, 2);
+                p(17, 9, '#000000', 3, 2);
+                p(13, 9, '#ef4444', 1, 1);
+
+                p(7, 18, '#dc2626', 3, 3);
+                p(22, 18, '#dc2626', 3, 3);
+            }
+
+            static drawAsaiomizu(p) {
+                for (let y = 3; y <= 9; y++) {
+                    for (let x = 8; x <= 23; x++) {
+                        if ((x + y) % 2 === 0) p(x, y, '#78350f');
+                        else p(x, y, '#451a03');
+                    }
+                }
+                p(7, 4, '#78350f', 2, 2);
+                p(23, 4, '#78350f', 2, 2);
+                p(6, 6, '#451a03', 2, 3);
+                p(24, 6, '#451a03', 2, 3);
+
+                for (let y = 9; y <= 15; y++) {
+                    for (let x = 10; x <= 21; x++) p(x, y, '#fed7aa');
+                }
+
+                p(12, 11, '#000000', 2, 2);
+                p(18, 11, '#000000', 2, 1);
+                p(15, 13, '#f43f5e', 2, 1);
+
+                for (let y = 16; y <= 27; y++) {
+                    for (let x = 9; x <= 22; x++) p(x, y, '#0284c7');
+                }
+                p(14, 16, '#ffffff', 4, 6);
+
+                p(20, 24, '#ffffff', 5, 5);
+                p(21, 25, '#000000', 3, 3);
+            }
+
+            static drawGeneric(p) {
+                for (let y = 8; y <= 24; y++) {
+                    for (let x = 8; x <= 24; x++) p(x, y, '#6b7280');
+                }
+            }
+        }
+
+        // ==========================================
+        // 8-BIT AUDIO & BGM GENERATOR SYSTEM
+        // ==========================================
+        class SoundSystem {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+                this.bgmEnabled = false;
+                this.bgmInterval = null;
+                this.bgmStep = 0;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioCtx();
+                }
+            }
+
+            toggleSound() {
+                this.enabled = !this.enabled;
+                document.getElementById('sound-status').innerText = this.enabled ? 'ON' : 'OFF';
+                if(this.enabled) this.playSelect();
+            }
+
+            toggleBGM() {
+                this.bgmEnabled = !this.bgmEnabled;
+                document.getElementById('bgm-status').innerText = this.bgmEnabled ? 'ON' : 'OFF';
+                if (this.bgmEnabled) {
+                    this.startBGM();
+                } else {
+                    this.stopBGM();
+                }
+            }
+
+            startBGM() {
+                this.stopBGM();
+                if (!this.bgmEnabled) return;
+                this.init();
+
+                const melody = [261.63, 293.66, 329.63, 392.00, 329.63, 392.00, 440.00, 523.25];
+                const bass = [130.81, 130.81, 164.81, 164.81, 174.61, 174.61, 196.00, 196.00];
+
+                this.bgmStep = 0;
+                this.bgmInterval = setInterval(() => {
+                    if (!this.bgmEnabled) return;
+                    const note = melody[this.bgmStep % melody.length];
+                    const bassNote = bass[Math.floor(this.bgmStep / 2) % bass.length];
+                    
+                    this.playTone(note, 0.1, 'square', 0.03);
+                    this.playTone(bassNote, 0.15, 'triangle', 0.05);
+                    this.bgmStep++;
+                }, 160);
+            }
+
+            stopBGM() {
+                if (this.bgmInterval) {
+                    clearInterval(this.bgmInterval);
+                    this.bgmInterval = null;
+                }
+            }
+
+            playTone(freq, duration, type = 'square', gainValue = 0.08) {
+                if (!this.enabled && type !== 'bgm') return;
+                this.init();
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                    gain.gain.setValueAtTime(gainValue, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + duration);
+                } catch(e) {}
+            }
+
+            playSelect() {
+                this.playTone(440, 0.08, 'square', 0.08);
+            }
+
+            playHit() {
+                if (!this.enabled) return;
+                this.init();
+                try {
+                    const bufferSize = this.ctx.sampleRate * 0.12;
+                    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                    const output = buffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) {
+                        output[i] = Math.random() * 2 - 1;
+                    }
+                    const whiteNoise = this.ctx.createBufferSource();
+                    whiteNoise.buffer = buffer;
+
+                    const filter = this.ctx.createBiquadFilter();
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(900, this.ctx.currentTime);
+
+                    const gain = this.ctx.createGain();
+                    gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
+
+                    whiteNoise.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    whiteNoise.start();
+                } catch(e) {}
+            }
+
+            playHeal() {
+                if (!this.enabled) return;
+                this.playTone(523.25, 0.09, 'sine', 0.1);
+                setTimeout(() => this.playTone(659.25, 0.09, 'sine', 0.1), 70);
+                setTimeout(() => this.playTone(783.99, 0.12, 'sine', 0.1), 140);
+                setTimeout(() => this.playTone(1046.50, 0.22, 'sine', 0.1), 210);
+            }
+
+            playBuff() {
+                if (!this.enabled) return;
+                this.playTone(300, 0.08, 'sawtooth', 0.08);
+                setTimeout(() => this.playTone(450, 0.08, 'sawtooth', 0.08), 60);
+                setTimeout(() => this.playTone(600, 0.12, 'sawtooth', 0.08), 120);
+            }
+
+            playSpecial() {
+                if (!this.enabled) return;
+                this.playTone(220, 0.1, 'sawtooth', 0.12);
+                setTimeout(() => this.playTone(440, 0.1, 'square', 0.12), 90);
+                setTimeout(() => this.playTone(330, 0.1, 'sawtooth', 0.12), 180);
+                setTimeout(() => this.playTone(660, 0.2, 'square', 0.15), 270);
+            }
+
+            playVictory() {
+                if (!this.enabled) return;
+                const notes = [523.25, 659.25, 783.99, 1046.50, 880.00, 1046.50];
+                notes.forEach((freq, idx) => {
+                    setTimeout(() => this.playTone(freq, 0.18, 'triangle', 0.15), idx * 130);
+                });
+            }
+
+            playDefeat() {
+                if (!this.enabled) return;
+                const notes = [440, 392, 349, 220];
+                notes.forEach((freq, idx) => {
+                    setTimeout(() => this.playTone(freq, 0.25, 'sawtooth', 0.15), idx * 180);
+                });
+            }
+        }
+        const audioSystem = new SoundSystem();
+
+        // Global Game State Data
+        let playerState = {
+            dopa: 1000,
+            unlockedChars: ['iwaba', 'asaiomizu', 'ndaihyo'], 
+            selectedPlayerChar: 'ndaihyo',
+            selectedEnemyChar: 'pasha'
+        };
+
+        let activeBattle = null;
+
+        function addDopa(amount) {
+            playerState.dopa += amount;
+            savePlayerState();
+            const el = document.getElementById('dopa-count');
+            if (el) el.innerText = playerState.dopa;
+        }
+
+        function savePlayerState() {
+            try {
+                localStorage.setItem('dopa_kingdom_save_v5', JSON.stringify({
+                    dopa: playerState.dopa,
+                    unlockedChars: playerState.unlockedChars
+                }));
+            } catch(e){}
+        }
+
+        function loadPlayerState() {
+            try {
+                const saved = localStorage.getItem('dopa_kingdom_save_v5');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (parsed.dopa !== undefined) playerState.dopa = parsed.dopa;
+                    if (parsed.unlockedChars && Array.isArray(parsed.unlockedChars)) {
+                        playerState.unlockedChars = parsed.unlockedChars;
+                    }
+                }
+            } catch(e){}
+        }
+
+        function showModal(title, body) {
+            const titleEl = document.getElementById('modal-title');
+            const bodyEl = document.getElementById('modal-body');
+            const overlay = document.getElementById('modal-overlay');
+            const actionsEl = document.getElementById('modal-actions');
+            if (titleEl) titleEl.innerText = title;
+            if (bodyEl) bodyEl.innerHTML = body;
+            if (actionsEl) {
+                actionsEl.innerHTML = `<button onclick="closeModal()" class="pixel-btn pixel-btn-primary px-6 py-2 font-bold text-sm">閉じる</button>`;
+            }
+            if (overlay) overlay.classList.remove('hidden');
+        }
+
+        function showConfirmModal(title, body, onConfirm) {
+            const titleEl = document.getElementById('modal-title');
+            const bodyEl = document.getElementById('modal-body');
+            const overlay = document.getElementById('modal-overlay');
+            const actionsEl = document.getElementById('modal-actions');
+            if (titleEl) titleEl.innerText = title;
+            if (bodyEl) bodyEl.innerHTML = body;
+            if (actionsEl) {
+                actionsEl.innerHTML = `
+                    <button onclick="closeModal()" class="pixel-btn px-4 py-2 font-bold text-sm">キャンセル</button>
+                    <button id="modal-confirm-btn" class="pixel-btn pixel-btn-danger px-4 py-2 font-bold text-sm">降参する</button>
+                `;
+                document.getElementById('modal-confirm-btn').onclick = () => {
+                    closeModal();
+                    onConfirm();
+                };
+            }
+            if (overlay) overlay.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            const overlay = document.getElementById('modal-overlay');
+            if (overlay) overlay.classList.add('hidden');
+        }
+
+        function confirmRetireBattle() {
+            audioSystem.playSelect();
+            showConfirmModal("バトル中断", "本当にバトルを中断して降参しますか？\n（ホーム画面に戻ります）", () => {
+                if (activeBattle) {
+                    activeBattle.destroy();
+                    activeBattle = null;
+                }
+                renderHomeScreen();
+            });
+        }
+
+        function openGachaModal() {
+            audioSystem.playSelect();
+            if (playerState.dopa < 100) {
+                showModal("DOPA不足", "ガチャを引くには 100 DOPA が必要です！");
+                return;
+            }
+            addDopa(-100);
+
+            const allCharIds = Object.keys(CHARACTER_DATA);
+            const lockedChars = allCharIds.filter(id => !playerState.unlockedChars.includes(id));
+
+            if (lockedChars.length > 0 && Math.random() < 0.70) {
+                const newCharId = lockedChars[Math.floor(Math.random() * lockedChars.length)];
+                playerState.unlockedChars.push(newCharId);
+                savePlayerState();
+                audioSystem.playVictory();
+                showModal("🎉 ガチャ結果 (100 DOPA消費)", 
+                    `<div class="text-center p-2">
+                        <p class="text-amber-300 font-bold text-lg mb-2">✨ 新キャラクター解放！ ✨</p>
+                        <p class="text-2xl font-bold text-emerald-400 font-pixel mb-2">【 ${CHARACTER_DATA[newCharId].name} 】</p>
+                        <p class="text-xs text-slate-300 mb-3">${CHARACTER_DATA[newCharId].title}</p>
+                        <p class="text-xs text-amber-200 bg-slate-800 p-2 rounded">対戦で新キャラクターが使えるようになりました！</p>
+                    </div>`
+                );
+            } else {
+                const rewards = [
+                    { text: "🏏 【SR】 N高クリケット部の特製木製バット (150 DOPA獲得！)", bonusDopa: 150 },
+                    { text: "✨ 【SR】 ASAIOMIZUのサイン入りスパイク (120 DOPA獲得！)", bonusDopa: 120 },
+                    { text: "🎵 【R】 パシャ僧のカメラレンズクロス (80 DOPA獲得！)", bonusDopa: 80 },
+                    { text: "⚽ 【R】 もえなん愛用の練習用ハンドボール (50 DOPA獲得！)", bonusDopa: 50 },
+                    { text: "茄子 【R】 桃ピンのナス盛り合わせ (30 DOPA獲得！)", bonusDopa: 30 }
+                ];
+                const result = rewards[Math.floor(Math.random() * rewards.length)];
+                if (result.bonusDopa) addDopa(result.bonusDopa);
+                audioSystem.playSpecial();
+                showModal("🎰 ガチャ結果 (100 DOPA消費)", `<p class="font-bold text-amber-300 text-base mb-2">${result.text}</p>`);
+            }
+        }
+
+        function openCharacterListModal() {
+            audioSystem.playSelect();
+            let text = "";
+            Object.values(CHARACTER_DATA).forEach(c => {
+                const isUnlocked = playerState.unlockedChars.includes(c.id);
+                const statusStr = isUnlocked ? '<span class="text-emerald-400">[解放済み]</span>' : '<span class="text-slate-500">[🔒 未解放 - ガチャで獲得]</span>';
+                text += `👤 <b class="text-amber-300">${c.name}</b> (${c.title}) ${statusStr}\n`;
+                text += `タイプ: ${c.type}\n`;
+                text += `HP:${c.hp} / 攻:${c.atk} / 防:${c.def} / 速:${c.spd} / 避:${c.eva}%\n${c.desc}\n\n`;
+            });
+            showModal("キャラクター図鑑", text);
+        }
+
+        function openCharDetail(id) {
+            audioSystem.playSelect();
+            const c = CHARACTER_DATA[id];
+            if (!c) return;
+            const isUnlocked = playerState.unlockedChars.includes(id);
+
+            let text = `👤 <b class="text-amber-300">${c.name}</b> (${c.title}) ${isUnlocked ? '✨解放済み' : '🔒未解放'}\n\n`;
+            text += `タイプ: ${c.type}\n`;
+            text += `ステータス: HP ${c.hp} / 攻撃 ${c.atk} / 防御 ${c.def} / 素早さ ${c.spd} / 回避 ${c.eva}%\n\n`;
+            text += `【所持スキル】\n`;
+            c.skills.forEach(s => {
+                const cdStr = s.cooldown > 0 ? ` [CT: ${s.cooldown}T]` : ' [CT: 0]';
+                text += `・${s.name}${cdStr}: ${s.desc}\n`;
+            });
+            text += `\n${c.desc}`;
+            showModal(c.name, text);
+        }
+
+        // ==========================================
+        // MASTER CHARACTER DEFINITIONS (BALANCED EX VER)
+        // ==========================================
+        const CHARACTER_DATA = {
+            ndaihyo: {
+                id: 'ndaihyo',
+                name: 'N高代表',
+                title: 'クリケット部の頭脳',
+                type: '頭脳・デバフ型',
+                hp: 135, atk: 23, def: 21, spd: 28, eva: 12,
+                desc: 'N高クリケット部代表。高い知性と緻密な戦術で相手の能力を下げつつ優位に立つ。相手が「パシャ僧」の場合は専用パッシブ【パシャ僧キラー】が1試合に1回だけ発動し、現在HPの50%を一気に削る！',
+                skills: [
+                    { id: 'ndaihyo_attack', name: '通常攻撃', type: 'attack', power: 1.05, isNormalAttack: true, cooldown: 0, desc: '正確なバッティング攻撃。「パシャ僧」相手には1試合1回【パシャ僧キラー】発動！' },
+                    { id: 'ndaihyo_analysis', name: '弱点分析ショット', type: 'debuff_attack', power: 1.30, isNormalAttack: false, cooldown: 2, desc: '弱点を突き攻撃すると同時に、相手の攻撃力と防御力を低下させる！' },
+                    { id: 'ndaihyo_tactics', name: '頭脳戦術デバフ', type: 'debuff', cooldown: 3, desc: '相手の隙を突いた頭脳戦術で、攻撃力と防御力を大きく低下させる。' },
+                    { id: 'ndaihyo_mind', name: 'マインドフルネス', type: 'heal_cleanse', healRate: 0.35, cooldown: 3, desc: '心を整えHPを回復し、自身のステータス低下をリセットする。' }
+                ]
+            },
+            pasha: {
+                id: 'pasha',
+                name: 'パシャ僧',
+                title: '暗黒スマホ僧侶',
+                type: '闇属性 / バランス',
+                hp: 128, atk: 24, def: 19, spd: 29, eva: 18,
+                desc: 'スマホを手に右手を封印している暗黒僧侶。回避率が高く、HP減半で「ダークモード」が自動発動して攻撃力アップ！',
+                skills: [
+                    { id: 'pasha_attack', name: '通常攻撃', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, desc: '標準的な闇の物理攻撃。' },
+                    { id: 'pasha_flash', name: 'カメラフラッシュ', type: 'attack', power: 1.35, isNormalAttack: false, cooldown: 2, desc: '強烈なフラッシュでダメージを与える。' },
+                    { id: 'pasha_roll', name: 'カメラロール参照', type: 'heal', healRate: 0.35, cooldown: 3, desc: '思い出の写真を見てHPを大きく回復。' },
+                    { id: 'pasha_darkness', name: '暗黒封印解除', type: 'special', power: 1.85, isNormalAttack: false, cooldown: 4, desc: '封印された右手の暗黒パワーを撃ち出す！' }
+                ]
+            },
+            iwaba: {
+                id: 'iwaba',
+                name: '岩盤星人',
+                title: '不屈のラップラッパー',
+                type: '無属性 / 耐久強化',
+                hp: 145, atk: 22, def: 23, spd: 22, eva: 8,
+                desc: 'ダンスとラップと岩盤浴を愛する星人。防御が高く「岩盤浴」や「ラップ」でステータスを底上げする粘り強さ。',
+                skills: [
+                    { id: 'iwaba_dance', name: 'ブレイクダンス', type: 'attack', power: 1.15, isNormalAttack: true, cooldown: 0, desc: 'リズムに乗った連続アタック。' },
+                    { id: 'iwaba_rap', name: 'フリースタイル', type: 'buff', buffType: 'atk', amount: 1.40, cooldown: 2, desc: '韻を踏みまくって攻撃力を大幅強化！' },
+                    { id: 'iwaba_song', name: 'ソウルソング', type: 'heal', healRate: 0.32, cooldown: 3, desc: '魂の歌声で傷を癒やす。' },
+                    { id: 'iwaba_bath', name: '岩盤浴ブースト', type: 'heal_buff', healRate: 0.32, cooldown: 3, desc: '温まりHP回復＋防御力を強化！' }
+                ]
+            },
+            momo: {
+                id: 'momo',
+                name: '桃ピン',
+                title: 'ナスを統べる守護要塞',
+                type: '土属性 / 超耐久一発型',
+                hp: 160, atk: 17, def: 25, spd: 14, eva: 5,
+                desc: '圧倒的タフさを誇る要塞。「ナス準備中」でミニぞうに変身し、次のターン手動で大威力の「超ナス乱舞」を繰り出す！一度倒れても1度だけ復活！',
+                skills: [
+                    { id: 'momo_attack', name: 'ポカポカ叩く', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, desc: '通常攻撃。' },
+                    { id: 'momo_prep', name: 'ナス準備中', type: 'charge', cooldown: 3, desc: 'ゾウに変身し相手のターンへ！次ターンにコマンド「超ナス乱舞」が解禁！' },
+                    { id: 'momo_chie', name: 'チエを呼び出す', type: 'sacrifice_buff', hpCostRate: 0.20, cooldown: 3, desc: 'HPを削って攻撃力を2.3倍に跳ね上げる！' },
+                    { id: 'momo_gk', name: 'ゴールキーパー', type: 'defend_buff', cooldown: 3, desc: '2ターンの間、被ダメージを70%カットする鉄壁。' }
+                ]
+            },
+            moenan: {
+                id: 'moenan',
+                name: 'もえなん',
+                title: 'トゲ髪のアタッカー',
+                type: '火属性 / 超超攻撃特化',
+                hp: 105, atk: 30, def: 14, spd: 31, eva: 12,
+                desc: 'トゲ髪が目印の超攻撃的ハンター。素早さと威力が圧倒的で「筋トレ」後のハンドボールシュートは一撃必殺。',
+                skills: [
+                    { id: 'moenan_cat', name: '高速猫パンチ', type: 'attack', power: 1.10, isNormalAttack: true, cooldown: 0, desc: '鋭い爪の通常攻撃。' },
+                    { id: 'moenan_play', name: 'こももと遊ぶ', type: 'heal', healRate: 0.25, cooldown: 2, desc: '愛猫に癒やされてHPを回復。' },
+                    { id: 'moenan_handball', name: 'ハンドボール', type: 'attack', power: 1.60, isNormalAttack: false, cooldown: 3, desc: '唸りをあげるシュートを叩き込む！' },
+                    { id: 'moenan_workout', name: '筋トレ追い込み', type: 'buff', buffType: 'atk', amount: 1.40, cooldown: 3, desc: '筋肉を追い込み攻撃力を激増させる。' }
+                ]
+            },
+            asaiomizu: {
+                id: 'asaiomizu',
+                name: 'ASAIOMIZU',
+                title: 'パーマなナルシスト',
+                type: '水属性 / カウンター',
+                hp: 132, atk: 25, def: 20, spd: 26, eva: 14,
+                desc: '特徴的なパーマヘアを持つナルシスト。通常攻撃を受けると自動で反撃！「ディグ」で相手の攻撃技をコピーし「サッカーシュート」で大ダメージを狙う。',
+                skills: [
+                    { id: 'asaiomizu_attack', name: '通常攻撃', type: 'attack', power: 1.05, isNormalAttack: true, cooldown: 0, desc: 'スタイリッシュな通常の攻撃。' },
+                    { id: 'asaiomizu_shoot', name: 'サッカーシュート', type: 'attack', power: 1.80, isNormalAttack: false, cooldown: 3, desc: 'サッカーボールを強烈に蹴り出す特大パワーシュート！' },
+                    { id: 'asaiomizu_dig', name: 'ディグ', type: 'dig', cooldown: 3, desc: '身を潜めて相手の攻撃を待ち構え、受けた攻撃技をコピーする！' },
+                    { id: 'asaiomizu_club', name: 'クラブに行く', type: 'heal_club', healRate: 0.35, cooldown: 3, desc: 'クラブでアゲアゲに踊り狂ってHPを回復！' }
+                ]
+            }
+        };
+
+        // Strategic BOT AI Adapter
+        class BotInputAdapter {
+            getDecision(botChar, opponentChar) {
+                if (botChar.isResting) return 'rest';
+
+                // ナス準備完了なら優先して超ナス乱舞
+                if (botChar.eggplantReady) {
+                    return 'momo_eggplant_burst';
+                }
+
+                // ASAIOMIZU ディグコピー技があれば発動
+                if (botChar.recordedSkill) {
+                    return 'asaiomizu_copied';
+                }
+
+                const availableSkills = botChar.skills.filter(s => (botChar.cooldowns?.[s.id] || 0) === 0);
+                const skills = availableSkills.length > 0 ? availableSkills : botChar.skills;
+                const hpRatio = botChar.hp / botChar.maxHp;
+
+                if (botChar.id === 'ndaihyo') {
+                    if (opponentChar.buffAtk >= 1.0) {
+                        const tactics = skills.find(s => s.id === 'ndaihyo_tactics');
+                        if (tactics) return tactics.id;
+                    }
+                    if (hpRatio < 0.4) {
+                        const mind = skills.find(s => s.id === 'ndaihyo_mind');
+                        if (mind) return mind.id;
+                    }
+                    const analysis = skills.find(s => s.id === 'ndaihyo_analysis');
+                    if (analysis) return analysis.id;
+                }
+
+                if (botChar.id === 'asaiomizu') {
+                    if (hpRatio < 0.45) {
+                        const club = skills.find(s => s.id === 'asaiomizu_club');
+                        if (club) return club.id;
+                    }
+                    if (!botChar.digActive && Math.random() < 0.35) {
+                        const dig = skills.find(s => s.id === 'asaiomizu_dig');
+                        if (dig && (botChar.cooldowns?.[dig.id] || 0) === 0) return dig.id;
+                    }
+                    const shoot = skills.find(s => s.id === 'asaiomizu_shoot');
+                    if (shoot && (botChar.cooldowns?.[shoot.id] || 0) === 0) return shoot.id;
+                }
+
+                if (botChar.id === 'pasha') {
+                    if (hpRatio < 0.45 && Math.random() < 0.75) {
+                        const heal = skills.find(s => s.id === 'pasha_roll');
+                        if (heal) return heal.id;
+                    }
+                    if (botChar.isDarkMode || hpRatio <= 0.5) {
+                        const dark = skills.find(s => s.id === 'pasha_darkness');
+                        if (dark && Math.random() < 0.7) return dark.id;
+                    }
+                }
+
+                const chosen = skills[Math.floor(Math.random() * skills.length)];
+                return chosen ? chosen.id : botChar.skills[0].id;
+            }
+        }
+
+        // ==========================================
+        // BATTLE ENGINE CORE
+        // ==========================================
+        class BattleEngine {
+            constructor(p1CharId, p2CharId, isOnline = false, myPlayerNum = 1) {
+                this.isOnline = isOnline;
+                this.myPlayerNum = myPlayerNum;
+                this.turn = 1;
+                this.turnTimer = 15;
+                this.timerId = null;
+                this.battleEnded = false;
+                this.isSuddenDeath = false; // 長期戦対策サドンデスフラグ
+
+                this.p1 = this.createBattlePlayer(p1CharId, 'Player 1');
+                this.p2 = this.createBattlePlayer(p2CharId, isOnline ? 'Player 2' : 'BOT (CPU)');
+
+                this.p1Action = null;
+                this.p2Action = null;
+
+                this.botAdapter = isOnline ? null : new BotInputAdapter();
+
+                // Callbacks
+                this.onLogUpdate = null;
+                this.onTimerUpdate = null;
+                this.onStateChange = null;
+                this.onVisualEffect = null;
+                this.onBattleEnd = null;
+                this.onCutin = null;
+            }
+
+            createBattlePlayer(charId, displayName) {
+                const master = CHARACTER_DATA[charId] || CHARACTER_DATA.pasha;
+                return {
+                    id: master.id,
+                    name: displayName,
+                    charName: master.name,
+                    title: master.title,
+                    type: master.type,
+                    hp: master.hp,
+                    maxHp: master.hp,
+                    atk: master.atk,
+                    def: master.def,
+                    spd: master.spd,
+                    eva: master.eva,
+                    skills: master.skills.map(s => ({ ...s })),
+                    cooldowns: {},
+                    buffAtk: 1.0,
+                    buffDef: 1.0,
+                    pashaKillerUsed: false,
+                    isResting: false,       
+                    digActive: false,       
+                    digUsedTurn: 0,
+                    recordedSkill: null,    
+                    eggplantReady: false,   // ナス準備完了（次ターンナス乱舞選択可能）
+                    isMiniZou: false,       // ミニぞうさん変身中
+                    momoRevived: false,     
+                    isDarkMode: false,      
+                    defendBuffTurns: 0      
+                };
+            }
+
+            startBattle() {
+                this.log(`⚔️ バトル開始！ 【${this.p1.charName}】 VS 【${this.p2.charName}】`, 'text-amber-300 font-bold');
+                this.startTimer();
+                if (this.onStateChange) this.onStateChange(this);
+            }
+
+            startTimer() {
+                this.stopTimer();
+                this.turnTimer = 15;
+                if (this.onTimerUpdate) this.onTimerUpdate(this.turnTimer);
+
+                this.timerId = setInterval(() => {
+                    this.turnTimer--;
+                    if (this.onTimerUpdate) this.onTimerUpdate(this.turnTimer);
+
+                    if (this.turnTimer <= 0) {
+                        this.stopTimer();
+                        this.handleTimeOut();
+                    }
+                }, 1000);
+            }
+
+            stopTimer() {
+                if (this.timerId) {
+                    clearInterval(this.timerId);
+                    this.timerId = null;
+                }
+            }
+
+            handleTimeOut() {
+                if (this.battleEnded) return;
+                this.log('⏰ 制限時間切れ！自動選択します。', 'text-amber-400 font-bold');
+
+                if (!this.p1Action) {
+                    this.p1Action = this.p1.isResting ? 'rest' : (this.p1.eggplantReady ? 'momo_eggplant_burst' : this.p1.skills[0].id);
+                }
+                if (!this.p2Action) {
+                    this.p2Action = this.p2.isResting ? 'rest' : (this.p2.eggplantReady ? 'momo_eggplant_burst' : this.p2.skills[0].id);
+                }
+
+                this.processTurn();
+            }
+
+            submitAction(pNum, skillId) {
+                if (this.battleEnded) return;
+
+                if (pNum === 1) this.p1Action = skillId;
+                if (pNum === 2) this.p2Action = skillId;
+
+                if (!this.isOnline && this.p1Action && !this.p2Action) {
+                    this.p2Action = this.botAdapter.getDecision(this.p2, this.p1);
+                }
+
+                if (this.p1Action && this.p2Action) {
+                    this.stopTimer();
+                    this.processTurn();
+                } else {
+                    if (this.onStateChange) this.onStateChange(this);
+                }
+            }
+
+            processTurn() {
+                if (this.isSuddenDeath) {
+                    this.log(`--- [ ターン ${this.turn} (🔥サドンデス) ] ---`, 'text-red-400 font-bold text-center');
+                } else {
+                    this.log(`--- [ ターン ${this.turn} ] ---`, 'text-slate-400 font-bold text-center');
+                }
+
+                const p1Speed = this.p1.spd + Math.random() * 2;
+                const p2Speed = this.p2.spd + Math.random() * 2;
+
+                let first, second, firstAction, secondAction;
+                if (p1Speed >= p2Speed) {
+                    first = this.p1; firstAction = this.p1Action;
+                    second = this.p2; secondAction = this.p2Action;
+                } else {
+                    first = this.p2; firstAction = this.p2Action;
+                    second = this.p1; secondAction = this.p1Action;
+                }
+
+                // 1st Action
+                this.executePlayerAction(first, second, firstAction);
+                if (this.checkWinner()) return;
+
+                // 2nd Action
+                this.executePlayerAction(second, first, secondAction);
+                if (this.checkWinner()) return;
+
+                this.endTurnPhase();
+            }
+
+            executePlayerAction(attacker, defender, skillId) {
+                if (attacker.hp <= 0) return;
+
+                if (attacker.isResting) {
+                    this.log(`💤 ${attacker.charName} は身を潜めている...`, 'text-slate-400');
+                    return;
+                }
+
+                let skill = null;
+                if (skillId === 'momo_eggplant_burst') {
+                    skill = {
+                        id: 'momo_eggplant_burst',
+                        name: '🍆 超ナス乱舞',
+                        type: 'eggplant_burst',
+                        power: 1.5, // 桃ピンのナス乱舞のダメージ量を減らしました
+                        isNormalAttack: false,
+                        cooldown: 0
+                    };
+                } else if (skillId === 'asaiomizu_copied' && attacker.recordedSkill) {
+                    skill = {
+                        id: 'asaiomizu_copied',
+                        name: `📋【コピー】${attacker.recordedSkill.name}`,
+                        type: attacker.recordedSkill.type || 'attack',
+                        power: attacker.recordedSkill.power || 1.0,
+                        isNormalAttack: false,
+                        cooldown: 0
+                    };
+                } else {
+                    skill = attacker.skills.find(s => s.id === skillId);
+                }
+
+                if (!skill) skill = attacker.skills[0];
+
+                if (skill.cooldown > 0 && skill.id !== 'asaiomizu_copied' && skill.id !== 'momo_eggplant_burst') {
+                    attacker.cooldowns[skill.id] = skill.cooldown + 1;
+                }
+
+                this.applySkill(attacker, defender, skill);
+
+                if (skillId === 'asaiomizu_copied') {
+                    attacker.recordedSkill = null;
+                }
+            }
+
+            applySkill(attacker, defender, skill) {
+                this.log(`💥 ${attacker.charName} の 「${skill.name}」！`, 'text-emerald-300 font-bold');
+
+                // ディグ記憶
+                if (defender.id === 'asaiomizu' && defender.digActive) {
+                    if (skill.type === 'attack' || skill.type === 'special' || skill.type === 'debuff_attack' || skill.type === 'eggplant_burst' || (skill.power && skill.power > 0)) {
+                        defender.recordedSkill = { ...skill };
+                        defender.digActive = false; // コピー完了
+                        this.log(`💡 ${defender.charName} は ${attacker.charName} の「${skill.name}」を記憶（コピー）した！`, 'text-cyan-300 font-bold');
+                    }
+                }
+
+                // パシャ僧 ダークモードチェック
+                if (attacker.id === 'pasha' && !attacker.isDarkMode && attacker.hp <= attacker.maxHp * 0.5) {
+                    attacker.isDarkMode = true;
+                    attacker.buffAtk *= 1.4;
+                    this.log(`😈 パシャ僧のHPが半減！「ダークモード」発動！（攻撃力大幅UP）`, 'text-purple-400 font-bold');
+                    if (this.onVisualEffect) this.onVisualEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'buff', 'DARK MODE');
+                }
+
+                switch (skill.type) {
+                    case 'attack':
+                    case 'special':
+                        this.applyDamageSkill(attacker, defender, skill);
+                        break;
+                    case 'eggplant_burst':
+                        this.log(`🐘 ${attacker.charName} は全パワーを開放してナスを乱射した！！`, 'text-purple-300 font-bold');
+                        this.applyDamageSkill(attacker, defender, skill);
+                        attacker.isMiniZou = false;
+                        attacker.eggplantReady = false;
+                        this.log(`✨ ${attacker.charName} は元の姿に戻った。`, 'text-slate-400');
+                        break;
+                    case 'debuff_attack':
+                        this.applyDamageSkill(attacker, defender, skill);
+                        defender.buffAtk *= 0.82;
+                        defender.buffDef *= 0.82;
+                        this.log(`📉 ${defender.charName} の弱点を突いて攻撃力・防御力を低下させた！`, 'text-cyan-300 font-bold');
+                        if (this.onVisualEffect) this.onVisualEffect(defender === this.p1 ? 'Player' : 'Enemy', 'miss', '能力DOWN');
+                        audioSystem.playHit();
+                        break;
+                    case 'debuff':
+                        defender.buffAtk *= 0.72;
+                        defender.buffDef *= 0.72;
+                        this.log(`🎯 ${attacker.charName} の頭脳戦術が炸裂！ ${defender.charName} の攻撃力と防御力を大幅カット！`, 'text-cyan-300 font-bold');
+                        if (this.onVisualEffect) this.onVisualEffect(defender === this.p1 ? 'Player' : 'Enemy', 'miss', '大幅DOWN');
+                        audioSystem.playBuff();
+                        break;
+                    case 'heal_cleanse':
+                        const hCleanseAmt = Math.floor(attacker.maxHp * (skill.healRate || 0.35));
+                        attacker.hp = Math.min(attacker.maxHp, attacker.hp + hCleanseAmt);
+                        attacker.buffAtk = Math.max(1.0, attacker.buffAtk);
+                        attacker.buffDef = Math.max(1.0, attacker.buffDef);
+                        this.log(`💚 ${attacker.charName} は集中力を高めて HP${hCleanseAmt} 回復！デバフをリセット！`, 'text-emerald-400 font-bold');
+                        if (this.onVisualEffect) this.onVisualEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'heal', `+${hCleanseAmt}`);
+                        audioSystem.playHeal();
+                        break;
+                    case 'dig':
+                        attacker.digActive = true;
+                        attacker.digUsedTurn = this.turn;
+                        this.log(`🕳️ ${attacker.charName} はディグを発動！身を潜めて相手の攻撃を待ち構える！`, 'text-cyan-300 font-bold');
+                        if (this.onVisualEffect) this.onVisualEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'buff', 'ディグ準備');
+                        break;
+                    case 'heal':
+                    case 'heal_club':
+                        const healAmt = Math.floor(attacker.maxHp * (skill.healRate || 0.3));
+                        attacker.hp = Math.min(attacker.maxHp, attacker.hp + healAmt);
+                        this.log(`💚 ${attacker.charName} は HPを ${healAmt} 回復！`, 'text-emerald-400');
+                        if (this.onVisualEffect) this.onVisualEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'heal', `+${healAmt}`);
+                        audioSystem.playHeal();
+                        break;
+                    case 'buff':
+                        if (skill.buffType === 'atk') attacker.buffAtk *= skill.amount || 1.4;
+                        this.log(`⚡ ${attacker.charName} の攻撃力がアップ！`, 'text-amber-300');
+                        if (this.onVisualEffect) this.onVisualEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'buff', '攻撃UP!');
+                        audioSystem.playBuff();
+                        break;
+                    case 'charge':
+                        attacker.isMiniZou = true;
+                        attacker.eggplantReady = true;
+                        this.log(`🐘 ${attacker.charName} は「ミニぞうさん」に変身し、大量のナスを蓄積した！`, 'text-purple-300 font-bold');
+                        this.log(`✨ 次ターン、コマンドから「超ナス乱舞」が手動で発動可能！`, 'text-amber-300 font-bold');
+                        if (this.onCutin) {
+                            this.onCutin('🐘 ゾウ変身＆ナス溜め完了！', '次ターン「超ナス乱舞」が選択可能！');
+                        }
+                        if (this.onVisualEffect) this.onVisualEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'buff', 'ゾウ変身！');
+                        audioSystem.playBuff();
+                        break;
+                    case 'sacrifice_buff':
+                        const cost = Math.floor(attacker.hp * (skill.hpCostRate || 0.2));
+                        attacker.hp = Math.max(1, attacker.hp - cost);
+                        attacker.buffAtk *= 2.3;
+                        this.log(`🔥 ${attacker.charName} は HPを${cost}消費し、攻撃力を2.3倍に跳ね上げた！`, 'text-red-400 font-bold');
+                        if (this.onVisualEffect) this.onVisualEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'buff', '攻撃2.3倍!');
+                        audioSystem.playBuff();
+                        break;
+                    case 'defend_buff':
+                        attacker.defendBuffTurns = 2;
+                        this.log(`🛡️ ${attacker.charName} はゴールキーパー姿勢をとった！(2ターンの間ダメージ70%カット)`, 'text-blue-300 font-bold');
+                        if (this.onVisualEffect) this.onVisualEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'buff', '鉄壁ガード!');
+                        audioSystem.playBuff();
+                        break;
+                    case 'heal_buff':
+                        const hAmt = Math.floor(attacker.maxHp * (skill.healRate || 0.32));
+                        attacker.hp = Math.min(attacker.maxHp, attacker.hp + hAmt);
+                        attacker.buffDef *= 1.35;
+                        this.log(`♨️ ${attacker.charName} は HPを${hAmt}回復し、防御力も高めた！`, 'text-emerald-300');
+                        if (this.onVisualEffect) this.onVisualEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
+                        audioSystem.playHeal();
+                        break;
+                }
+            }
+
+            applyDamageSkill(attacker, defender, skill, isCounter = false) {
+                // N高代表 パッシブ: パシャ僧キラー判定
+                if (attacker.id === 'ndaihyo' && skill.isNormalAttack && defender.id === 'pasha' && !attacker.pashaKillerUsed) {
+                    attacker.pashaKillerUsed = true;
+                    
+                    const killerDamage = Math.max(1, Math.floor(defender.hp * 0.5));
+                    defender.hp = Math.max(0, defender.hp - killerDamage);
+
+                    const targetSide = defender === this.p1 ? 'Player' : 'Enemy';
+
+                    this.log(`🎯💥【パシャ僧キラー発動！！】`, 'text-yellow-300 font-black font-pixel text-sm text-center');
+                    this.log(`N高代表の頭脳分析がパシャ僧の弱点を完全に見破った！ 現在HPの50% (${killerDamage} DMG) を粉砕！！`, 'text-red-400 font-bold');
+
+                    if (this.onCutin) {
+                        this.onCutin('🎯 パシャ僧キラー発動！！', '弱点分析完了！ 現在HP 50% を粉砕！');
+                    }
+                    if (this.onVisualEffect) {
+                        this.onVisualEffect(targetSide, 'damage', `-${killerDamage} (50%)`);
+                    }
+                    audioSystem.playSpecial();
+
+                    return;
+                }
+
+                // 回避判定
+                const hitRate = 100 - (defender.eva || 10);
+                if (Math.random() * 100 > hitRate) {
+                    this.log(`🌀 ${defender.charName} は攻撃を回避した！`, 'text-sky-300');
+                    if (this.onVisualEffect) this.onVisualEffect(defender === this.p1 ? 'Player' : 'Enemy', 'miss', 'MISS');
+                    return;
+                }
+
+                // ダメージ計算
+                let baseDmg = (attacker.atk * (skill.power || 1.0) * attacker.buffAtk) - (defender.def * 0.4 * defender.buffDef);
+                let damage = Math.max(8, Math.floor(baseDmg + (Math.random() * 4 - 2)));
+
+                if (defender.defendBuffTurns > 0) {
+                    damage = Math.max(3, Math.floor(damage * 0.3));
+                    this.log(`🛡 ${defender.charName} の鉄壁ガード！ 被ダメージ激減！`, 'text-blue-300');
+                }
+
+                // サドンデス補正（与えるダメージが1.35倍に少し増加）
+                if (this.isSuddenDeath) {
+                    damage = Math.floor(damage * 1.35);
+                }
+
+                defender.hp = Math.max(0, defender.hp - damage);
+                const side = defender === this.p1 ? 'Player' : 'Enemy';
+                this.log(`⚔ ${defender.charName} に ${damage} のダメージ！${this.isSuddenDeath ? ' (🔥サドンデスUP)' : ''}`, 'text-red-400 font-bold');
+                if (this.onVisualEffect) this.onVisualEffect(side, 'damage', `-${damage}`);
+                audioSystem.playHit();
+
+                // 桃ピン復活パッシブ
+                if (defender.hp <= 0 && defender.id === 'momo' && !defender.momoRevived) {
+                    defender.momoRevived = true;
+                    defender.hp = Math.floor(defender.maxHp * 0.35);
+                    this.log(`✨ 桃ピンは諦めない！要塞の底力でHP ${defender.hp} で復活！！`, 'text-amber-300 font-bold');
+                    if (this.onCutin) {
+                        this.onCutin('✨ ナス要塞不屈の復活！', '桃ピンは倒れない！ HP35%で復活！');
+                    }
+                    if (this.onVisualEffect) this.onVisualEffect(side, 'heal', '不屈復活!!');
+                    audioSystem.playSpecial();
+                    return;
+                }
+
+                // ASAIOMIZU カウンター
+                if (!isCounter && defender.id === 'asaiomizu' && skill.isNormalAttack && defender.hp > 0) {
+                    this.executeCounter(defender, attacker);
+                }
+            }
+
+            executeCounter(counterAttacker, counterTarget) {
+                this.log(`⚡ 【カウンター！】 ASAIOMIZUの自動反撃！！`, 'text-yellow-300 font-bold animate-pulse');
+                
+                const counterSide = counterAttacker === this.p1 ? 'Player' : 'Enemy';
+                const targetSide = counterTarget === this.p1 ? 'Player' : 'Enemy';
+
+                if (this.onVisualEffect) {
+                    this.onVisualEffect(counterSide, 'buff', 'カウンター！');
+                }
+
+                let counterDmg = Math.max(6, Math.floor(counterAttacker.atk * 0.55 * (100 / (100 + counterTarget.def * 0.5))));
+                if (this.isSuddenDeath) {
+                    counterDmg = Math.floor(counterDmg * 1.35);
+                }
+
+                counterTarget.hp = Math.max(0, counterTarget.hp - counterDmg);
+
+                this.log(`💥 カウンターにより ${counterTarget.charName} に ${counterDmg} のダメージ！`, 'text-amber-400 font-bold');
+                if (this.onVisualEffect) {
+                    this.onVisualEffect(targetSide, 'damage', `-${counterDmg}`);
+                }
+                audioSystem.playHit();
+
+                if (counterTarget.hp <= 0 && counterTarget.id === 'momo' && !counterTarget.momoRevived) {
+                    counterTarget.momoRevived = true;
+                    counterTarget.hp = Math.floor(counterTarget.maxHp * 0.35);
+                    this.log(`✨ 桃ピンは諦めない！要塞の底力でHP ${counterTarget.hp} で復活！！`, 'text-amber-300 font-bold');
+                    if (this.onCutin) {
+                        this.onCutin('✨ ナス要塞不屈の復活！', '桃ピンは倒れない！ HP35%で復活！');
+                    }
+                    if (this.onVisualEffect) this.onVisualEffect(targetSide, 'heal', '不屈復活!!');
+                    audioSystem.playSpecial();
+                }
+            }
+
+            endTurnPhase() {
+                [this.p1, this.p2].forEach(p => {
+                    Object.keys(p.cooldowns).forEach(k => {
+                        if (p.cooldowns[k] > 0) p.cooldowns[k]--;
+                    });
+
+                    if (p.defendBuffTurns > 0) p.defendBuffTurns--;
+
+                    if (p.isResting) {
+                        p.isResting = false;
+                    }
+
+                    // ディグ状態の解除判定
+                    if (p.digActive && this.turn > p.digUsedTurn) {
+                        p.digActive = false;
+                    }
+                });
+
+                this.turn++;
+
+                // 長期戦対策：30ターン経過後にサドンデスへ移行
+                if (this.turn > 30 && !this.isSuddenDeath) {
+                    this.isSuddenDeath = true;
+                    this.log(`🔥【サドンデス突入！】 30ターンが経過しました！`, 'text-red-500 font-black text-center font-pixel text-sm animate-pulse');
+                    this.log(`全キャラクターの与えるダメージが少し上昇します！`, 'text-amber-300 font-bold text-center');
+                    if (this.onCutin) {
+                        this.onCutin('🔥 サドンデス突入！', '30ターン経過！ 全キャラの攻撃ダメージ上昇！');
+                    }
+                    audioSystem.playSpecial();
+                }
+
+                this.p1Action = null;
+                this.p2Action = null;
+
+                if (this.onStateChange) this.onStateChange(this);
+                this.startTimer();
+            }
+
+            checkWinner() {
+                if (this.p1.hp <= 0 || this.p2.hp <= 0) {
+                    this.battleEnded = true;
+                    this.stopTimer();
+
+                    let winnerText = '';
+                    if (this.p1.hp > 0 && this.p2.hp <= 0) {
+                        winnerText = `🎉 ${this.p1.charName} (Player 1) の勝利！`;
+                        audioSystem.playVictory();
+                        addDopa(100);
+                    } else if (this.p2.hp > 0 && this.p1.hp <= 0) {
+                        winnerText = `💀 ${this.p2.charName} の勝利！敗北してしまった...`;
+                        audioSystem.playDefeat();
+                    } else {
+                        winnerText = `🤝 引き分け！`;
+                    }
+
+                    this.log(`=============================`, 'text-amber-400');
+                    this.log(winnerText, 'text-xl font-bold text-amber-300 text-center font-pixel');
+                    this.log(`=============================`, 'text-amber-400');
+
+                    if (this.onBattleEnd) this.onBattleEnd(winnerText);
+                    if (this.onStateChange) this.onStateChange(this);
+                    return true;
+                }
+                return false;
+            }
+
+            log(msg, colorClass = '') {
+                if (this.onLogUpdate) this.onLogUpdate(msg, colorClass);
+            }
+
+            destroy() {
+                this.stopTimer();
+            }
+        }
+
+        // ==========================================
+        // SCREEN RENDERERS & EVENT HANDLERS
+        // ==========================================
+        function triggerVisualEffect(side, type, text) {
+            const canvasId = side === 'Player' ? 'p1-canvas' : 'p2-canvas';
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+
+            const pop = document.createElement('div');
+            pop.className = 'absolute font-pixel font-bold text-base sm:text-lg z-30 floating-text pointer-events-none';
+            
+            let color = 'text-white';
+            if (type === 'damage') color = 'text-red-400 drop-shadow-[0_2px_0_rgba(0,0,0,1)]';
+            else if (type === 'heal') color = 'text-emerald-400 drop-shadow-[0_2px_0_rgba(0,0,0,1)]';
+            else if (type === 'buff') color = 'text-amber-300 drop-shadow-[0_2px_0_rgba(0,0,0,1)]';
+            else if (type === 'miss') color = 'text-sky-300 drop-shadow-[0_2px_0_rgba(0,0,0,1)]';
+
+            pop.classList.add(...color.split(' '));
+            pop.innerText = text;
+            pop.style.left = `${canvas.offsetLeft + canvas.offsetWidth / 2 - 20}px`;
+            pop.style.top = `${canvas.offsetTop + 10}px`;
+
+            canvas.parentElement.appendChild(pop);
+            setTimeout(() => pop.remove(), 1100);
+        }
+
+        function triggerCutinBanner(title, subtitle) {
+            const stage = document.getElementById('battle-stage');
+            if (!stage) return;
+
+            const banner = document.createElement('div');
+            banner.className = 'absolute inset-x-0 top-1/3 bg-gradient-to-r from-red-950 via-amber-600 to-red-950 text-white p-3 text-center z-50 shadow-2xl border-y-4 border-amber-300 animate-cutin pointer-events-none';
+            banner.innerHTML = `
+                <div class="font-pixel text-yellow-300 text-lg sm:text-2xl font-black drop-shadow-[0_3px_0_rgba(0,0,0,1)] tracking-widest">
+                    ${title}
+                </div>
+                <div class="text-xs sm:text-sm font-bold text-white mt-1">
+                    ${subtitle}
+                </div>
+            `;
+            stage.appendChild(banner);
+            setTimeout(() => banner.remove(), 1700);
+        }
+
+        function renderHomeScreen() {
+            if (activeBattle) {
+                activeBattle.destroy();
+                activeBattle = null;
+            }
+
+            const container = document.getElementById('screen-container');
+            container.innerHTML = `
+                <div class="flex flex-col items-center justify-center w-full max-w-lg space-y-4 py-4 text-center">
+                    <div class="pixel-box-gold p-4 bg-amber-950/80 w-full mb-2">
+                        <h2 class="text-2xl sm:text-3xl font-bold text-amber-300 font-pixel mb-1">ドパガキングダム RPG</h2>
+                        <p class="text-xs text-amber-200">全キャラ勝利可能な神バランス調整版 EX！</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+                        <button onclick="renderCharacterSelectScreen(false)" class="pixel-btn pixel-btn-primary p-4 text-base font-bold flex flex-col items-center justify-center gap-1">
+                            <span class="text-2xl">🤖</span>
+                            <span>BOT対戦 (ソロ)</span>
+                        </button>
+                        <button onclick="renderCharacterSelectScreen(true)" class="pixel-btn pixel-btn-warning p-4 text-base font-bold flex flex-col items-center justify-center gap-1">
+                            <span class="text-2xl">🌐</span>
+                            <span>オンライン対戦</span>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 w-full">
+                        <button onclick="openGachaModal()" class="pixel-btn pixel-btn-success p-3 text-sm font-bold flex items-center justify-center gap-2">
+                            <span>🎰 ガチャ (100 DOPA)</span>
+                        </button>
+                        <button onclick="openCharacterListModal()" class="pixel-btn p-3 text-sm font-bold flex items-center justify-center gap-2">
+                            <span>📖 キャラクター図鑑</span>
+                        </button>
+                    </div>
+
+                    <div class="pixel-box p-3 bg-slate-900 text-left w-full text-xs text-slate-300 space-y-1">
+                        <p class="text-amber-400 font-bold">🎓 新キャラ「N高代表」特徴:</p>
+                        <p>・頭脳派クリケット代表！弱点分析で相手の攻防を下げて優位に立つ。</p>
+                        <p>・パッシブ【パシャ僧キラー】: 対パシャ僧に通常攻撃で相手の現在HP 50% を即粉砕！(1試合1回)</p>
+                        <p class="text-red-400 font-bold mt-1">🔥 30ターン長期戦対策搭載:</p>
+                        <p>・30ターン経過でサドンデス突入！攻撃ダメージが上昇し決着を加速！</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderCharacterSelectScreen(isOnline = false) {
+            audioSystem.playSelect();
+            const container = document.getElementById('screen-container');
+
+            let html = `
+                <div class="w-full flex flex-col items-center">
+                    <h2 class="text-lg font-bold text-amber-300 font-pixel mb-3">
+                        ${isOnline ? '🌐 オンライン対戦 - 自キャラ選択' : '🤖 BOT対戦 - キャラ選択'}
+                    </h2>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full mb-4">
+            `;
+
+            Object.values(CHARACTER_DATA).forEach(c => {
+                const isUnlocked = playerState.unlockedChars.includes(c.id);
+                const isSelected = playerState.selectedPlayerChar === c.id;
+
+                html += `
+                    <div onclick="${isUnlocked ? `selectChar('${c.id}', ${isOnline})` : `openCharDetail('${c.id}')`}" 
+                         class="pixel-box p-2 bg-slate-900 cursor-pointer flex flex-col items-center justify-between border-2 transition-all ${isSelected ? 'border-amber-400 bg-amber-950/40 scale-105' : 'border-slate-700 hover:border-slate-400'} ${!isUnlocked ? 'opacity-60' : ''}">
+                        <canvas id="select-cvs-${c.id}" width="70" height="70" class="pixel-box bg-slate-950 mb-1"></canvas>
+                        <span class="text-xs font-bold ${isSelected ? 'text-amber-300 font-pixel' : 'text-slate-200'}">${c.name}</span>
+                        <span class="text-[10px] text-slate-400">${c.title}</span>
+                        ${!isUnlocked ? '<span class="text-[10px] text-red-400 font-bold mt-1">🔒 未解放</span>' : ''}
+                    </div>
+                `;
+            });
+
+            html += `
+                    </div>
+
+                    <div id="char-detail-box" class="pixel-box p-3 bg-slate-900 w-full mb-4 text-xs text-slate-300">
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button onclick="renderHomeScreen()" class="pixel-btn px-4 py-2 text-xs">戻る</button>
+                        <button onclick="${isOnline ? 'openOnlineLobby()' : 'startBotBattle()'}" class="pixel-btn pixel-btn-primary px-6 py-2 text-sm font-bold">
+                            ${isOnline ? 'ロビーへ進む 🚀' : '対戦開始！ ⚔️️'}
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+
+            setTimeout(() => {
+                Object.keys(CHARACTER_DATA).forEach(id => {
+                    const cvs = document.getElementById(`select-cvs-${id}`);
+                    if (cvs) CharacterRenderer.drawCharacter(cvs, id);
+                });
+                updateCharDetailBox();
+            }, 50);
+        }
+
+        function selectChar(id, isOnline) {
+            audioSystem.playSelect();
+            playerState.selectedPlayerChar = id;
+            renderCharacterSelectScreen(isOnline);
+        }
+
+        function updateCharDetailBox() {
+            const id = playerState.selectedPlayerChar;
+            const c = CHARACTER_DATA[id];
+            const box = document.getElementById('char-detail-box');
+            if (box && c) {
+                box.innerHTML = `
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-bold text-amber-300 text-sm">${c.name} (${c.title})</span>
+                        <span class="text-emerald-400 font-mono">HP:${c.hp} / 攻:${c.atk} / 防:${c.def} / 速:${c.spd} / 避:${c.eva}%</span>
+                    </div>
+                    <p class="text-slate-300 mb-1">${c.desc}</p>
+                    <div class="text-[11px] text-amber-200 font-mono">
+                        技: ${c.skills.map(s => s.name).join(' / ')}
+                    </div>
+                `;
+            }
+        }
+
+        function startBotBattle() {
+            audioSystem.playSelect();
+            const ids = Object.keys(CHARACTER_DATA);
+            const enemyId = ids[Math.floor(Math.random() * ids.length)];
+            playerState.selectedEnemyChar = enemyId;
+            launchBattle(playerState.selectedPlayerChar, enemyId, false);
+        }
+
+        function openOnlineLobby() {
+            audioSystem.playSelect();
+            renderOnlineLobbyScreen();
+        }
+
+        function renderOnlineLobbyScreen() {
+            const container = document.getElementById('screen-container');
+            container.innerHTML = `
+                <div class="flex flex-col items-center justify-center w-full max-w-md space-y-4 py-4">
+                    <h2 class="text-lg font-bold text-amber-300 font-pixel">🌐 オンラインロビー</h2>
+
+                    <div class="pixel-box p-4 bg-slate-900 w-full space-y-3">
+                        <p class="text-xs text-slate-300">部屋を作成するか、ルームIDを入力して参加してください。</p>
+                        
+                        <div class="flex gap-2">
+                            <input id="room-id-input" type="text" placeholder="ルームID (例: 1234)" class="pixel-box bg-slate-950 px-3 py-2 text-sm font-mono w-full text-white border-slate-700 focus:border-amber-400 outline-none">
+                            <button onclick="joinOnlineRoom()" class="pixel-btn pixel-btn-success text-xs px-4 py-2 font-bold whitespace-nowrap">参加</button>
+                        </div>
+
+                        <div class="relative flex py-1 items-center">
+                            <div class="flex-grow border-t border-slate-700"></div>
+                            <span class="flex-shrink mx-2 text-slate-500 text-xs">または</span>
+                            <div class="flex-grow border-t border-slate-700"></div>
+                        </div>
+
+                        <button onclick="createOnlineRoom()" class="pixel-btn pixel-btn-primary w-full py-2 text-sm font-bold">新規ルーム作成 🎲</button>
+                    </div>
+
+                    <div id="lobby-status" class="text-xs text-amber-300 font-mono min-h-[20px]"></div>
+
+                    <button onclick="renderCharacterSelectScreen(true)" class="pixel-btn text-xs px-4 py-2">戻る</button>
+                </div>
+            `;
+        }
+
+        async function createOnlineRoom() {
+            audioSystem.playSelect();
+            const status = document.getElementById('lobby-status');
+            if (status) status.innerText = '接続中...';
+
+            const ready = await window.initFirebaseOnline();
+            if (!ready) {
+                if (status) status.innerText = '通信エラー: オフラインモードに切り替えます。';
+                setTimeout(() => startBotBattle(), 1000);
+                return;
+            }
+
+            const roomId = Math.floor(1000 + Math.random() * 9000).toString();
+            const roomRef = window.fbDoc(window.fbDb, 'artifacts', window.fbAppId, 'public', 'data', 'rooms', roomId);
+
+            try {
+                await window.fbSetDoc(roomRef, {
+                    roomId: roomId,
+                    p1Char: playerState.selectedPlayerChar,
+                    p2Char: null,
+                    p1Action: null,
+                    p2Action: null,
+                    status: 'waiting',
+                    createdAt: Date.now()
+                });
+
+                if (status) status.innerText = `ルーム作成成功！ ID: [ ${roomId} ] 相手の参加を待っています...`;
+
+                window.fbOnSnapshot(roomRef, (snapshot) => {
+                    const data = snapshot.data();
+                    if (data && data.status === 'playing' && data.p2Char) {
+                        launchBattle(data.p1Char, data.p2Char, true);
+                    }
+                }, (err) => console.error(err));
+
+            } catch (e) {
+                console.error(e);
+                if (status) status.innerText = 'ルーム作成エラー';
+            }
+        }
+
+        async function joinOnlineRoom() {
+            audioSystem.playSelect();
+            const input = document.getElementById('room-id-input');
+            const status = document.getElementById('lobby-status');
+            const roomId = input ? input.value.trim() : '';
+
+            if (!roomId) {
+                if (status) status.innerText = 'ルームIDを入力してください。';
+                return;
+            }
+
+            if (status) status.innerText = '接続中...';
+
+            const ready = await window.initFirebaseOnline();
+            if (!ready) {
+                if (status) status.innerText = '通信エラー';
+                return;
+            }
+
+            const roomRef = window.fbDoc(window.fbDb, 'artifacts', window.fbAppId, 'public', 'data', 'rooms', roomId);
+            try {
+                const snap = await window.fbGetDoc(roomRef);
+                if (!snap.exists()) {
+                    if (status) status.innerText = '指定されたルームが存在しません。';
+                    return;
+                }
+
+                await window.fbUpdateDoc(roomRef, {
+                    p2Char: playerState.selectedPlayerChar,
+                    status: 'playing'
+                });
+
+                if (status) status.innerText = '対戦を開始します！';
+                const data = snap.data();
+                launchBattle(data.p1Char, playerState.selectedPlayerChar, true);
+
+            } catch (e) {
+                console.error(e);
+                if (status) status.innerText = '参加エラー';
+            }
+        }
+
+        function launchBattle(p1Id, p2Id, isOnline = false) {
+            if (activeBattle) {
+                activeBattle.destroy();
+                activeBattle = null;
+            }
+
+            const container = document.getElementById('screen-container');
+            container.innerHTML = `
+                <div id="battle-stage" class="w-full flex flex-col items-center relative transition-colors duration-200">
+                    <div class="w-full grid grid-cols-2 gap-3 mb-2">
+                        <div class="pixel-box p-2 bg-slate-900/90 relative">
+                            <div class="flex justify-between items-center mb-1">
+                                <span id="p1-name-label" class="font-bold text-xs sm:text-sm text-blue-300 font-pixel">Player 1</span>
+                                <span id="p1-hp-text" class="text-xs font-mono font-bold text-slate-200">100/100</span>
+                            </div>
+                            <div class="w-full bg-slate-950 h-3 rounded-sm border border-slate-700 overflow-hidden p-0.5">
+                                <div id="p1-hp-bar" class="hp-bar-fill h-full bg-emerald-500 rounded-sm" style="width: 100%;"></div>
+                            </div>
+                        </div>
+                        <div class="pixel-box p-2 bg-slate-900/90 relative">
+                            <div class="flex justify-between items-center mb-1">
+                                <span id="p2-name-label" class="font-bold text-xs sm:text-sm text-red-300 font-pixel">Enemy</span>
+                                <span id="p2-hp-text" class="text-xs font-mono font-bold text-slate-200">100/100</span>
+                            </div>
+                            <div class="w-full bg-slate-950 h-3 rounded-sm border border-slate-700 overflow-hidden p-0.5">
+                                <div id="p2-hp-bar" class="hp-bar-fill h-full bg-emerald-500 rounded-sm" style="width: 100%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="w-full grid grid-cols-2 gap-4 my-1 relative items-center justify-items-center">
+                        <div class="relative flex flex-col items-center">
+                            <canvas id="p1-canvas" width="120" height="120" class="pixel-box bg-slate-950 shadow-lg"></canvas>
+                        </div>
+                        <div class="relative flex flex-col items-center">
+                            <canvas id="p2-canvas" width="120" height="120" class="pixel-box bg-slate-950 shadow-lg"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="my-1 flex items-center justify-between w-full px-2">
+                        <button onclick="confirmRetireBattle()" class="pixel-btn pixel-btn-danger text-xs px-2 py-1 flex items-center gap-1 font-bold">
+                            <span>🏳️ 降参する</span>
+                        </button>
+                        <div class="flex items-center justify-center gap-1">
+                            <span class="text-xs font-bold text-slate-400">制限時間:</span>
+                            <span id="turn-timer-display" class="font-pixel text-lg font-bold text-amber-400">15</span>
+                            <span class="text-xs text-slate-400">秒</span>
+                        </div>
+                        <div class="w-16"></div>
+                    </div>
+
+                    <div id="battle-log-box" class="pixel-box p-3 bg-slate-950 w-full h-28 overflow-y-auto my-1 text-xs font-mono space-y-1 border-slate-700">
+                    </div>
+
+                    <div id="command-panel" class="w-full mt-1">
+                        <div id="skill-buttons-grid" class="grid grid-cols-2 gap-2">
+                        </div>
+                    </div>
+
+                    <div id="battle-footer-actions" class="mt-3 flex justify-center hidden">
+                        <button onclick="renderHomeScreen()" class="pixel-btn pixel-btn-primary px-8 py-2 font-pixel text-sm">ホームに戻る</button>
+                    </div>
+                </div>
+            `;
+
+            activeBattle = new BattleEngine(p1Id, p2Id, isOnline, 1);
+
+            activeBattle.onLogUpdate = (msg, colorClass) => {
+                const logBox = document.getElementById('battle-log-box');
+                if (logBox) {
+                    const line = document.createElement('div');
+                    line.className = colorClass || 'text-slate-200';
+                    line.innerHTML = msg;
+                    logBox.appendChild(line);
+                    logBox.scrollTop = logBox.scrollHeight;
+                }
+            };
+
+            activeBattle.onTimerUpdate = (sec) => {
+                const timerEl = document.getElementById('turn-timer-display');
+                if (timerEl) {
+                    timerEl.innerText = sec;
+                    if (sec <= 5) timerEl.className = 'font-pixel text-lg font-bold text-red-500 animate-ping';
+                    else timerEl.className = 'font-pixel text-lg font-bold text-amber-400';
+                }
+            };
+
+            activeBattle.onStateChange = (engine) => {
+                updateBattleUI();
+            };
+
+            activeBattle.onVisualEffect = (side, type, text) => {
+                triggerVisualEffect(side, type, text);
+            };
+
+            activeBattle.onCutin = (title, subtitle) => {
+                triggerCutinBanner(title, subtitle);
+            };
+
+            activeBattle.onBattleEnd = (winner) => {
+                const footer = document.getElementById('battle-footer-actions');
+                if (footer) footer.classList.remove('hidden');
+                updateBattleUI();
+            };
+
+            activeBattle.startBattle();
+            updateBattleUI();
+        }
+
+        function updateBattleUI() {
+            if (!activeBattle) return;
+
+            const p1 = activeBattle.p1;
+            const p2 = activeBattle.p2;
+
+            const p1Label = document.getElementById('p1-name-label');
+            const p2Label = document.getElementById('p2-name-label');
+            
+            let p1StatusExtra = p1.digActive ? ' (ディグ中)' : (p1.isResting ? ' (休み)' : (p1.eggplantReady ? ' (ゾウ変身中)' : (p1.defendBuffTurns > 0 ? ' (鉄壁)' : '')));
+            let p2StatusExtra = p2.digActive ? ' (ディグ中)' : (p2.isResting ? ' (休み)' : (p2.eggplantReady ? ' (ゾウ変身中)' : (p2.defendBuffTurns > 0 ? ' (鉄壁)' : '')));
+
+            if (p1Label) p1Label.innerText = `${p1.charName}${p1StatusExtra}`;
+            if (p2Label) p2Label.innerText = `${p2.charName}${p2StatusExtra}`;
+
+            const p1HpText = document.getElementById('p1-hp-text');
+            const p2HpText = document.getElementById('p2-hp-text');
+            if (p1HpText) p1HpText.innerText = `${p1.hp}/${p1.maxHp}`;
+            if (p2HpText) p2HpText.innerText = `${p2.hp}/${p2.maxHp}`;
+
+            const p1Bar = document.getElementById('p1-hp-bar');
+            const p2Bar = document.getElementById('p2-hp-bar');
+            if (p1Bar) p1Bar.style.width = `${Math.max(0, (p1.hp / p1.maxHp) * 100)}%`;
+            if (p2Bar) p2Bar.style.width = `${Math.max(0, (p2.hp / p2.maxHp) * 100)}%`;
+
+            const c1 = document.getElementById('p1-canvas');
+            const c2 = document.getElementById('p2-canvas');
+            if (c1) CharacterRenderer.drawCharacter(c1, p1.id, p1.isMiniZou);
+            if (c2) CharacterRenderer.drawCharacter(c2, p2.id, p2.isMiniZou);
+
+            const grid = document.getElementById('skill-buttons-grid');
+            if (!grid) return;
+
+            if (activeBattle.battleEnded) {
+                grid.innerHTML = '<div class="col-span-2 text-center text-xs text-amber-300 font-bold py-2">対戦終了</div>';
+                return;
+            }
+
+            if (p1.isResting) {
+                grid.innerHTML = '<div class="col-span-2 text-center text-xs text-cyan-300 font-bold py-3 bg-slate-900 border border-slate-700">🕳️ 身を潜めている... (行動不能)</div>';
+                return;
+            }
+
+            let buttonsHtml = '';
+
+            // ナス準備完了時の専用技ボタン
+            if (p1.eggplantReady) {
+                buttonsHtml += `
+                    <button onclick="activeBattle.submitAction(1, 'momo_eggplant_burst')" class="pixel-btn pixel-btn-purple p-3 font-bold text-xs col-span-2 flex flex-col items-center justify-center">
+                        <span class="text-sm font-pixel text-yellow-300">🍆 超ナス乱舞 (解禁！)</span>
+                        <span class="text-[10px] text-purple-200">蓄積したナスを一斉噴射！特大威力攻撃！</span>
+                    </button>
+                `;
+            } else if (p1.recordedSkill) {
+                // ASAIOMIZU ディグコピー技ボタン
+                buttonsHtml += `
+                    <button onclick="activeBattle.submitAction(1, 'asaiomizu_copied')" class="pixel-btn pixel-btn-warning p-2 font-bold text-xs col-span-2 flex flex-col items-center justify-center">
+                        <span class="text-xs font-pixel text-yellow-300">📋 【コピー技】${p1.recordedSkill.name}</span>
+                        <span class="text-[10px] text-amber-100">相手から記憶した技をそのまま繰り出す！</span>
+                    </button>
+                `;
+            }
+
+            p1.skills.forEach(s => {
+                const cd = p1.cooldowns[s.id] || 0;
+                const isDisabled = cd > 0;
+                const btnClass = isDisabled ? 'pixel-btn-disabled' : (s.isNormalAttack ? 'pixel-btn-primary' : 'pixel-btn');
+
+                buttonsHtml += `
+                    <button onclick="${isDisabled ? '' : `activeBattle.submitAction(1, '${s.id}')`}" 
+                            class="pixel-btn ${btnClass} p-2 text-left flex flex-col justify-between min-h-[58px]">
+                        <div class="flex justify-between items-center w-full">
+                            <span class="font-bold text-xs">${s.name}</span>
+                            ${cd > 0 ? `<span class="text-[10px] bg-slate-950 px-1 py-0.5 rounded text-amber-400 font-mono">CT:${cd}</span>` : ''}
+                        </div>
+                        <span class="text-[10px] opacity-80 line-clamp-1">${s.desc}</span>
+                    </button>
+                `;
+            });
+
+            grid.innerHTML = buttonsHtml;
+        }
+
+        // Initialize App on DOM Ready
+        window.addEventListener('DOMContentLoaded', () => {
+            loadPlayerState();
+            renderHomeScreen();
+        });
+    </script>
+</body>
+</html>
