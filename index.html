@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ドパガキングダム RPG EX</title>
-    <!-- Tailwind CSS for layout utility -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Pixel Font Import -->
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=DotGothic16&display=swap" rel="stylesheet">
     <!-- Firebase Standard Imports for Online Multiplayer -->
     <script type="module">
@@ -14,7 +12,6 @@
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot, deleteDoc, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Global Firebase state & configs
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'dopa-kingdom-rpg';
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
             apiKey: "dummy-key",
@@ -72,7 +69,6 @@
             font-family: 'Press Start 2P', 'DotGothic16', cursive;
         }
 
-        /* Retro NES/SNES Style Frame Borders */
         .pixel-box {
             background-color: #000000;
             border: 4px solid #ffffff;
@@ -100,7 +96,6 @@
             border-radius: 4px;
         }
 
-        /* Retro Button Styles */
         .pixel-btn {
             background: linear-gradient(to bottom, #4a5568, #2d3748);
             border: 3px solid #e2e8f0;
@@ -167,18 +162,15 @@
             transform: none !important;
         }
 
-        /* Dynamic HP Bar Transitions */
         .hp-bar-fill {
             transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.4s ease;
         }
 
-        /* Canvas Smooth Pixelation */
         canvas {
             image-rendering: pixelated;
             image-rendering: crisp-edges;
         }
 
-        /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -190,7 +182,6 @@
             border-radius: 4px;
         }
 
-        /* Retro Animations */
         @keyframes pop-float {
             0% { transform: translateY(0) scale(0.8); opacity: 0; }
             20% { transform: translateY(-10px) scale(1.2); opacity: 1; }
@@ -214,14 +205,13 @@
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-2 sm:p-4 bg-slate-950">
 
-    <!-- MAIN CONTAINER -->
-    <div id="app" class="w-full max-w-4xl min-h-[660px] flex flex-col justify-between pixel-box-dark relative overflow-hidden p-3 sm:p-5">
+    <div id="app" class="w-full max-w-4xl min-h-[720px] flex flex-col justify-between pixel-box-dark relative overflow-hidden p-3 sm:p-5">
         
         <!-- HEADER / TOP STATUS BAR -->
         <header class="w-full pixel-box p-3 mb-3 flex flex-wrap items-center justify-between gap-2 bg-slate-900">
             <div class="flex items-center gap-3">
                 <span class="text-xl sm:text-2xl text-amber-400 font-bold tracking-wider font-pixel cursor-pointer" onclick="renderHomeScreen()">👑 ドパガキングダム</span>
-                <span class="text-xs bg-slate-800 text-amber-300 px-2 py-0.5 rounded border border-amber-600 font-bold">Ver 2.2 EX</span>
+                <span class="text-xs bg-slate-800 text-amber-300 px-2 py-0.5 rounded border border-amber-600 font-bold">Ver 2.3 EX</span>
             </div>
             <div class="flex items-center gap-3">
                 <div class="pixel-box-gold px-3 py-1 flex items-center gap-2">
@@ -261,9 +251,6 @@
     </div>
 
     <script>
-        // ==========================================
-        // 2D PIXEL ART CHARACTER RENDERER
-        // ==========================================
         class CharacterRenderer {
             static drawCharacter(canvas, charId, isMiniZou = false) {
                 if (!canvas) return;
@@ -296,184 +283,83 @@
                 }
 
                 switch (charId) {
-                    case 'ndaihyo':
-                        this.drawNdaihyo(drawPx);
-                        break;
-                    case 'pasha':
-                        this.drawPasha(drawPx);
-                        break;
-                    case 'iwaba':
-                        this.drawIwaba(drawPx);
-                        break;
-                    case 'momo':
-                        this.drawMomo(drawPx);
-                        break;
-                    case 'moenan':
-                        this.drawMoenan(drawPx);
-                        break;
-                    case 'asaiomizu':
-                        this.drawAsaiomizu(drawPx);
-                        break;
-                    default:
-                        this.drawGeneric(drawPx);
+                    case 'ndaihyo': this.drawNdaihyo(drawPx); break;
+                    case 'pasha': this.drawPasha(drawPx); break;
+                    case 'iwaba': this.drawIwaba(drawPx); break;
+                    case 'momo': this.drawMomo(drawPx); break;
+                    case 'moenan': this.drawMoenan(drawPx); break;
+                    case 'asaiomizu': this.drawAsaiomizu(drawPx); break;
+                    default: this.drawGeneric(drawPx);
                 }
             }
 
             static drawNdaihyo(p) {
-                for (let y = 14; y <= 27; y++) {
-                    for (let x = 9; x <= 22; x++) p(x, y, '#1e293b');
-                }
+                for (let y = 14; y <= 27; y++) { for (let x = 9; x <= 22; x++) p(x, y, '#1e293b'); }
                 for (let y = 14; y <= 24; y++) p(15, y, '#ffffff', 2, 1);
                 p(15, 16, '#ef4444', 2, 3);
-
-                for (let y = 6; y <= 13; y++) {
-                    for (let x = 10; x <= 21; x++) p(x, y, '#fde047');
-                }
+                for (let y = 6; y <= 13; y++) { for (let x = 10; x <= 21; x++) p(x, y, '#fde047'); }
                 for (let x = 9; x <= 22; x++) p(x, 5, '#0f172a');
-                for (let y = 6; y <= 9; y++) {
-                    p(9, y, '#0f172a');
-                    p(22, y, '#0f172a');
-                }
+                for (let y = 6; y <= 9; y++) { p(9, y, '#0f172a'); p(22, y, '#0f172a'); }
                 p(12, 6, '#0f172a', 3, 2);
-
-                p(11, 8, '#38bdf8', 3, 2);
-                p(17, 8, '#38bdf8', 3, 2);
-                p(14, 8, '#94a3b8', 3, 1);
-
-                for (let i = 0; i < 9; i++) {
-                    p(6 - Math.floor(i/3), 21 - i, '#b45309', 2, 2);
-                }
+                p(11, 8, '#38bdf8', 3, 2); p(17, 8, '#38bdf8', 3, 2); p(14, 8, '#94a3b8', 3, 1);
+                for (let i = 0; i < 9; i++) { p(6 - Math.floor(i/3), 21 - i, '#b45309', 2, 2); }
                 p(6, 22, '#f87171', 2, 3);
             }
 
             static drawPasha(p) {
-                for (let y = 14; y <= 28; y++) {
-                    for (let x = 8; x <= 23; x++) p(x, y, '#2e1065');
-                }
+                for (let y = 14; y <= 28; y++) { for (let x = 8; x <= 23; x++) p(x, y, '#2e1065'); }
                 for (let x = 8; x <= 23; x++) p(x, 28, '#f59e0b');
                 for (let y = 14; y <= 28; y++) p(15, y, '#f59e0b');
-
-                for (let y = 6; y <= 13; y++) {
-                    for (let x = 11; x <= 20; x++) p(x, y, '#fde047');
-                }
-
+                for (let y = 6; y <= 13; y++) { for (let x = 11; x <= 20; x++) p(x, y, '#fde047'); }
                 for (let x = 10; x <= 21; x++) p(x, 5, '#1e1b4b');
-                for (let y = 6; y <= 11; y++) {
-                    p(10, y, '#1e1b4b');
-                    p(21, y, '#1e1b4b');
-                }
-                p(15, 6, '#1e1b4b');
-                p(15, 7, '#1e1b4b');
-
-                p(13, 9, '#ef4444');
-                p(18, 9, '#ef4444');
-
-                p(6, 16, '#38bdf8', 3, 5);
-                p(7, 17, '#ffffff', 1, 3);
-
-                p(22, 16, '#94a3b8', 3, 3);
-                p(23, 15, '#c084fc', 2, 2);
+                for (let y = 6; y <= 11; y++) { p(10, y, '#1e1b4b'); p(21, y, '#1e1b4b'); }
+                p(15, 6, '#1e1b4b'); p(15, 7, '#1e1b4b');
+                p(13, 9, '#ef4444'); p(18, 9, '#ef4444');
+                p(6, 16, '#38bdf8', 3, 5); p(7, 17, '#ffffff', 1, 3);
+                p(22, 16, '#94a3b8', 3, 3); p(23, 15, '#c084fc', 2, 2);
             }
 
             static drawIwaba(p) {
-                for (let y = 14; y <= 27; y++) {
-                    for (let x = 9; x <= 22; x++) p(x, y, '#15803d');
-                }
-                for (let y = 15; y <= 26; y++) {
-                    p(9, y, '#f97316', 3, 1);
-                    p(20, y, '#f97316', 3, 1);
-                }
-
-                for (let y = 6; y <= 13; y++) {
-                    for (let x = 10; x <= 21; x++) p(x, y, '#4ade80');
-                }
-
+                for (let y = 14; y <= 27; y++) { for (let x = 9; x <= 22; x++) p(x, y, '#15803d'); }
+                for (let y = 15; y <= 26; y++) { p(9, y, '#f97316', 3, 1); p(20, y, '#f97316', 3, 1); }
+                for (let y = 6; y <= 13; y++) { for (let x = 10; x <= 21; x++) p(x, y, '#4ade80'); }
                 for (let x = 9; x <= 22; x++) p(x, 5, '#94a3b8');
-                for (let y = 6; y <= 10; y++) {
-                    p(9, y, '#94a3b8');
-                    p(22, y, '#94a3b8');
-                }
+                for (let y = 6; y <= 10; y++) { p(9, y, '#94a3b8'); p(22, y, '#94a3b8'); }
                 p(15, 6, '#475569');
-
-                p(12, 8, '#000000', 8, 3);
-                p(13, 9, '#38bdf8', 2, 1);
-                p(17, 9, '#38bdf8', 2, 1);
-
-                p(13, 14, '#facc15', 6, 2);
-                p(6, 17, '#64748b', 3, 4);
+                p(12, 8, '#000000', 8, 3); p(13, 9, '#38bdf8', 2, 1); p(17, 9, '#38bdf8', 2, 1);
+                p(13, 14, '#facc15', 6, 2); p(6, 17, '#64748b', 3, 4);
             }
 
             static drawMomo(p) {
-                for (let y = 13; y <= 28; y++) {
-                    for (let x = 7; x <= 24; x++) p(x, y, '#ec4899');
-                }
-                for (let y = 15; y <= 26; y++) {
-                    for (let x = 12; x <= 19; x++) p(x, y, '#be185d');
-                }
+                for (let y = 13; y <= 28; y++) { for (let x = 7; x <= 24; x++) p(x, y, '#ec4899'); }
+                for (let y = 15; y <= 26; y++) { for (let x = 12; x <= 19; x++) p(x, y, '#be185d'); }
                 p(14, 18, '#fef08a', 4, 4);
-
-                for (let y = 5; y <= 12; y++) {
-                    for (let x = 10; x <= 21; x++) p(x, y, '#fbcfe8');
-                }
+                for (let y = 5; y <= 12; y++) { for (let x = 10; x <= 21; x++) p(x, y, '#fbcfe8'); }
                 for (let x = 9; x <= 22; x++) p(x, 4, '#db2777');
-                for (let y = 5; y <= 9; y++) {
-                    p(9, y, '#db2777');
-                    p(22, y, '#db2777');
-                }
+                for (let y = 5; y <= 9; y++) { p(9, y, '#db2777'); p(22, y, '#db2777'); }
                 p(15, 5, '#9d174d');
-
-                p(12, 8, '#831843', 2, 2);
-                p(18, 8, '#831843', 2, 2);
-
-                p(5, 14, '#7e22ce', 3, 4);
-                p(6, 13, '#22c55e', 2, 1);
+                p(12, 8, '#831843', 2, 2); p(18, 8, '#831843', 2, 2);
+                p(5, 14, '#7e22ce', 3, 4); p(6, 13, '#22c55e', 2, 1);
             }
 
             static drawMiniZou(p) {
-                for (let y = 10; y <= 26; y++) {
-                    for (let x = 8; x <= 24; x++) p(x, y, '#60a5fa');
-                }
-                for (let y = 8; y <= 18; y++) {
-                    p(4, y, '#93c5fd', 4, 1);
-                    p(24, y, '#93c5fd', 4, 1);
-                }
-                p(12, 12, '#1e3a8a', 2, 3);
-                p(20, 12, '#1e3a8a', 2, 3);
-                p(13, 13, '#ffffff', 1, 1);
-                p(21, 13, '#ffffff', 1, 1);
-
-                p(15, 16, '#3b82f6', 3, 7);
-                p(16, 21, '#3b82f6', 4, 3);
-
-                p(20, 20, '#7e22ce', 4, 5);
-                p(21, 19, '#22c55e', 2, 1);
+                for (let y = 10; y <= 26; y++) { for (let x = 8; x <= 24; x++) p(x, y, '#60a5fa'); }
+                for (let y = 8; y <= 18; y++) { p(4, y, '#93c5fd', 4, 1); p(24, y, '#93c5fd', 4, 1); }
+                p(12, 12, '#1e3a8a', 2, 3); p(20, 12, '#1e3a8a', 2, 3);
+                p(13, 13, '#ffffff', 1, 1); p(21, 13, '#ffffff', 1, 1);
+                p(15, 16, '#3b82f6', 3, 7); p(16, 21, '#3b82f6', 4, 3);
+                p(20, 20, '#7e22ce', 4, 5); p(21, 19, '#22c55e', 2, 1);
             }
 
             static drawMoenan(p) {
-                for (let y = 14; y <= 27; y++) {
-                    for (let x = 10; x <= 21; x++) p(x, y, '#991b1b');
-                }
+                for (let y = 14; y <= 27; y++) { for (let x = 10; x <= 21; x++) p(x, y, '#991b1b'); }
                 p(13, 16, '#f87171', 6, 2);
-
-                for (let y = 7; y <= 13; y++) {
-                    for (let x = 10; x <= 21; x++) p(x, y, '#ffedd5');
-                }
-
-                p(15, 1, '#ef4444', 2, 6);
-                p(15, 1, '#fde047', 2, 2);
-                p(11, 3, '#ef4444', 3, 5);
-                p(8, 5, '#ef4444', 3, 4);
-                p(7, 4, '#fde047', 2, 2);
-                p(18, 3, '#ef4444', 3, 5);
-                p(21, 5, '#ef4444', 3, 4);
-                p(22, 4, '#fde047', 2, 2);
-
-                p(12, 9, '#000000', 3, 2);
-                p(17, 9, '#000000', 3, 2);
-                p(13, 9, '#ef4444', 1, 1);
-
-                p(7, 18, '#dc2626', 3, 3);
-                p(22, 18, '#dc2626', 3, 3);
+                for (let y = 7; y <= 13; y++) { for (let x = 10; x <= 21; x++) p(x, y, '#ffedd5'); }
+                p(15, 1, '#ef4444', 2, 6); p(15, 1, '#fde047', 2, 2);
+                p(11, 3, '#ef4444', 3, 5); p(8, 5, '#ef4444', 3, 4); p(7, 4, '#fde047', 2, 2);
+                p(18, 3, '#ef4444', 3, 5); p(21, 5, '#ef4444', 3, 4); p(22, 4, '#fde047', 2, 2);
+                p(12, 9, '#000000', 3, 2); p(17, 9, '#000000', 3, 2); p(13, 9, '#ef4444', 1, 1);
+                p(7, 18, '#dc2626', 3, 3); p(22, 18, '#dc2626', 3, 3);
             }
 
             static drawAsaiomizu(p) {
@@ -483,38 +369,20 @@
                         else p(x, y, '#451a03');
                     }
                 }
-                p(7, 4, '#78350f', 2, 2);
-                p(23, 4, '#78350f', 2, 2);
-                p(6, 6, '#451a03', 2, 3);
-                p(24, 6, '#451a03', 2, 3);
-
-                for (let y = 9; y <= 15; y++) {
-                    for (let x = 10; x <= 21; x++) p(x, y, '#fed7aa');
-                }
-
-                p(12, 11, '#000000', 2, 2);
-                p(18, 11, '#000000', 2, 1);
-                p(15, 13, '#f43f5e', 2, 1);
-
-                for (let y = 16; y <= 27; y++) {
-                    for (let x = 9; x <= 22; x++) p(x, y, '#0284c7');
-                }
+                p(7, 4, '#78350f', 2, 2); p(23, 4, '#78350f', 2, 2);
+                p(6, 6, '#451a03', 2, 3); p(24, 6, '#451a03', 2, 3);
+                for (let y = 9; y <= 15; y++) { for (let x = 10; x <= 21; x++) p(x, y, '#fed7aa'); }
+                p(12, 11, '#000000', 2, 2); p(18, 11, '#000000', 2, 1); p(15, 13, '#f43f5e', 2, 1);
+                for (let y = 16; y <= 27; y++) { for (let x = 9; x <= 22; x++) p(x, y, '#0284c7'); }
                 p(14, 16, '#ffffff', 4, 6);
-
-                p(20, 24, '#ffffff', 5, 5);
-                p(21, 25, '#000000', 3, 3);
+                p(20, 24, '#ffffff', 5, 5); p(21, 25, '#000000', 3, 3);
             }
 
             static drawGeneric(p) {
-                for (let y = 8; y <= 24; y++) {
-                    for (let x = 8; x <= 24; x++) p(x, y, '#6b7280');
-                }
+                for (let y = 8; y <= 24; y++) { for (let x = 8; x <= 24; x++) p(x, y, '#6b7280'); }
             }
         }
 
-        // ==========================================
-        // 8-BIT AUDIO & BGM GENERATOR SYSTEM
-        // ==========================================
         class SoundSystem {
             constructor() {
                 this.ctx = null;
@@ -540,11 +408,7 @@
             toggleBGM() {
                 this.bgmEnabled = !this.bgmEnabled;
                 document.getElementById('bgm-status').innerText = this.bgmEnabled ? 'ON' : 'OFF';
-                if (this.bgmEnabled) {
-                    this.startBGM();
-                } else {
-                    this.stopBGM();
-                }
+                if (this.bgmEnabled) this.startBGM(); else this.stopBGM();
             }
 
             startBGM() {
@@ -575,7 +439,7 @@
             }
 
             playTone(freq, duration, type = 'square', gainValue = 0.08) {
-                if (!this.enabled && type !== 'bgm') return;
+                if (!this.enabled) return;
                 this.init();
                 try {
                     const osc = this.ctx.createOscillator();
@@ -591,10 +455,7 @@
                 } catch(e) {}
             }
 
-            playSelect() {
-                this.playTone(440, 0.08, 'square', 0.08);
-            }
-
+            playSelect() { this.playTone(440, 0.08, 'square', 0.08); }
             playHit() {
                 if (!this.enabled) return;
                 this.init();
@@ -602,27 +463,19 @@
                     const bufferSize = this.ctx.sampleRate * 0.12;
                     const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
                     const output = buffer.getChannelData(0);
-                    for (let i = 0; i < bufferSize; i++) {
-                        output[i] = Math.random() * 2 - 1;
-                    }
+                    for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
                     const whiteNoise = this.ctx.createBufferSource();
                     whiteNoise.buffer = buffer;
-
                     const filter = this.ctx.createBiquadFilter();
                     filter.type = 'lowpass';
                     filter.frequency.setValueAtTime(900, this.ctx.currentTime);
-
                     const gain = this.ctx.createGain();
                     gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
                     gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
-
-                    whiteNoise.connect(filter);
-                    filter.connect(gain);
-                    gain.connect(this.ctx.destination);
+                    whiteNoise.connect(filter); filter.connect(gain); gain.connect(this.ctx.destination);
                     whiteNoise.start();
                 } catch(e) {}
             }
-
             playHeal() {
                 if (!this.enabled) return;
                 this.playTone(523.25, 0.09, 'sine', 0.1);
@@ -630,14 +483,12 @@
                 setTimeout(() => this.playTone(783.99, 0.12, 'sine', 0.1), 140);
                 setTimeout(() => this.playTone(1046.50, 0.22, 'sine', 0.1), 210);
             }
-
             playBuff() {
                 if (!this.enabled) return;
                 this.playTone(300, 0.08, 'sawtooth', 0.08);
                 setTimeout(() => this.playTone(450, 0.08, 'sawtooth', 0.08), 60);
                 setTimeout(() => this.playTone(600, 0.12, 'sawtooth', 0.08), 120);
             }
-
             playSpecial() {
                 if (!this.enabled) return;
                 this.playTone(220, 0.1, 'sawtooth', 0.12);
@@ -645,26 +496,19 @@
                 setTimeout(() => this.playTone(330, 0.1, 'sawtooth', 0.12), 180);
                 setTimeout(() => this.playTone(660, 0.2, 'square', 0.15), 270);
             }
-
             playVictory() {
                 if (!this.enabled) return;
                 const notes = [523.25, 659.25, 783.99, 1046.50, 880.00, 1046.50];
-                notes.forEach((freq, idx) => {
-                    setTimeout(() => this.playTone(freq, 0.18, 'triangle', 0.15), idx * 130);
-                });
+                notes.forEach((freq, idx) => setTimeout(() => this.playTone(freq, 0.18, 'triangle', 0.15), idx * 130));
             }
-
             playDefeat() {
                 if (!this.enabled) return;
                 const notes = [440, 392, 349, 220];
-                notes.forEach((freq, idx) => {
-                    setTimeout(() => this.playTone(freq, 0.25, 'sawtooth', 0.15), idx * 180);
-                });
+                notes.forEach((freq, idx) => setTimeout(() => this.playTone(freq, 0.25, 'sawtooth', 0.15), idx * 180));
             }
         }
         const audioSystem = new SoundSystem();
 
-        // Global Game State Data
         let playerState = {
             dopa: 1000,
             unlockedChars: ['iwaba', 'asaiomizu', 'ndaihyo'], 
@@ -822,9 +666,6 @@
             showModal(c.name, text);
         }
 
-        // ==========================================
-        // MASTER CHARACTER DEFINITIONS (BALANCED EX VER)
-        // ==========================================
         const CHARACTER_DATA = {
             ndaihyo: {
                 id: 'ndaihyo',
@@ -874,7 +715,7 @@
                 title: 'ナスを統べる守護要塞',
                 type: '土属性 / 超耐久一発型',
                 hp: 160, atk: 17, def: 25, spd: 14, eva: 5,
-                desc: '圧倒的タフさを誇る要塞。「ナス準備中」でミニぞうに変身し、次のターン手動で大威力の「超ナス乱舞」を繰り出す！一度倒れても1度だけ復活！',
+                desc: '圧倒的タフさを誇る要塞。「ナス準備中」でミニぞうに変身し、次のターン手動で大威力の「超ナス乱舞」を繰り出す！',
                 skills: [
                     { id: 'momo_attack', name: 'ポカポカ叩く', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, desc: '通常攻撃。' },
                     { id: 'momo_prep', name: 'ナス準備中', type: 'charge', cooldown: 3, desc: 'ゾウに変身し相手のターンへ！次ターンにコマンド「超ナス乱舞」が解禁！' },
@@ -912,20 +753,11 @@
             }
         };
 
-        // Strategic BOT AI Adapter
         class BotInputAdapter {
             getDecision(botChar, opponentChar) {
                 if (botChar.isResting) return 'rest';
-
-                // ナス準備完了なら優先して超ナス乱舞
-                if (botChar.eggplantReady) {
-                    return 'momo_eggplant_burst';
-                }
-
-                // ASAIOMIZU ディグコピー技があれば発動
-                if (botChar.recordedSkill) {
-                    return 'asaiomizu_copied';
-                }
+                if (botChar.eggplantReady) return 'momo_eggplant_burst';
+                if (botChar.recordedSkill) return 'asaiomizu_copied';
 
                 const availableSkills = botChar.skills.filter(s => (botChar.cooldowns?.[s.id] || 0) === 0);
                 const skills = availableSkills.length > 0 ? availableSkills : botChar.skills;
@@ -973,9 +805,6 @@
             }
         }
 
-        // ==========================================
-        // BATTLE ENGINE CORE
-        // ==========================================
         class BattleEngine {
             constructor(p1CharId, p2CharId, isOnline = false, myPlayerNum = 1) {
                 this.isOnline = isOnline;
@@ -984,7 +813,7 @@
                 this.turnTimer = 15;
                 this.timerId = null;
                 this.battleEnded = false;
-                this.isSuddenDeath = false; // 長期戦対策サドンデスフラグ
+                this.isSuddenDeath = false;
 
                 this.p1 = this.createBattlePlayer(p1CharId, 'Player 1');
                 this.p2 = this.createBattlePlayer(p2CharId, isOnline ? 'Player 2' : 'BOT (CPU)');
@@ -994,7 +823,6 @@
 
                 this.botAdapter = isOnline ? null : new BotInputAdapter();
 
-                // Callbacks
                 this.onLogUpdate = null;
                 this.onTimerUpdate = null;
                 this.onStateChange = null;
@@ -1026,8 +854,8 @@
                     digActive: false,       
                     digUsedTurn: 0,
                     recordedSkill: null,    
-                    eggplantReady: false,   // ナス準備完了（次ターンナス乱舞選択可能）
-                    isMiniZou: false,       // ミニぞうさん変身中
+                    eggplantReady: false,   
+                    isMiniZou: false,       
                     momoRevived: false,     
                     isDarkMode: false,      
                     defendBuffTurns: 0      
@@ -1114,11 +942,9 @@
                     second = this.p1; secondAction = this.p1Action;
                 }
 
-                // 1st Action
                 this.executePlayerAction(first, second, firstAction);
                 if (this.checkWinner()) return;
 
-                // 2nd Action
                 this.executePlayerAction(second, first, secondAction);
                 if (this.checkWinner()) return;
 
@@ -1139,7 +965,7 @@
                         id: 'momo_eggplant_burst',
                         name: '🍆 超ナス乱舞',
                         type: 'eggplant_burst',
-                        power: 1.5, // 桃ピンのナス乱舞のダメージ量を減らしました
+                        power: 1.5,
                         isNormalAttack: false,
                         cooldown: 0
                     };
@@ -1172,16 +998,14 @@
             applySkill(attacker, defender, skill) {
                 this.log(`💥 ${attacker.charName} の 「${skill.name}」！`, 'text-emerald-300 font-bold');
 
-                // ディグ記憶
                 if (defender.id === 'asaiomizu' && defender.digActive) {
                     if (skill.type === 'attack' || skill.type === 'special' || skill.type === 'debuff_attack' || skill.type === 'eggplant_burst' || (skill.power && skill.power > 0)) {
                         defender.recordedSkill = { ...skill };
-                        defender.digActive = false; // コピー完了
+                        defender.digActive = false;
                         this.log(`💡 ${defender.charName} は ${attacker.charName} の「${skill.name}」を記憶（コピー）した！`, 'text-cyan-300 font-bold');
                     }
                 }
 
-                // パシャ僧 ダークモードチェック
                 if (attacker.id === 'pasha' && !attacker.isDarkMode && attacker.hp <= attacker.maxHp * 0.5) {
                     attacker.isDarkMode = true;
                     attacker.buffAtk *= 1.4;
@@ -1250,9 +1074,7 @@
                         attacker.eggplantReady = true;
                         this.log(`🐘 ${attacker.charName} は「ミニぞうさん」に変身し、大量のナスを蓄積した！`, 'text-purple-300 font-bold');
                         this.log(`✨ 次ターン、コマンドから「超ナス乱舞」が手動で発動可能！`, 'text-amber-300 font-bold');
-                        if (this.onCutin) {
-                            this.onCutin('🐘 ゾウ変身＆ナス溜め完了！', '次ターン「超ナス乱舞」が選択可能！');
-                        }
+                        if (this.onCutin) this.onCutin('🐘 ゾウ変身＆ナス溜め完了！', '次ターン「超ナス乱舞」が選択可能！');
                         if (this.onVisualEffect) this.onVisualEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'buff', 'ゾウ変身！');
                         audioSystem.playBuff();
                         break;
@@ -1282,30 +1104,20 @@
             }
 
             applyDamageSkill(attacker, defender, skill, isCounter = false) {
-                // N高代表 パッシブ: パシャ僧キラー判定
                 if (attacker.id === 'ndaihyo' && skill.isNormalAttack && defender.id === 'pasha' && !attacker.pashaKillerUsed) {
                     attacker.pashaKillerUsed = true;
-                    
                     const killerDamage = Math.max(1, Math.floor(defender.hp * 0.5));
                     defender.hp = Math.max(0, defender.hp - killerDamage);
-
                     const targetSide = defender === this.p1 ? 'Player' : 'Enemy';
 
                     this.log(`🎯💥【パシャ僧キラー発動！！】`, 'text-yellow-300 font-black font-pixel text-sm text-center');
                     this.log(`N高代表の頭脳分析がパシャ僧の弱点を完全に見破った！ 現在HPの50% (${killerDamage} DMG) を粉砕！！`, 'text-red-400 font-bold');
-
-                    if (this.onCutin) {
-                        this.onCutin('🎯 パシャ僧キラー発動！！', '弱点分析完了！ 現在HP 50% を粉砕！');
-                    }
-                    if (this.onVisualEffect) {
-                        this.onVisualEffect(targetSide, 'damage', `-${killerDamage} (50%)`);
-                    }
+                    if (this.onCutin) this.onCutin('🎯 パシャ僧キラー発動！！', '弱点分析完了！ 現在HP 50% を粉砕！');
+                    if (this.onVisualEffect) this.onVisualEffect(targetSide, 'damage', `-${killerDamage} (50%)`);
                     audioSystem.playSpecial();
-
                     return;
                 }
 
-                // 回避判定
                 const hitRate = 100 - (defender.eva || 10);
                 if (Math.random() * 100 > hitRate) {
                     this.log(`🌀 ${defender.charName} は攻撃を回避した！`, 'text-sky-300');
@@ -1313,7 +1125,6 @@
                     return;
                 }
 
-                // ダメージ計算
                 let baseDmg = (attacker.atk * (skill.power || 1.0) * attacker.buffAtk) - (defender.def * 0.4 * defender.buffDef);
                 let damage = Math.max(8, Math.floor(baseDmg + (Math.random() * 4 - 2)));
 
@@ -1322,7 +1133,6 @@
                     this.log(`🛡 ${defender.charName} の鉄壁ガード！ 被ダメージ激減！`, 'text-blue-300');
                 }
 
-                // サドンデス補正（与えるダメージが1.35倍に少し増加）
                 if (this.isSuddenDeath) {
                     damage = Math.floor(damage * 1.35);
                 }
@@ -1333,20 +1143,16 @@
                 if (this.onVisualEffect) this.onVisualEffect(side, 'damage', `-${damage}`);
                 audioSystem.playHit();
 
-                // 桃ピン復活パッシブ
                 if (defender.hp <= 0 && defender.id === 'momo' && !defender.momoRevived) {
                     defender.momoRevived = true;
                     defender.hp = Math.floor(defender.maxHp * 0.35);
                     this.log(`✨ 桃ピンは諦めない！要塞の底力でHP ${defender.hp} で復活！！`, 'text-amber-300 font-bold');
-                    if (this.onCutin) {
-                        this.onCutin('✨ ナス要塞不屈の復活！', '桃ピンは倒れない！ HP35%で復活！');
-                    }
+                    if (this.onCutin) this.onCutin('✨ ナス要塞不屈の復活！', '桃ピンは倒れない！ HP35%で復活！');
                     if (this.onVisualEffect) this.onVisualEffect(side, 'heal', '不屈復活!!');
                     audioSystem.playSpecial();
                     return;
                 }
 
-                // ASAIOMIZU カウンター
                 if (!isCounter && defender.id === 'asaiomizu' && skill.isNormalAttack && defender.hp > 0) {
                     this.executeCounter(defender, attacker);
                 }
@@ -1354,34 +1160,25 @@
 
             executeCounter(counterAttacker, counterTarget) {
                 this.log(`⚡ 【カウンター！】 ASAIOMIZUの自動反撃！！`, 'text-yellow-300 font-bold animate-pulse');
-                
                 const counterSide = counterAttacker === this.p1 ? 'Player' : 'Enemy';
                 const targetSide = counterTarget === this.p1 ? 'Player' : 'Enemy';
 
-                if (this.onVisualEffect) {
-                    this.onVisualEffect(counterSide, 'buff', 'カウンター！');
-                }
+                if (this.onVisualEffect) this.onVisualEffect(counterSide, 'buff', 'カウンター！');
 
                 let counterDmg = Math.max(6, Math.floor(counterAttacker.atk * 0.55 * (100 / (100 + counterTarget.def * 0.5))));
-                if (this.isSuddenDeath) {
-                    counterDmg = Math.floor(counterDmg * 1.35);
-                }
+                if (this.isSuddenDeath) counterDmg = Math.floor(counterDmg * 1.35);
 
                 counterTarget.hp = Math.max(0, counterTarget.hp - counterDmg);
 
                 this.log(`💥 カウンターにより ${counterTarget.charName} に ${counterDmg} のダメージ！`, 'text-amber-400 font-bold');
-                if (this.onVisualEffect) {
-                    this.onVisualEffect(targetSide, 'damage', `-${counterDmg}`);
-                }
+                if (this.onVisualEffect) this.onVisualEffect(targetSide, 'damage', `-${counterDmg}`);
                 audioSystem.playHit();
 
                 if (counterTarget.hp <= 0 && counterTarget.id === 'momo' && !counterTarget.momoRevived) {
                     counterTarget.momoRevived = true;
                     counterTarget.hp = Math.floor(counterTarget.maxHp * 0.35);
                     this.log(`✨ 桃ピンは諦めない！要塞の底力でHP ${counterTarget.hp} で復活！！`, 'text-amber-300 font-bold');
-                    if (this.onCutin) {
-                        this.onCutin('✨ ナス要塞不屈の復活！', '桃ピンは倒れない！ HP35%で復活！');
-                    }
+                    if (this.onCutin) this.onCutin('✨ ナス要塞不屈の復活！', '桃ピンは倒れない！ HP35%で復活！');
                     if (this.onVisualEffect) this.onVisualEffect(targetSide, 'heal', '不屈復活!!');
                     audioSystem.playSpecial();
                 }
@@ -1392,29 +1189,18 @@
                     Object.keys(p.cooldowns).forEach(k => {
                         if (p.cooldowns[k] > 0) p.cooldowns[k]--;
                     });
-
                     if (p.defendBuffTurns > 0) p.defendBuffTurns--;
-
-                    if (p.isResting) {
-                        p.isResting = false;
-                    }
-
-                    // ディグ状態の解除判定
-                    if (p.digActive && this.turn > p.digUsedTurn) {
-                        p.digActive = false;
-                    }
+                    if (p.isResting) p.isResting = false;
+                    if (p.digActive && this.turn > p.digUsedTurn) p.digActive = false;
                 });
 
                 this.turn++;
 
-                // 長期戦対策：30ターン経過後にサドンデスへ移行
                 if (this.turn > 30 && !this.isSuddenDeath) {
                     this.isSuddenDeath = true;
                     this.log(`🔥【サドンデス突入！】 30ターンが経過しました！`, 'text-red-500 font-black text-center font-pixel text-sm animate-pulse');
                     this.log(`全キャラクターの与えるダメージが少し上昇します！`, 'text-amber-300 font-bold text-center');
-                    if (this.onCutin) {
-                        this.onCutin('🔥 サドンデス突入！', '30ターン経過！ 全キャラの攻撃ダメージ上昇！');
-                    }
+                    if (this.onCutin) this.onCutin('🔥 サドンデス突入！', '30ターン経過！ 全キャラの攻撃ダメージ上昇！');
                     audioSystem.playSpecial();
                 }
 
@@ -1462,9 +1248,6 @@
             }
         }
 
-        // ==========================================
-        // SCREEN RENDERERS & EVENT HANDLERS
-        // ==========================================
         function triggerVisualEffect(side, type, text) {
             const canvasId = side === 'Player' ? 'p1-canvas' : 'p2-canvas';
             const canvas = document.getElementById(canvasId);
@@ -1495,12 +1278,8 @@
             const banner = document.createElement('div');
             banner.className = 'absolute inset-x-0 top-1/3 bg-gradient-to-r from-red-950 via-amber-600 to-red-950 text-white p-3 text-center z-50 shadow-2xl border-y-4 border-amber-300 animate-cutin pointer-events-none';
             banner.innerHTML = `
-                <div class="font-pixel text-yellow-300 text-lg sm:text-2xl font-black drop-shadow-[0_3px_0_rgba(0,0,0,1)] tracking-widest">
-                    ${title}
-                </div>
-                <div class="text-xs sm:text-sm font-bold text-white mt-1">
-                    ${subtitle}
-                </div>
+                <div class="font-pixel text-yellow-300 text-lg sm:text-2xl font-black drop-shadow-[0_3px_0_rgba(0,0,0,1)] tracking-widest">${title}</div>
+                <div class="text-xs sm:text-sm font-bold text-white mt-1">${subtitle}</div>
             `;
             stage.appendChild(banner);
             setTimeout(() => banner.remove(), 1700);
@@ -1560,7 +1339,6 @@
                     <h2 class="text-lg font-bold text-amber-300 font-pixel mb-3">
                         ${isOnline ? '🌐 オンライン対戦 - 自キャラ選択' : '🤖 BOT対戦 - キャラ選択'}
                     </h2>
-
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full mb-4">
             `;
 
@@ -1581,14 +1359,11 @@
 
             html += `
                     </div>
-
-                    <div id="char-detail-box" class="pixel-box p-3 bg-slate-900 w-full mb-4 text-xs text-slate-300">
-                    </div>
-
+                    <div id="char-detail-box" class="pixel-box p-3 bg-slate-900 w-full mb-4 text-xs text-slate-300"></div>
                     <div class="flex gap-3">
                         <button onclick="renderHomeScreen()" class="pixel-btn px-4 py-2 text-xs">戻る</button>
                         <button onclick="${isOnline ? 'openOnlineLobby()' : 'startBotBattle()'}" class="pixel-btn pixel-btn-primary px-6 py-2 text-sm font-bold">
-                            ${isOnline ? 'ロビーへ進む 🚀' : '対戦開始！ ⚔️️'}
+                            ${isOnline ? 'ロビーへ進む 🚀' : '対戦開始！ ⚔'}
                         </button>
                     </div>
                 </div>
@@ -1647,26 +1422,20 @@
             container.innerHTML = `
                 <div class="flex flex-col items-center justify-center w-full max-w-md space-y-4 py-4">
                     <h2 class="text-lg font-bold text-amber-300 font-pixel">🌐 オンラインロビー</h2>
-
                     <div class="pixel-box p-4 bg-slate-900 w-full space-y-3">
                         <p class="text-xs text-slate-300">部屋を作成するか、ルームIDを入力して参加してください。</p>
-                        
                         <div class="flex gap-2">
                             <input id="room-id-input" type="text" placeholder="ルームID (例: 1234)" class="pixel-box bg-slate-950 px-3 py-2 text-sm font-mono w-full text-white border-slate-700 focus:border-amber-400 outline-none">
                             <button onclick="joinOnlineRoom()" class="pixel-btn pixel-btn-success text-xs px-4 py-2 font-bold whitespace-nowrap">参加</button>
                         </div>
-
                         <div class="relative flex py-1 items-center">
                             <div class="flex-grow border-t border-slate-700"></div>
                             <span class="flex-shrink mx-2 text-slate-500 text-xs">または</span>
                             <div class="flex-grow border-t border-slate-700"></div>
                         </div>
-
                         <button onclick="createOnlineRoom()" class="pixel-btn pixel-btn-primary w-full py-2 text-sm font-bold">新規ルーム作成 🎲</button>
                     </div>
-
                     <div id="lobby-status" class="text-xs text-amber-300 font-mono min-h-[20px]"></div>
-
                     <button onclick="renderCharacterSelectScreen(true)" class="pixel-btn text-xs px-4 py-2">戻る</button>
                 </div>
             `;
@@ -1787,10 +1556,10 @@
 
                     <div class="w-full grid grid-cols-2 gap-4 my-1 relative items-center justify-items-center">
                         <div class="relative flex flex-col items-center">
-                            <canvas id="p1-canvas" width="120" height="120" class="pixel-box bg-slate-950 shadow-lg"></canvas>
+                            <canvas id="p1-canvas" width="110" height="110" class="pixel-box bg-slate-950 shadow-lg"></canvas>
                         </div>
                         <div class="relative flex flex-col items-center">
-                            <canvas id="p2-canvas" width="120" height="120" class="pixel-box bg-slate-950 shadow-lg"></canvas>
+                            <canvas id="p2-canvas" width="110" height="110" class="pixel-box bg-slate-950 shadow-lg"></canvas>
                         </div>
                     </div>
 
@@ -1806,7 +1575,8 @@
                         <div class="w-16"></div>
                     </div>
 
-                    <div id="battle-log-box" class="pixel-box p-3 bg-slate-950 w-full h-28 overflow-y-auto my-1 text-xs font-mono space-y-1 border-slate-700">
+                    <!-- バトルログの高さをスリムにして、その分コマンドボタンの領域を十分に確保 -->
+                    <div id="battle-log-box" class="pixel-box p-2 bg-slate-950 w-full h-20 overflow-y-auto my-1 text-xs font-mono space-y-1 border-slate-700">
                     </div>
 
                     <div id="command-panel" class="w-full mt-1">
@@ -1909,20 +1679,18 @@
 
             let buttonsHtml = '';
 
-            // ナス準備完了時の専用技ボタン
             if (p1.eggplantReady) {
                 buttonsHtml += `
-                    <button onclick="activeBattle.submitAction(1, 'momo_eggplant_burst')" class="pixel-btn pixel-btn-purple p-3 font-bold text-xs col-span-2 flex flex-col items-center justify-center">
+                    <button onclick="activeBattle.submitAction(1, 'momo_eggplant_burst')" class="pixel-btn pixel-btn-purple p-2.5 font-bold text-xs col-span-2 flex flex-col items-center justify-center">
                         <span class="text-sm font-pixel text-yellow-300">🍆 超ナス乱舞 (解禁！)</span>
-                        <span class="text-[10px] text-purple-200">蓄積したナスを一斉噴射！特大威力攻撃！</span>
+                        <span class="text-[11px] text-purple-100 font-normal mt-0.5 whitespace-normal leading-tight text-center">蓄積したナスを一斉噴射！特大威力攻撃！</span>
                     </button>
                 `;
             } else if (p1.recordedSkill) {
-                // ASAIOMIZU ディグコピー技ボタン
                 buttonsHtml += `
-                    <button onclick="activeBattle.submitAction(1, 'asaiomizu_copied')" class="pixel-btn pixel-btn-warning p-2 font-bold text-xs col-span-2 flex flex-col items-center justify-center">
+                    <button onclick="activeBattle.submitAction(1, 'asaiomizu_copied')" class="pixel-btn pixel-btn-warning p-2.5 font-bold text-xs col-span-2 flex flex-col items-center justify-center">
                         <span class="text-xs font-pixel text-yellow-300">📋 【コピー技】${p1.recordedSkill.name}</span>
-                        <span class="text-[10px] text-amber-100">相手から記憶した技をそのまま繰り出す！</span>
+                        <span class="text-[11px] text-amber-100 font-normal mt-0.5 whitespace-normal leading-tight text-center">相手から記憶した技をそのまま繰り出す！</span>
                     </button>
                 `;
             }
@@ -1932,14 +1700,15 @@
                 const isDisabled = cd > 0;
                 const btnClass = isDisabled ? 'pixel-btn-disabled' : (s.isNormalAttack ? 'pixel-btn-primary' : 'pixel-btn');
 
+                // 技の説明文が切り捨てられないよう、line-clampの制限を外し、自動改行（whitespace-normal / leading-tight）に対応
                 buttonsHtml += `
                     <button onclick="${isDisabled ? '' : `activeBattle.submitAction(1, '${s.id}')`}" 
-                            class="pixel-btn ${btnClass} p-2 text-left flex flex-col justify-between min-h-[58px]">
-                        <div class="flex justify-between items-center w-full">
-                            <span class="font-bold text-xs">${s.name}</span>
+                            class="pixel-btn ${btnClass} p-2 text-left flex flex-col justify-between min-h-[72px]">
+                        <div class="flex justify-between items-center w-full mb-1">
+                            <span class="font-bold text-xs text-amber-200">${s.name}</span>
                             ${cd > 0 ? `<span class="text-[10px] bg-slate-950 px-1 py-0.5 rounded text-amber-400 font-mono">CT:${cd}</span>` : ''}
                         </div>
-                        <span class="text-[10px] opacity-80 line-clamp-1">${s.desc}</span>
+                        <span class="text-[10px] text-slate-100 font-normal whitespace-normal leading-snug">${s.desc}</span>
                     </button>
                 `;
             });
@@ -1947,7 +1716,6 @@
             grid.innerHTML = buttonsHtml;
         }
 
-        // Initialize App on DOM Ready
         window.addEventListener('DOMContentLoaded', () => {
             loadPlayerState();
             renderHomeScreen();
