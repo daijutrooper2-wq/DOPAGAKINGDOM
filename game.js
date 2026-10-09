@@ -1229,7 +1229,23 @@ pasha_dark: {
                 }
 
                 if (skillId === 'dopa_charge_step') {
-                    // アイコンタップによるチャージ進行時はターン消費のみ行う
+                    if ((attacker.dopaChargeCount || 0) < 5) {
+                        attacker.dopaChargeCount = (attacker.dopaChargeCount || 0) + 1;
+                        if (attacker.dopaChargeCount === 5) {
+                            const healAmt = Math.floor(attacker.maxHpRandom * 0.30);
+                            attacker.hp = Math.min(attacker.maxHp, attacker.hp + healAmt);
+
+                            const otherCharIds = Object.keys(CHARACTER_DATA).filter(id => id !== 'dopagaking');
+                            attacker.selectedInheritChar = otherCharIds[Math.floor(Math.random() * otherCharIds.length)];
+
+                            this.log(`👑 ドパガキングは5回目のチャージを完了！最大HPの30%（${healAmt}）回復し、【${CHARACTER_DATA[attacker.selectedInheritChar].name}】の力を宿した！`, 'text-amber-300 font-bold');
+                            this.triggerCutin('👑 王位継承準備完了！', `選ばれた力: ${CHARACTER_DATA[attacker.selectedInheritChar].name}`);
+                            this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'heal', `+${healAmt}`);
+                        } else {
+                            this.log(`👑 ドパガキングは王位継承のチャージを行った！（現在チャージ: ${attacker.dopaChargeCount}/5）`, 'text-amber-300 font-bold');
+                            this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'buff', `チャージ+1 (${attacker.dopaChargeCount}/5)`);
+                        }
+                    }
                     return;
                 }
 
