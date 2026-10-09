@@ -1228,15 +1228,17 @@ pasha_dark: {
                     return;
                 }
 
+                if (skillId === 'dopa_charge_step') {
+                    // アイコンタップによるチャージ進行時はターン消費のみ行う
+                    return;
+                }
+
                 if (skillId === 'dopa_inheritance') {
-                    attacker.dopaChargeCount = (attacker.dopaChargeCount || 0) + 1;
-                    if (!attacker.selectedInheritChar) {
-                        const otherChars = Object.keys(CHARACTER_DATA).filter(id => id !== 'dopagaking');
-                        attacker.selectedInheritChar = otherChars[Math.floor(Math.random() * otherChars.length)];
+                    if ((attacker.dopaChargeCount || 0) < 5) {
+                        this.log(`👑 チャージが足りません！（現在 ${attacker.dopaChargeCount || 0}/5回）`, 'text-amber-300 font-bold');
+                        return;
                     }
-                    this.log(`👑 ${attacker.charName} は 「王位継承」 のチャージを進めた！（現在チャージ: ${attacker.dopaChargeCount}/5回）`, 'text-amber-300 font-bold');
-                    audioSystem.playBuff();
-                    this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'buff', `王位継承+1 (${attacker.dopaChargeCount}/5)`);
+                    // 攻撃実行は applySkill 側で処理するためここではターン消費を受け付ける
                     return;
                 }
 
@@ -1281,9 +1283,9 @@ pasha_dark: {
            applySkill(attacker, defender, skill) {
                 this.log(`💥 ${attacker.charName} の 「${skill.name}」！`, 'text-emerald-300 font-bold');
 
-                if (attacker.id === 'dopagaking' && skill.id === 'dopa_inheritance') {
-                    if ((attacker.dopaChargeCount || 0) < 5) {
-                        this.log(`👑 チャージが足りません！（現在 ${attacker.dopaChargeCount}/5回）`, 'text-amber-300 font-bold');
+               if (attacker.id === 'dopagaking' && skill.id === 'dopa_inheritance') {
+                    if ((attacker.dopaChargeCount || 0) < 5 || !attacker.selectedInheritChar) {
+                        this.log(`👑 チャージが完了していないか、キャラクターが選択されていません！`, 'text-amber-300 font-bold');
                         return;
                     }
 
@@ -1298,6 +1300,7 @@ pasha_dark: {
                     this.log(`👑🔥 ドパガキングの「王位継承」発動！！ ${chosenMaster.name}の力を借りて ${defender.charName} に ${inheritDmg} の大ダメージを与えた！！`, 'text-amber-400 font-black text-base');
                     this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'damage', `-${inheritDmg}`);
 
+                    // 攻撃後の状態リセット
                     attacker.dopaChargeCount = 0;
                     attacker.selectedInheritChar = null;
                     return;
@@ -2191,11 +2194,11 @@ if (p2.id === 'dopagaking' && (p2.dopaChargeCount || 0) > 0 && (p2.dopaChargeCou
                 };
             }
 
-            if (p1Cvs && p1.id === 'dopagaking') {
+           if (p1Cvs && p1.id === 'dopagaking') {
                 p1Cvs.onclick = () => {
                     if (activeBattle.battleEnded || activeBattle.waitingForOpponent || activeBattle.p1.isResting) return;
                     if (activeBattle.myPlayerNum !== 1 && activeBattle.isOnline) return;
-                    if (p1.dopaChargeCount >= 5) return;
+                    if ((p1.dopaChargeCount || 0) >= 5) return; // 5回に達している場合はチャージ不可
 
                     p1.dopaChargeCount = (p1.dopaChargeCount || 0) + 1;
                     audioSystem.playBuff();
@@ -2207,15 +2210,15 @@ if (p2.id === 'dopagaking' && (p2.dopaChargeCount || 0) > 0 && (p2.dopaChargeCou
                         const otherCharIds = Object.keys(CHARACTER_DATA).filter(id => id !== 'dopagaking');
                         p1.selectedInheritChar = otherCharIds[Math.floor(Math.random() * otherCharIds.length)];
 
-                        activeBattle.log(`👑 ドパガキングは5回目のチャージを行った！最大HPの30%（${healAmt}）回復し、${CHARACTER_DATA[p1.selectedInheritChar].name} の力を宿した！`, 'text-amber-300 font-bold');
+                        activeBattle.log(`👑 ドパガキングは5回目のチャージを完了した！最大HPの30%（${healAmt}）回復し、${CHARACTER_DATA[p1.selectedInheritChar].name} の力を宿した！（次ターン以降「王位継承」攻撃可能）`, 'text-amber-300 font-bold');
                         activeBattle.triggerCutin('👑 王位継承準備完了！', `選ばれた力: ${CHARACTER_DATA[p1.selectedInheritChar].name}`);
                         activeBattle.triggerEffect('Player', 'heal', `+${healAmt}`);
                     } else {
-                        activeBattle.log(`👑 ドパガキングは王位継承のチャージを行った！（現在チャージ: ${p1.dopaChargeCount}/4）`, 'text-amber-300 font-bold');
-                        activeBattle.triggerEffect('Player', 'buff', `チャージ+1 (${p1.dopaChargeCount})`);
+                        activeBattle.log(`👑 ドパガキングは王位継承のチャージを行った！（現在チャージ: ${p1.dopaChargeCount}/5）`, 'text-amber-300 font-bold');
+                        activeBattle.triggerEffect('Player', 'buff', `チャージ+1 (${p1.dopaChargeCount}/5)`);
                     }
 
-                    activeBattle.submitAction(activeBattle.myPlayerNum, 'dopa_charge_done');
+                    activeBattle.submitAction(activeBattle.myPlayerNum, 'dopa_charge_step');
                 };
             }
 
