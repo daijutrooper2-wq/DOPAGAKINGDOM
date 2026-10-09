@@ -1233,13 +1233,12 @@ pasha_dark: {
                     return;
                 }
 
-                if (skillId === 'dopa_inheritance') {
+              if (skillId === 'dopa_inheritance') {
                     if ((attacker.dopaChargeCount || 0) < 5) {
                         this.log(`👑 チャージが足りません！（現在 ${attacker.dopaChargeCount || 0}/5回）`, 'text-amber-300 font-bold');
                         return;
                     }
-                    // 攻撃実行は applySkill 側で処理するためここではターン消費を受け付ける
-                    return;
+                    // 攻撃スキルとして applySkill へ処理を流すため、ここでは return せずに続行する
                 }
 
                 let skill = null;
