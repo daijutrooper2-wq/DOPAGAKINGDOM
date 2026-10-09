@@ -2194,11 +2194,11 @@ if (p2.id === 'dopagaking' && (p2.dopaChargeCount || 0) > 0 && (p2.dopaChargeCou
                 };
             }
 
-           if (p1Cvs && p1.id === 'dopagaking') {
+         if (p1Cvs && p1.id === 'dopagaking') {
                 p1Cvs.onclick = () => {
                     if (activeBattle.battleEnded || activeBattle.waitingForOpponent || activeBattle.p1.isResting) return;
                     if (activeBattle.myPlayerNum !== 1 && activeBattle.isOnline) return;
-                    if ((p1.dopaChargeCount || 0) >= 5) return; // 5回に達している場合はチャージ不可
+                    if ((p1.dopaChargeCount || 0) >= 5) return; // 6回目以降のチャージを禁止
 
                     p1.dopaChargeCount = (p1.dopaChargeCount || 0) + 1;
                     audioSystem.playBuff();
@@ -2210,7 +2210,7 @@ if (p2.id === 'dopagaking' && (p2.dopaChargeCount || 0) > 0 && (p2.dopaChargeCou
                         const otherCharIds = Object.keys(CHARACTER_DATA).filter(id => id !== 'dopagaking');
                         p1.selectedInheritChar = otherCharIds[Math.floor(Math.random() * otherCharIds.length)];
 
-                        activeBattle.log(`👑 ドパガキングは5回目のチャージを完了した！最大HPの30%（${healAmt}）回復し、${CHARACTER_DATA[p1.selectedInheritChar].name} の力を宿した！（次ターン以降「王位継承」攻撃可能）`, 'text-amber-300 font-bold');
+                        activeBattle.log(`👑 ドパガキングは5回目のチャージを完了！最大HPの30%（${healAmt}）回復し、【${CHARACTER_DATA[p1.selectedInheritChar].name}】の力を宿した！`, 'text-amber-300 font-bold');
                         activeBattle.triggerCutin('👑 王位継承準備完了！', `選ばれた力: ${CHARACTER_DATA[p1.selectedInheritChar].name}`);
                         activeBattle.triggerEffect('Player', 'heal', `+${healAmt}`);
                     } else {
@@ -2218,46 +2218,10 @@ if (p2.id === 'dopagaking' && (p2.dopaChargeCount || 0) > 0 && (p2.dopaChargeCou
                         activeBattle.triggerEffect('Player', 'buff', `チャージ+1 (${p1.dopaChargeCount}/5)`);
                     }
 
+                    // チャージ実行後は必ずその場でターンを終了し、相手にターンを渡す
                     activeBattle.submitAction(activeBattle.myPlayerNum, 'dopa_charge_step');
                 };
             }
-
-
-
-
-
-// ▼▼▼ 【ここを新規追加】ドパガキングのアイコンタップチャージ処理 ▼▼▼
-if (p1Cvs && p1.id === 'dopagaking') {
-    p1Cvs.onclick = () => {
-        if (activeBattle.battleEnded || activeBattle.waitingForOpponent || activeBattle.p1.isResting) return;
-        if (activeBattle.myPlayerNum !== 1 && activeBattle.isOnline) return;
-        if (p1.dopaChargeCount >= 5) return; // 5回完了時はチャージ不可
-
-        p1.dopaChargeCount = (p1.dopaChargeCount || 0) + 1;
-        audioSystem.playBuff();
-        activeBattle.log(`👑 ドパガキングは王位継承のチャージを行った！（現在チャージ: ${p1.dopaChargeCount}/5）`, 'text-amber-300 font-bold');
-        activeBattle.triggerEffect('Player', 'buff', `チャージ+1 (${p1.dopaChargeCount})`);
-
-        if (p1.dopaChargeCount === 5) {
-            // 5回目のチャージ完了時：最大HPの30%回復 ＆ 他キャラからランダム1体選択
-            const healAmt = Math.floor(p1.maxHpRandom * 0.30);
-            p1.hp = Math.min(p1.maxHp, p1.hp + healAmt);
-
-            const otherCharIds = Object.keys(CHARACTER_DATA).filter(id => id !== 'dopagaking');
-            const chosenId = otherCharIds[Math.floor(Math.random() * otherCharIds.length)];
-            p1.selectedInheritChar = chosenId;
-
-            activeBattle.log(`✨ 5回目のチャージ完了！ 最大HPの30%（${healAmt}）回復！`, 'text-emerald-300 font-bold');
-            activeBattle.log(`👑 次の王位継承攻撃の力として 【${CHARACTER_DATA[chosenId].name}】 が選ばれた！`, 'text-amber-400 font-bold');
-            activeBattle.triggerCutin('👑 王位継承準備完了！', `選ばれた力: ${CHARACTER_DATA[chosenId].name}`);
-        }
-
-        // タップした時点で自分のターンを即終了し、相手のターンへ
-        activeBattle.submitAction(activeBattle.myPlayerNum, 'dopa_charge_done');
-    };
-}
-// ▲▲▲ 追加ここまで ▲▲▲
-
 
 
             const grid = document.getElementById('skill-buttons-grid');
