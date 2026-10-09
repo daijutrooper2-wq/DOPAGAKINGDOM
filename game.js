@@ -1231,6 +1231,7 @@ pasha_dark: {
                 if (skillId === 'dopa_charge_step') {
                     if ((attacker.dopaChargeCount || 0) < 5) {
                         attacker.dopaChargeCount = (attacker.dopaChargeCount || 0) + 1;
+                        audioSystem.playBuff();
                         if (attacker.dopaChargeCount === 5) {
                             const healAmt = Math.floor(attacker.maxHpRandom * 0.30);
                             attacker.hp = Math.min(attacker.maxHp, attacker.hp + healAmt);
@@ -1249,12 +1250,11 @@ pasha_dark: {
                     return;
                 }
 
-              if (skillId === 'dopa_inheritance') {
-                    if ((attacker.dopaChargeCount || 0) < 5) {
-                        this.log(`👑 チャージが足りません！（現在 ${attacker.dopaChargeCount || 0}/5回）`, 'text-amber-300 font-bold');
+                if (skillId === 'dopa_inheritance') {
+                    if ((attacker.dopaChargeCount || 0) < 5 || !attacker.selectedInheritChar) {
+                        this.log(`👑 チャージが完了していないため、王位継承を発動できません！（現在 ${attacker.dopaChargeCount || 0}/5回）`, 'text-amber-400 font-bold');
                         return;
                     }
-                    // 攻撃スキルとして applySkill へ処理を流すため、ここでは return せずに続行する
                 }
 
                 let skill = null;
@@ -2215,26 +2215,10 @@ if (p2.id === 'dopagaking' && (p2.dopaChargeCount || 0) > 0 && (p2.dopaChargeCou
         if (myCvs && myActiveChar.id === 'dopagaking') {
             myCvs.onclick = () => {
                 if (activeBattle.battleEnded || activeBattle.waitingForOpponent || myActiveChar.isResting) return;
+                if (activeBattle.isOnline && activeBattle.myPlayerNum !== 1 && activeBattle.myPlayerNum !== 2) return;
                 if ((myActiveChar.dopaChargeCount || 0) >= 5) return;
 
-                myActiveChar.dopaChargeCount = (myActiveChar.dopaChargeCount || 0) + 1;
-                audioSystem.playBuff();
-
-                if (myActiveChar.dopaChargeCount === 5) {
-                    const healAmt = Math.floor(myActiveChar.maxHpRandom * 0.30);
-                    myActiveChar.hp = Math.min(myActiveChar.maxHp, myActiveChar.hp + healAmt);
-
-                    const otherCharIds = Object.keys(CHARACTER_DATA).filter(id => id !== 'dopagaking');
-                    myActiveChar.selectedInheritChar = otherCharIds[Math.floor(Math.random() * otherCharIds.length)];
-
-                    activeBattle.log(`👑 ドパガキングは5回目のチャージを完了！最大HPの30%（${healAmt}）回復し、【${CHARACTER_DATA[myActiveChar.selectedInheritChar].name}】の力を宿した！`, 'text-amber-300 font-bold');
-                    activeBattle.triggerCutin('👑 王位継承準備完了！', `選ばれた力: ${CHARACTER_DATA[myActiveChar.selectedInheritChar].name}`);
-                    activeBattle.triggerEffect('Player', 'heal', `+${healAmt}`);
-                } else {
-                    activeBattle.log(`👑 ドパガキングは王位継承のチャージを行った！（現在チャージ: ${myActiveChar.dopaChargeCount}/5）`, 'text-amber-300 font-bold');
-                    activeBattle.triggerEffect('Player', 'buff', `チャージ+1 (${myActiveChar.dopaChargeCount}/5)`);
-                }
-
+                // タップによるローカル側の即時二重加算を防ぎ、チャージアクション送信による一元管理へ移行
                 activeBattle.submitAction(activeBattle.myPlayerNum, 'dopa_charge_step');
             };
         }
@@ -2268,10 +2252,19 @@ if (p2.id === 'dopagaking' && (p2.dopaChargeCount || 0) > 0 && (p2.dopaChargeCou
                 return;
             }
 
-            activePlayer.skills.forEach(s => {
+           activePlayer.skills.forEach(s => {
                 const cd = activePlayer.cooldowns[s.id] || 0;
                 const isCd = cd > 0;
-                const disabled = isMyTurnBlocked || isCd;
+                let isSkillLocked = isCd;
+
+                // ドパガキングの「王位継承」はチャージが5回に達するまで強制的に無効化する
+                if (activePlayer.id === 'dopagaking' && s.id === 'dopa_inheritance') {
+                    if ((activePlayer.dopaChargeCount || 0) < 5) {
+                        isSkillLocked = true;
+                    }
+                }
+
+                const disabled = isMyTurnBlocked || isSkillLocked;
 
                 const btn = document.createElement('button');
                 btn.className = `pixel-btn p-2 text-xs font-bold flex flex-col items-center justify-center ${disabled ? 'pixel-btn-disabled' : 'pixel-btn-primary'}`;
