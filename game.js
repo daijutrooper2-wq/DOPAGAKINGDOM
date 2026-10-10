@@ -465,6 +465,46 @@ static drawDopagaking(p, isCharged) {
                 const notes = [440, 392, 349, 220];
                 notes.forEach((freq, idx) => setTimeout(() => this.playTone(freq, 0.25, 'sawtooth', 0.15), idx * 180));
             }
+            playCharacterSound(charId) {
+                if (!this.enabled) return;
+                switch (charId) {
+                    case 'courtney':
+                        this.playTone(587.33, 0.08, 'sine', 0.1);
+                        setTimeout(() => this.playTone(880.00, 0.15, 'sine', 0.12), 60);
+                        break;
+                    case 'pasha':
+                    case 'pasha_dark':
+                        this.playTone(1200, 0.04, 'square', 0.15);
+                        setTimeout(() => this.playTone(800, 0.06, 'sawtooth', 0.1), 30);
+                        break;
+                    case 'ndaihyo':
+                        this.playTone(880, 0.05, 'square', 0.15);
+                        setTimeout(() => this.playTone(1760, 0.08, 'triangle', 0.15), 40);
+                        break;
+                    case 'dopagaking':
+                        [523, 659, 783, 1046].forEach((f, i) => setTimeout(() => this.playTone(f, 0.06, 'triangle', 0.08), i * 50));
+                        break;
+                    case 'iwaba':
+                        this.playTone(110, 0.1, 'sawtooth', 0.12);
+                        setTimeout(() => this.playTone(220, 0.1, 'square', 0.1), 80);
+                        break;
+                    case 'momo':
+                        this.playTone(150, 0.15, 'sine', 0.15);
+                        setTimeout(() => this.playTone(100, 0.2, 'triangle', 0.12), 100);
+                        break;
+                    case 'moenan':
+                        this.playTone(300, 0.06, 'sawtooth', 0.12);
+                        setTimeout(() => this.playTone(150, 0.12, 'square', 0.15), 50);
+                        break;
+                    case 'asaiomizu':
+                        this.playTone(660, 0.05, 'sine', 0.12);
+                        setTimeout(() => this.playTone(990, 0.1, 'triangle', 0.12), 50);
+                        break;
+                    default:
+                        this.playHit();
+                        break;
+                }
+            }
         }
         const audioSystem = new SoundSystem();
 
@@ -1373,6 +1413,7 @@ pasha_dark: {
 
            applySkill(attacker, defender, skill) {
                 this.log(`💥 ${attacker.charName} の 「${skill.name}」！`, 'text-emerald-300 font-bold');
+                audioSystem.playCharacterSound(attacker.id);
 
                if (attacker.id === 'dopagaking' && skill.id === 'dopa_inheritance') {
                     if ((attacker.dopaChargeCount || 0) < 5 || !attacker.selectedInheritChar) {
