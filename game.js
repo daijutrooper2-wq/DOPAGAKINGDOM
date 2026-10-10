@@ -729,7 +729,6 @@ dopagaking: {
                 ]
             },
 
-
 pasha_dark: {
                 id: 'pasha_dark',
                 name: 'パシャ憎・半浸闇化状態',
