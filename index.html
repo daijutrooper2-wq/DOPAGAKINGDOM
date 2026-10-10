@@ -21,16 +21,20 @@
                 <span class="text-xl sm:text-2xl text-amber-400 font-bold tracking-wider font-pixel cursor-pointer" onclick="renderHomeScreen()">👑 ドパガキングダム</span>
                 <span class="text-xs bg-slate-800 text-amber-300 px-2 py-0.5 rounded border border-amber-600 font-bold">Ver 2.4 EX</span>
             </div>
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+                <button onclick="openProfileScreen()" class="pixel-box-gold px-2.5 py-1 flex items-center gap-2 cursor-pointer hover:opacity-90 transition-opacity">
+                    <canvas id="header-profile-icon" width="28" height="28" class="pixel-box bg-slate-950 rounded"></canvas>
+                    <span id="header-profile-name" class="text-amber-300 text-xs font-bold truncate max-w-[90px]">名無しファイター</span>
+                </button>
                 <div class="pixel-box-gold px-3 py-1 flex items-center gap-2">
                     <span class="text-amber-300 text-xs font-bold">DOPA:</span>
                     <span id="dopa-count" class="text-amber-400 font-bold text-lg font-pixel">1000</span>
                 </div>
                 <button id="btn-sound-toggle" onclick="audioSystem.toggleSound()" class="pixel-btn text-xs px-2 py-1">
-                    🔊 効果音: <span id="sound-status">ON</span>
+                    🔊: <span id="sound-status">ON</span>
                 </button>
                 <button id="btn-bgm-toggle" onclick="audioSystem.toggleBGM()" class="pixel-btn text-xs px-2 py-1">
-                    🎵 BGM: <span id="bgm-status">OFF</span>
+                    🎵: <span id="bgm-status">OFF</span>
                 </button>
             </div>
         </header>

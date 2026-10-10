@@ -544,7 +544,14 @@ static drawDopagaking(p, isCharged) {
             dopa: 1000,
             unlockedChars: ['iwaba', 'asaiomizu', 'ndaihyo', 'courtney', 'pasha_dark'], 
             selectedPlayerChar: 'courtney',
-            selectedEnemyChar: 'pasha'
+            selectedEnemyChar: 'pasha',
+            playerName: '名無しファイター',
+            selectedIcon: 'courtney',
+            totalBattles: 0,
+            wins: 0,
+            losses: 0,
+            charUsage: {},
+            battleHistory: []
         };
 
         let activeBattle = null;
@@ -728,42 +735,104 @@ static drawDopagaking(p, isCharged) {
             await savePlayerState();
         }
 
-        async function savePlayerState() {
-            if (!window.fbUser || !window.fbDb) return;
-            try {
-                const userDocRef = window.fbDoc(window.fbDb, 'users', window.fbUser.uid);
-                await window.fbSetDoc(userDocRef, {
-                    dopa: playerState.dopa,
-                    unlockedChars: playerState.unlockedChars,
-                    updatedAt: Date.now()
-                }, { merge: true });
-            } catch(e){
-                console.error("Firestore Save Player State Error:", e);
+        function updateHeaderProfile() {
+            const nameEl = document.getElementById('header-profile-name');
+            const iconCvs = document.getElementById('header-profile-icon');
+            if (nameEl) nameEl.innerText = playerState.playerName || '名無しファイター';
+            if (iconCvs) {
+                CharacterRenderer.drawCharacter(iconCvs, playerState.selectedIcon || 'courtney');
             }
         }
 
-        async function loadPlayerState() {
-            if (!window.fbUser || !window.fbDb) return;
-            try {
-                const userDocRef = window.fbDoc(window.fbDb, 'users', window.fbUser.uid);
-                const docSnap = await window.fbGetDoc(userDocRef);
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    if (data.dopa !== undefined) playerState.dopa = data.dopa;
-                    if (data.unlockedChars && Array.isArray(data.unlockedChars)) {
-                        playerState.unlockedChars = data.unlockedChars;
-                        if (!playerState.unlockedChars.includes('courtney')) {
-                            playerState.unlockedChars.push('courtney');
-                        }
-                    }
-                } else {
-                    await savePlayerState();
+        async function savePlayerState() {
+            if (window.fbUser && window.fbDb) {
+                try {
+                    const userDocRef = window.fbDoc(window.fbDb, 'users', window.fbUser.uid);
+                    await window.fbSetDoc(userDocRef, {
+                        dopa: playerState.dopa,
+                        unlockedChars: playerState.unlockedChars,
+                        playerName: playerState.playerName,
+                        selectedIcon: playerState.selectedIcon,
+                        totalBattles: playerState.totalBattles,
+                        wins: playerState.wins,
+                        losses: playerState.losses,
+                        charUsage: playerState.charUsage,
+                        battleHistory: playerState.battleHistory,
+                        updatedAt: Date.now()
+                    }, { merge: true });
+                } catch(e){
+                    console.error("Firestore Save Player State Error:", e);
                 }
-                const el = document.getElementById('dopa-count');
-                if (el) el.innerText = playerState.dopa;
-            } catch(e){
-                console.error("Firestore Load Player State Error:", e);
             }
+            try {
+                localStorage.setItem('dopa_player_state', JSON.stringify(playerState));
+            } catch(e){}
+        }
+
+        async function loadPlayerState() {
+            try {
+                const local = localStorage.getItem('dopa_player_state');
+                if (local) {
+                    const parsed = JSON.parse(local);
+                    Object.assign(playerState, parsed);
+                }
+            } catch(e){}
+
+            if (window.fbUser && window.fbDb) {
+                try {
+                    const userDocRef = window.fbDoc(window.fbDb, 'users', window.fbUser.uid);
+                    const docSnap = await window.fbGetDoc(userDocRef);
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        if (data.dopa !== undefined) playerState.dopa = data.dopa;
+                        if (data.unlockedChars && Array.isArray(data.unlockedChars)) {
+                            playerState.unlockedChars = data.unlockedChars;
+                        }
+                        if (data.playerName) playerState.playerName = data.playerName;
+                        if (data.selectedIcon) playerState.selectedIcon = data.selectedIcon;
+                        if (data.totalBattles !== undefined) playerState.totalBattles = data.totalBattles;
+                        if (data.wins !== undefined) playerState.wins = data.wins;
+                        if (data.losses !== undefined) playerState.losses = data.losses;
+                        if (data.charUsage) playerState.charUsage = data.charUsage;
+                        if (data.battleHistory) playerState.battleHistory = data.battleHistory;
+                    } else {
+                        await savePlayerState();
+                    }
+                } catch(e){
+                    console.error("Firestore Load Player State Error:", e);
+                }
+            }
+            if (!playerState.unlockedChars.includes('courtney')) {
+                playerState.unlockedChars.push('courtney');
+            }
+            const el = document.getElementById('dopa-count');
+            if (el) el.innerText = playerState.dopa;
+            updateHeaderProfile();
+        }
+
+        async function recordBattleResult(result, myCharId, opponentName, opponentIcon, isBot, opponentId = null) {
+            playerState.totalBattles++;
+            if (result === 'win') playerState.wins++;
+            else if (result === 'lose') playerState.losses++;
+
+            playerState.charUsage[myCharId] = (playerState.charUsage[myCharId] || 0) + 1;
+
+            const historyItem = {
+                date: new Date().toLocaleString(),
+                result: result,
+                myChar: myCharId,
+                opponentName: opponentName,
+                opponentIcon: opponentIcon || 'pasha',
+                isBot: isBot,
+                opponentId: opponentId || (isBot ? 'bot_cpu' : 'online_player')
+            };
+            playerState.battleHistory.unshift(historyItem);
+            if (playerState.battleHistory.length > 50) {
+                playerState.battleHistory.pop();
+            }
+
+            await savePlayerState();
+            updateHeaderProfile();
         }
 
         function showModal(title, body) {
@@ -837,31 +906,27 @@ static drawDopagaking(p, isCharged) {
             const overlay = document.getElementById('modal-overlay');
             const actionsEl = document.getElementById('modal-actions');
 
-            if (titleEl) titleEl.innerText = "🎰 DOPAガチャ本舗";
+            if (titleEl) titleEl.innerText = "🎰 DOPAガチャ";
             if (bodyEl) {
                 bodyEl.innerHTML = `
                     <div class="text-center space-y-3 py-1">
-                        <div class="text-2xl mb-1">🎁✨</div>
-                        <p class="text-xs text-amber-200 leading-tight">
-                            未獲得キャラは一律確率で排出！コンプ後はアイテムのみ！<br>
-                            所持DOPA: <span id="gacha-dopa-display" class="text-amber-400 font-bold">${playerState.dopa}</span> DOPA
-                        </p>
-                        <div class="bg-slate-950 px-3 py-1.5 rounded border border-slate-800 text-[11px] text-slate-300 inline-block">
-                            残り未獲得: <b class="text-amber-300">${lockedChars.length}</b> / ${allCharIds.length} 体
+                        <div class="flex flex-col gap-2.5 w-full">
+                            <button onclick="executeGacha(10)" class="pixel-btn pixel-btn-warning w-full py-3.5 font-bold text-sm sm:text-base shadow-lg animate-pulse">
+                                🌟 10連ガチャ (1000 DOPA)
+                            </button>
+                            <button onclick="executeGacha(1)" class="pixel-btn pixel-btn-primary w-full py-2.5 font-bold text-xs sm:text-sm">
+                                1回ガチャ (100 DOPA)
+                            </button>
                         </div>
-                        <div class="flex flex-col sm:flex-row justify-center gap-2 pt-1">
-                            <button onclick="executeGacha(1)" class="pixel-btn pixel-btn-primary px-4 py-2.5 font-bold text-xs">
-                                1回引く (100 DOPA)
-                            </button>
-                            <button onclick="executeGacha(10)" class="pixel-btn pixel-btn-warning px-4 py-2.5 font-bold text-xs">
-                                🌟 10連 (1000 DOPA)
-                            </button>
+                        <div class="text-[11px] text-slate-300 flex justify-between items-center bg-slate-950 px-3 py-2 rounded border border-slate-800">
+                            <span>所持: <b class="text-amber-400">${playerState.dopa}</b> DOPA</span>
+                            <span>未獲得: <b class="text-amber-300">${lockedChars.length}</b>/${allCharIds.length}体</span>
                         </div>
                     </div>
                 `;
             }
             if (actionsEl) {
-                actionsEl.innerHTML = `<button onclick="closeModal()" class="pixel-btn px-5 py-1.5 font-bold text-xs">とじる</button>`;
+                actionsEl.innerHTML = `<button onclick="closeModal()" class="pixel-btn px-6 py-1.5 font-bold text-xs">もどる</button>`;
             }
             if (overlay) overlay.classList.remove('hidden');
         }
@@ -2016,10 +2081,31 @@ case 'dopa_juggler_skill':
                     }
                 }
 
-                if (isEnded) {
+                if (isEnded && !this.statsRecorded) {
+                    this.statsRecorded = true;
                     this.battleEnded = true;
                     this.winnerText = winnerText;
                     this.stopTimer();
+
+                    let result = 'draw';
+                    if (this.p1.hp > 0 && this.p2.hp <= 0) {
+                        result = (this.isOnline && this.myPlayerNum === 2) ? 'lose' : 'win';
+                    } else if (this.p1.hp <= 0 && this.p2.hp > 0) {
+                        result = (this.isOnline && this.myPlayerNum === 2) ? 'win' : 'lose';
+                    } else if (this.p1.hp <= 0 && this.p2.hp <= 0) {
+                        result = 'draw';
+                    }
+
+                    const myCharId = this.isOnline && this.myPlayerNum === 2 ? this.p2.id : this.p1.id;
+                    const oppChar = this.isOnline && this.myPlayerNum === 2 ? this.p1 : this.p2;
+                    const oppName = oppChar.charName || '対戦相手';
+                    const oppIcon = oppChar.id;
+                    const isBot = !this.isOnline;
+
+                    if (typeof recordBattleResult === 'function') {
+                        recordBattleResult(result, myCharId, oppName, oppIcon, isBot);
+                    }
+
                     if (this.onBattleEnd) this.onBattleEnd(winnerText);
                     return true;
                 }
@@ -2691,6 +2777,221 @@ case 'dopa_juggler_skill':
             renderOpeningScreen();
         });
 
+        function openProfileScreen() {
+            audioSystem.playSelect();
+            const container = document.getElementById('screen-container');
+            
+            const winRate = playerState.totalBattles > 0 ? ((playerState.wins / playerState.totalBattles) * 100).toFixed(1) : 0;
+            
+            let usageHtml = '';
+            const totalChoices = Object.values(playerState.charUsage).reduce((a, b) => a + b, 0);
+            if (totalChoices === 0) {
+                usageHtml = `<p class="text-slate-400 text-xs">使用記録なし</p>`;
+            } else {
+                usageHtml = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">`;
+                Object.entries(playerState.charUsage).forEach(([cId, count]) => {
+                    const cData = CHARACTER_DATA[cId] || { name: cId };
+                    const rate = ((count / totalChoices) * 100).toFixed(1);
+                    usageHtml += `
+                        <div class="pixel-box p-2 bg-slate-900 flex items-center justify-between text-xs">
+                            <div class="flex items-center gap-2">
+                                <canvas id="usage-cvs-${cId}" width="36" height="36" class="pixel-box bg-slate-950 rounded"></canvas>
+                                <div>
+                                    <b class="text-amber-300">${cData.name}</b>
+                                    <div class="text-[10px] text-slate-400">使用回数: ${count}回</div>
+                                </div>
+                            </div>
+                            <span class="text-emerald-400 font-bold font-mono">${rate}%</span>
+                        </div>
+                    `;
+                });
+                usageHtml += `</div>`;
+            }
+
+            let historyHtml = '';
+            if (playerState.battleHistory.length === 0) {
+                historyHtml = `<p class="text-slate-400 text-xs text-center py-4">対戦記録はありません</p>`;
+            } else {
+                historyHtml = `<div class="space-y-2 max-h-60 overflow-y-auto pr-1">`;
+                playerState.battleHistory.forEach((h, idx) => {
+                    let resultBadge = h.result === 'win' ? '<span class="text-emerald-400 font-bold">勝利</span>' : (h.result === 'lose' ? '<span class="text-red-400 font-bold">敗北</span>' : '<span class="text-yellow-400 font-bold">引き分け</span>');
+                    let opponentDisplay = h.isBot ? `<span class="text-purple-300">[BOT] ${h.opponentName}</span>` : `<button onclick="openOpponentProfileModal(${idx})" class="text-cyan-300 underline font-bold hover:text-cyan-200">[対戦相手] ${h.opponentName}</button>`;
+                    
+                    historyHtml += `
+                        <div class="pixel-box p-2.5 bg-slate-950 flex items-center justify-between text-xs">
+                            <div class="space-y-0.5">
+                                <div class="flex items-center gap-2">
+                                    ${resultBadge}
+                                    <span class="text-slate-400 text-[10px]">${h.date}</span>
+                                </div>
+                                <div class="text-slate-200">
+                                    使用: <b class="text-amber-300">${(CHARACTER_DATA[h.myChar] || {}).name || h.myChar}</b> VS ${opponentDisplay}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                historyHtml += `</div>`;
+            }
+
+            container.innerHTML = `
+                <div class="flex flex-col items-center justify-center w-full max-w-xl space-y-4 py-4 px-2">
+                    <h2 class="text-xl font-bold text-amber-300 font-pixel">👑 プレイヤープロフィール</h2>
+                    
+                    <div class="pixel-box-gold p-4 bg-amber-950/80 w-full space-y-3">
+                        <div class="flex items-center justify-between flex-wrap gap-3">
+                            <div class="flex items-center gap-3">
+                                <canvas id="profile-main-icon" width="60" height="60" class="pixel-box bg-slate-950 rounded cursor-pointer border-amber-400" onclick="openIconSelectModal()" title="クリックしてアイコン変更"></canvas>
+                                <div>
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <input id="profile-name-input" type="text" value="${playerState.playerName || ''}" maxlength="12" class="pixel-box bg-slate-950 px-2 py-1 text-sm font-bold text-amber-300 w-36 outline-none border-amber-600">
+                                        <button onclick="savePlayerName()" class="pixel-btn pixel-btn-primary px-3 py-1 text-xs font-bold">変更</button>
+                                    </div>
+                                    <span class="text-[10px] text-slate-300">アイコンクリックで変更可能</span>
+                                </div>
+                            </div>
+                            <div class="text-right font-mono">
+                                <div class="text-xs text-amber-200">所持 DOPA</div>
+                                <div class="text-lg font-bold text-amber-400 font-pixel">${playerState.dopa}</div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-4 gap-2 pt-2 border-t border-amber-800 text-center font-mono text-xs">
+                            <div class="bg-slate-950 p-2 rounded">
+                                <div class="text-slate-400 text-[10px]">総対戦</div>
+                                <div class="text-amber-300 font-bold">${playerState.totalBattles}</div>
+                            </div>
+                            <div class="bg-slate-950 p-2 rounded">
+                                <div class="text-slate-400 text-[10px]">勝利</div>
+                                <div class="text-emerald-400 font-bold">${playerState.wins}</div>
+                            </div>
+                            <div class="bg-slate-950 p-2 rounded">
+                                <div class="text-slate-400 text-[10px]">敗北</div>
+                                <div class="text-red-400 font-bold">${playerState.losses}</div>
+                            </div>
+                            <div class="bg-slate-950 p-2 rounded">
+                                <div class="text-slate-400 text-[10px]">勝率</div>
+                                <div class="text-cyan-400 font-bold">${winRate}%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pixel-box p-3 bg-slate-900 w-full space-y-2">
+                        <h3 class="text-xs font-bold text-amber-300 font-pixel">📊 キャラクター使用率</h3>
+                        ${usageHtml}
+                    </div>
+
+                    <div class="pixel-box p-3 bg-slate-900 w-full space-y-2">
+                        <h3 class="text-xs font-bold text-amber-300 font-pixel">📜 過去の戦歴 (最大50件)</h3>
+                        ${historyHtml}
+                    </div>
+
+                    <button onclick="renderHomeScreen()" class="pixel-btn px-6 py-2 text-xs font-bold">ホームに戻る</button>
+                </div>
+            `;
+
+            setTimeout(() => {
+                const mainIconCvs = document.getElementById('profile-main-icon');
+                if (mainIconCvs) CharacterRenderer.drawCharacter(mainIconCvs, playerState.selectedIcon || 'courtney');
+
+                Object.keys(playerState.charUsage).forEach(cId => {
+                    const uCvs = document.getElementById(`usage-cvs-${cId}`);
+                    if (uCvs) CharacterRenderer.drawCharacter(uCvs, cId);
+                });
+            }, 50);
+        }
+
+        function savePlayerName() {
+            audioSystem.playSelect();
+            const input = document.getElementById('profile-name-input');
+            if (!input) return;
+            const newName = input.value.trim();
+            if (!newName) {
+                showModal("エラー", "ファイター名を入力してください！");
+                return;
+            }
+            if (newName.length > 12) {
+                showModal("エラー", "ファイター名は12文字以内で入力してください！");
+                return;
+            }
+            playerState.playerName = newName;
+            savePlayerState();
+            updateHeaderProfile();
+            showModal("保存完了", `ファイター名を「${newName}」に更新しました！`);
+        }
+
+        function openIconSelectModal() {
+            audioSystem.playSelect();
+            let html = `
+                <div class="text-center space-y-3">
+                    <p class="text-xs text-slate-300">アイコンに設定するキャラクターを選んでください。</p>
+                    <div class="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto p-1">
+            `;
+
+            Object.values(CHARACTER_DATA).forEach(c => {
+                const isUnlocked = playerState.unlockedChars.includes(c.id);
+                const isSelected = playerState.selectedIcon === c.id;
+                if (!isUnlocked) return;
+
+                html += `
+                    <div onclick="setProfileIcon('${c.id}')" class="pixel-box p-2 bg-slate-950 cursor-pointer flex flex-col items-center justify-center border-2 ${isSelected ? 'border-amber-400 bg-amber-950/40' : 'border-slate-700 hover:border-slate-400'}">
+                        <canvas id="icon-sel-cvs-${c.id}" width="50" height="50" class="pixel-box bg-slate-900 mb-1"></canvas>
+                        <span class="text-[11px] font-bold text-slate-200 truncate max-w-full">${c.name}</span>
+                    </div>
+                `;
+            });
+
+            html += `</div></div>`;
+            showModal("アイコン選択", html);
+
+            setTimeout(() => {
+                Object.values(CHARACTER_DATA).forEach(c => {
+                    if (playerState.unlockedChars.includes(c.id)) {
+                        const cvs = document.getElementById(`icon-sel-cvs-${c.id}`);
+                        if (cvs) CharacterRenderer.drawCharacter(cvs, c.id);
+                    }
+                });
+            }, 50);
+        }
+
+        function setProfileIcon(charId) {
+            audioSystem.playSelect();
+            playerState.selectedIcon = charId;
+            savePlayerState();
+            updateHeaderProfile();
+            closeModal();
+            openProfileScreen();
+        }
+
+        function openOpponentProfileModal(historyIndex) {
+            audioSystem.playSelect();
+            const h = playerState.battleHistory[historyIndex];
+            if (!h || h.isBot) return;
+
+            let html = `
+                <div class="text-center space-y-3 p-1">
+                    <div class="flex flex-col items-center gap-2">
+                        <canvas id="opp-profile-cvs" width="60" height="60" class="pixel-box bg-slate-950 rounded border-cyan-400"></canvas>
+                        <div>
+                            <h3 class="text-base font-bold text-cyan-300 font-pixel">${h.opponentName}</h3>
+                            <span class="text-[10px] text-slate-400">オンライン対戦プレイヤー</span>
+                        </div>
+                    </div>
+                    <div class="pixel-box p-3 bg-slate-950 text-left text-xs space-y-1 font-mono">
+                        <p>・直近対戦日時: ${h.date}</p>
+                        <p>・対戦結果: ${h.result === 'win' ? 'こちらの勝利' : (h.result === 'lose' ? 'こちらの敗北' : '引き分け')}</p>
+                        <p>・公開戦績: 閲覧専用データ</p>
+                    </div>
+                </div>
+            `;
+            showModal("対戦相手プロフィール", html);
+
+            setTimeout(() => {
+                const cvs = document.getElementById('opp-profile-cvs');
+                if (cvs) CharacterRenderer.drawCharacter(cvs, h.opponentIcon || 'pasha');
+            }, 50);
+        }
+
         // HTML の onclick 属性から参照される関数をグローバル公開
         window.audioSystem = audioSystem;
         window.renderOpeningScreen = renderOpeningScreen;
@@ -2709,3 +3010,8 @@ case 'dopa_juggler_skill':
         window.closeModal = closeModal;
         window.showModal = showModal;
         window.showConfirmModal = showConfirmModal;
+        window.openProfileScreen = openProfileScreen;
+        window.savePlayerName = savePlayerName;
+        window.openIconSelectModal = openIconSelectModal;
+        window.setProfileIcon = setProfileIcon;
+        window.openOpponentProfileModal = openOpponentProfileModal;
