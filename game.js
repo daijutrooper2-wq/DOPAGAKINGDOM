@@ -57,11 +57,75 @@
         };
 
         class CharacterRenderer {
+            // 4. 画像のキャッシュ管理用オブジェクト
+            static imageCache = {};
+
+            static getImage(src) {
+                if (!src) return null;
+                if (!this.imageCache[src]) {
+                    const img = new Image();
+                    img.isLoaded = false;
+                    img.hasError = false;
+                    img.onload = () => { img.isLoaded = true; };
+                    img.onerror = () => { img.hasError = true; };
+                    img.src = src;
+                    this.imageCache[src] = img;
+                }
+                return this.imageCache[src];
+            }
+
             static drawCharacter(canvas, charId, isMiniZou = false) {
                 if (!canvas) return;
                 const ctx = canvas.getContext('2d');
                 const w = canvas.width;
                 const h = canvas.height;
+
+                // 7. 特殊状態（王冠、チャージ、ミニぞう等）に応じた画像パスの判定
+                let targetCharId = charId;
+                if (isMiniZou) targetCharId = 'minizou';
+
+                const charData = CHARACTER_DATA[targetCharId] || CHARACTER_DATA[charId];
+let imagePath = null;
+if (charData) {
+    // 特殊状態の専用画像（chargedImage）があり、かつチャージ状態の場合のみ優先、それ以外は image を使用
+    if (charId.includes('charged') && charData.chargedImage) {
+        imagePath = charData.chargedImage;
+    } else {
+        imagePath = charData.image;
+    }
+}
+                if (charId === 'dopagaking_crown') {
+                    imagePath = CHARACTER_DATA['dopagaking']?.chargedImage || CHARACTER_DATA['dopagaking']?.image;
+                }
+
+                const img = this.getImage(imagePath);
+
+                // 5. 画像が設定されており、読み込み成功している場合は画像を描画
+                if (img && img.isLoaded && !img.hasError) {
+                    ctx.clearRect(0, 0, w, h);
+                    ctx.imageSmoothingEnabled = false; // 8. ピクセルアートがぼやけない設定
+
+                    ctx.fillStyle = '#0f172a';
+                    ctx.fillRect(0, 0, w, h);
+
+                    // 影の描画（既存演出を維持）
+                    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                    ctx.beginPath();
+                    ctx.ellipse(w / 2, h - 10, w * 0.38, h * 0.09, 0, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // 8. 縦横比を維持してCanvas内に収める
+                    const hRatio = w / img.width;
+                    const vRatio = h / img.height;
+                    const ratio = Math.min(hRatio, vRatio);
+                    const centerShiftX = (w - img.width * ratio) / 2;
+                    const centerShiftY = (h - img.height * ratio) / 2;
+
+                    ctx.drawImage(img, 0, 0, img.width, img.height, centerShiftX, centerShiftY, img.width * ratio, img.height * ratio);
+                    return;
+                }
+
+                // 3, 5. 画像未設定・ロード失敗時のフォールバック（従来のドット絵描画）
                 ctx.clearRect(0, 0, w, h);
                 ctx.imageSmoothingEnabled = false;
 
@@ -87,7 +151,7 @@
                     return;
                 }
 
-              switch (charId) {
+                switch (charId) {
                     case 'dopagaking': this.drawDopagaking(drawPx, false); break;
                     case 'dopagaking_charged': this.drawDopagaking(drawPx, true); break;
                     case 'dopagaking_crown': this.drawCrown(drawPx); break;
@@ -103,6 +167,8 @@
                     default: this.drawGeneric(drawPx); break;
                 }
             }
+
+            // --- 以下の従来の描画メソッド（drawCrown, drawDopagaking, drawCourtney 等）はそのまま残す ---
 
 static drawCrown(p) {
                 if (typeof p !== 'function') return;
@@ -670,6 +736,7 @@ pasha_dark: {
                 title: '闇に染まりかけし黒き僧侶',
                 type: '闇属性 / 超火力・回避特化',
                 hp: 113, atk: 25, def: 17, spd: 13, eva: 25,
+                image: 'images/pasha-dark.webp',
                 hasEvasionBuff: true,
                 evasionMultiplier: 1.1,
                 currentAtkBuff: 1.0,
@@ -682,15 +749,7 @@ pasha_dark: {
                 ]
             },
 
-
-
-
-
-
-
-
-
-                
+            
             iwaba: {
                 id: 'iwaba',
                 name: '岩盤星人',
