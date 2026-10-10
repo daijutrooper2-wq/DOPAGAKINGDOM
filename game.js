@@ -505,6 +505,38 @@ static drawDopagaking(p, isCharged) {
                         break;
                 }
             }
+
+            playOpeningMelody() {
+                if (!this.enabled) return;
+                const notes = [220, 246.94, 261.63, 329.63, 392.00, 440.00, 523.25, 659.25];
+                notes.forEach((freq, idx) => setTimeout(() => this.playTone(freq, 0.12, 'square', 0.08), idx * 110));
+            }
+
+            playAwakeningSound() {
+                if (!this.enabled) return;
+                this.playTone(150, 0.3, 'sawtooth', 0.1);
+                setTimeout(() => this.playTone(300, 0.3, 'triangle', 0.12), 150);
+                setTimeout(() => this.playTone(600, 0.4, 'sine', 0.15), 300);
+            }
+
+            playCutinSound() {
+                if (!this.enabled) return;
+                this.playTone(440, 0.08, 'square', 0.15);
+                setTimeout(() => this.playTone(880, 0.12, 'sawtooth', 0.15), 60);
+            }
+
+            playClashSound() {
+                if (!this.enabled) return;
+                this.playTone(100, 0.25, 'sawtooth', 0.2);
+                setTimeout(() => this.playTone(200, 0.15, 'square', 0.15), 100);
+                setTimeout(() => this.playTone(80, 0.35, 'triangle', 0.25), 200);
+            }
+
+            playTitleSound() {
+                if (!this.enabled) return;
+                const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+                notes.forEach((freq, idx) => setTimeout(() => this.playTone(freq, 0.22, 'triangle', 0.18), idx * 120));
+            }
         }
         const audioSystem = new SoundSystem();
 
@@ -517,36 +549,176 @@ static drawDopagaking(p, isCharged) {
 
         let activeBattle = null;
 
+        let openingTimer = null;
+        let openingKeyHandler = null;
+
+        function cleanupOpening() {
+            if (openingTimer) {
+                clearTimeout(openingTimer);
+                openingTimer = null;
+            }
+            if (openingKeyHandler) {
+                window.removeEventListener('keydown', openingKeyHandler);
+                openingKeyHandler = null;
+            }
+        }
+
         function renderOpeningScreen() {
             if (activeBattle) {
                 activeBattle.destroy();
                 activeBattle = null;
             }
+            cleanupOpening();
 
             const container = document.getElementById('screen-container');
-            container.innerHTML = `
-                <div class="flex flex-col items-center justify-center w-full max-w-xl space-y-6 py-6 text-center animate-cutin">
-                    <div class="pixel-box-gold p-6 bg-amber-950/90 w-full space-y-4">
-                        <h2 class="text-xl sm:text-2xl font-bold text-amber-300 font-pixel tracking-wider">🌟 王国の危機 🌟</h2>
-                        <div class="pixel-box p-4 bg-slate-950 text-slate-100 text-xs sm:text-sm leading-relaxed text-left space-y-3 font-mono border-amber-500">
-                            <p>エネルギーの源<b class="text-amber-400">「DOPA」</b>があふれる平和な王国に、ある日突然、謎の闇が訪れた。</p>
-                            <p>混乱を静めるため、個性豊かなファイターたちが今、立ち上がる！</p>
-                            <p>新しい挑戦者たちも次々と参戦し、王国の運命を賭けた戦いは熱を帯びていく。</p>
-                            <p class="text-amber-300 font-bold">果たして、すべての試練を乗り越えて王国に本当の平和を取り戻し、最強の王者の座に輝くのは誰なのか――？</p>
-                        </div>
-                    </div>
+            
+            const handleSkip = () => {
+                cleanupOpening();
+                renderHomeScreen();
+            };
 
-                    <div class="flex gap-4 w-full justify-center">
-                        <button onclick="renderHomeScreen()" class="pixel-btn pixel-btn-primary px-8 py-3 text-base font-bold font-pixel">
-                            冒険へ出発！ ▶
-                        </button>
-                        <button onclick="renderHomeScreen()" class="pixel-btn pixel-btn-danger px-6 py-3 text-sm font-bold">
-                            スキップ ⏩
-                        </button>
+            openingKeyHandler = (e) => {
+                if (['Enter', 'Space', 'Escape'].includes(e.code) || e.key === ' ' || e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSkip();
+                }
+            };
+            window.addEventListener('keydown', openingKeyHandler);
+
+            const renderScene = (sceneNum) => {
+                if (!document.getElementById('screen-container') || !container.innerHTML.includes('opening-stage')) {
+                    return;
+                }
+
+                const stage = document.getElementById('opening-stage');
+                if (!stage) return;
+
+                switch (sceneNum) {
+                    case 1:
+                        audioSystem.playAwakeningSound();
+                        stage.innerHTML = `
+                            <div class="flex flex-col items-center justify-center space-y-6 animate-cutin w-full">
+                                <div class="pixel-box-gold p-8 bg-black/90 w-full max-w-lg text-center relative overflow-hidden border-amber-400">
+                                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                        <div class="w-32 h-32 bg-amber-500/20 rounded-full animate-opening-pulse blur-xl"></div>
+                                    </div>
+                                    <h3 class="text-xs sm:text-sm text-amber-300 font-mono tracking-widest mb-2">SCENE 1 : AWAKENING</h3>
+                                    <h2 class="text-xl sm:text-2xl font-bold text-amber-400 font-pixel mb-4">🌟 DOPAエネルギーの覚醒 🌟</h2>
+                                    <p class="text-xs sm:text-sm text-slate-200 leading-relaxed font-mono">
+                                        静まり返った宇宙の闇から、王国を包み込む神聖なるエネルギー「DOPA」の核が今、目覚めようとしている……！
+                                    </p>
+                                </div>
+                            </div>
+                        `;
+                        openingTimer = setTimeout(() => renderScene(2), 3500);
+                        break;
+
+                    case 2:
+                        audioSystem.playOpeningMelody();
+                        stage.innerHTML = `
+                            <div class="flex flex-col items-center justify-center space-y-6 animate-cutin w-full">
+                                <div class="pixel-box p-8 bg-slate-950 w-full max-w-lg text-center relative overflow-hidden border-blue-500">
+                                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-30">
+                                        <div class="w-full h-full bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:16px_16px]"></div>
+                                    </div>
+                                    <h3 class="text-xs sm:text-sm text-blue-300 font-mono tracking-widest mb-2">SCENE 2 : DOPAGA KINGDOM</h3>
+                                    <h2 class="text-xl sm:text-2xl font-bold text-blue-400 font-pixel mb-4">👑 黄金と光のドパガ王国 👑</h2>
+                                    <p class="text-xs sm:text-sm text-slate-200 leading-relaxed font-mono">
+                                        溢れるDOPAの光に導かれ、栄光あるドパガキングダムの城塞が悠然と姿を現す！
+                                    </p>
+                                </div>
+                            </div>
+                        `;
+                        openingTimer = setTimeout(() => renderScene(3), 3500);
+                        break;
+
+                    case 3:
+                        audioSystem.playCutinSound();
+                        stage.innerHTML = `
+                            <div class="flex flex-col items-center justify-center space-y-4 animate-cutin w-full">
+                                <h3 class="text-xs sm:text-sm text-pink-400 font-mono tracking-widest">SCENE 3 : FIGHTERS ASSEMBLE</h3>
+                                <h2 class="text-lg sm:text-xl font-bold text-amber-300 font-pixel mb-2">⚡ 伝説のファイターたち集結 ⚡</h2>
+                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full max-w-lg">
+                                    <div class="pixel-box p-3 bg-slate-900 flex flex-col items-center animate-cutin border-pink-400">
+                                        <canvas id="op-cvs-courtney" width="60" height="60" class="pixel-box bg-slate-950 mb-1"></canvas>
+                                        <span class="text-xs font-bold text-pink-300">コートニー</span>
+                                    </div>
+                                    <div class="pixel-box p-3 bg-slate-900 flex flex-col items-center animate-cutin border-yellow-400">
+                                        <canvas id="op-cvs-ndaihyo" width="60" height="60" class="pixel-box bg-slate-950 mb-1"></canvas>
+                                        <span class="text-xs font-bold text-yellow-300">N高代表</span>
+                                    </div>
+                                    <div class="pixel-box p-3 bg-slate-900 flex flex-col items-center animate-cutin border-purple-400">
+                                        <canvas id="op-cvs-pasha" width="60" height="60" class="pixel-box bg-slate-950 mb-1"></canvas>
+                                        <span class="text-xs font-bold text-purple-300">パシャ僧</span>
+                                    </div>
+                                    <div class="pixel-box p-3 bg-slate-900 flex flex-col items-center animate-cutin border-amber-400">
+                                        <canvas id="op-cvs-dopagaking" width="60" height="60" class="pixel-box bg-slate-950 mb-1"></canvas>
+                                        <span class="text-xs font-bold text-amber-400">ドパガキング</span>
+                                    </div>
+                                </div>
+                                <p class="text-xs text-slate-300 font-mono mt-2">王国に迫る闇を払うため、個性豊かな最強の挑戦者たちが今ここに立ち上がる！</p>
+                            </div>
+                        `;
+                        setTimeout(() => {
+                            ['courtney', 'ndaihyo', 'pasha', 'dopagaking'].forEach(id => {
+                                const cvs = document.getElementById(`op-cvs-${id}`);
+                                if (cvs) CharacterRenderer.drawCharacter(cvs, id);
+                            });
+                        }, 50);
+                        openingTimer = setTimeout(() => renderScene(4), 4000);
+                        break;
+
+                    case 4:
+                        audioSystem.playClashSound();
+                        stage.innerHTML = `
+                            <div class="flex flex-col items-center justify-center space-y-6 animate-opening-shake w-full">
+                                <div class="pixel-box p-8 bg-red-950/90 w-full max-w-lg text-center border-red-500 shadow-2xl">
+                                    <h3 class="text-xs sm:text-sm text-red-300 font-mono tracking-widest mb-2">SCENE 4 : CLASH</h3>
+                                    <h2 class="text-xl sm:text-2xl font-bold text-yellow-300 font-pixel mb-4">💥 激突・光と闇の決戦 💥</h2>
+                                    <p class="text-xs sm:text-sm text-slate-100 leading-relaxed font-mono">
+                                        交錯するエネルギーと熱気！ すべてを賭けた激闘の幕が、今まさに切って落とされる！
+                                    </p>
+                                </div>
+                            </div>
+                        `;
+                        openingTimer = setTimeout(() => renderScene(5), 3000);
+                        break;
+
+                    case 5:
+                        audioSystem.playTitleSound();
+                        stage.innerHTML = `
+                            <div class="flex flex-col items-center justify-center space-y-6 animate-logo-glow w-full">
+                                <div class="pixel-box-gold p-8 bg-amber-950/95 w-full max-w-lg text-center border-4 border-amber-300 shadow-2xl relative">
+                                    <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-amber-500 text-slate-950 font-pixel text-[10px] px-3 py-1 rounded font-bold">
+                                        🌟 決定版・神バランス調整版 EX 🌟
+                                    </div>
+                                    <h1 class="text-2xl sm:text-4xl font-black text-amber-300 font-pixel tracking-wider drop-shadow-[0_4px_0_rgba(0,0,0,1)] mb-3">
+                                        DOPAGA KINGDOM RPG
+                                    </h1>
+                                    <p class="text-xs sm:text-sm text-amber-100 font-mono mb-6">
+                                        王国に真の平和を取り戻せ！ 最強の王者の座を掴むのは誰だ――？
+                                    </p>
+                                    <button onclick="renderHomeScreen()" class="pixel-btn pixel-btn-primary px-8 py-3 text-base font-bold font-pixel shadow-lg">
+                                        冒険へ出発！ ▶
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        break;
+                }
+            };
+
+            container.innerHTML = `
+                <div class="relative w-full flex flex-col items-center justify-center min-h-[500px] p-4">
+                    <button onclick="renderHomeScreen()" class="absolute top-2 right-2 pixel-btn pixel-btn-danger text-xs px-3 py-1 font-bold z-50">
+                        ⏩ スキップ
+                    </button>
+                    <div id="opening-stage" class="w-full flex flex-col items-center justify-center">
                     </div>
                 </div>
             `;
-            audioSystem.playSpecial();
+
+            renderScene(1);
         }
 
         async function addDopa(amount) {
