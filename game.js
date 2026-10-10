@@ -69,6 +69,17 @@
                     img.onload = () => { 
                         img.isLoaded = true; 
                         if (typeof updateBattleUI === 'function') updateBattleUI();
+                        // キャラ選択画面等のCanvasを自動再描画
+                        Object.keys(CHARACTER_DATA).forEach(id => {
+                            const cvs = document.getElementById(`select-cvs-${id}`);
+                            if (cvs) {
+                                const c = CHARACTER_DATA[id];
+                                let targetPath = c.image;
+                                if (targetPath === src) {
+                                    CharacterRenderer.drawCharacter(cvs, id);
+                                }
+                            }
+                        });
                     };
                     img.onerror = () => { 
                         img.hasError = true; 
