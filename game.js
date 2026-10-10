@@ -1085,35 +1085,212 @@ static drawDopagaking(p, isCharged) {
             showModal(`🎰 ガチャ結果 (${count}連)`, resultHtml);
         }
 
-        function openCharacterListModal() {
+        function renderZukanScreen(sortOrder = 'default', sortDir = 'desc') {
             audioSystem.playSelect();
-            let text = "";
-            Object.values(CHARACTER_DATA).forEach(c => {
+            const container = document.getElementById('screen-container');
+
+            let chars = Object.values(CHARACTER_DATA);
+            if (sortOrder === 'hp') {
+                chars.sort((a, b) => sortDir === 'desc' ? b.hp - a.hp : a.hp - b.hp);
+            } else if (sortOrder === 'atk') {
+                chars.sort((a, b) => sortDir === 'desc' ? b.atk - a.atk : a.atk - b.atk);
+            } else if (sortOrder === 'spd') {
+                chars.sort((a, b) => sortDir === 'desc' ? b.spd - a.spd : a.spd - b.spd);
+            }
+
+            const unlockedCount = chars.filter(c => playerState.unlockedChars.includes(c.id)).length;
+            const totalCount = chars.length;
+
+            let html = `
+                <div class="w-full flex flex-col items-center max-w-2xl mx-auto py-2">
+                    <div class="flex justify-between items-center w-full mb-3 px-2 flex-wrap gap-2">
+                        <h2 class="text-lg font-bold text-amber-300 font-pixel">📖 キャラクター図鑑</h2>
+                        <div class="text-xs font-mono text-amber-200 bg-slate-900 px-3 py-1 rounded border border-amber-600/50">
+                            獲得済み: <b class="text-emerald-400">${unlockedCount}</b> / ${totalCount} 体
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between w-full mb-3 px-2 gap-2 flex-wrap">
+                        <div class="flex items-center gap-1.5 text-xs">
+                            <span class="text-slate-400 font-bold">並び替え:</span>
+                            <select id="zukan-sort-order" onchange="onZukanSortChange()" class="pixel-box bg-slate-900 text-amber-300 px-2 py-1 text-xs outline-none border-amber-600">
+                                <option value="default" ${sortOrder === 'default' ? 'selected' : ''}>登録順</option>
+                                <option value="hp" ${sortOrder === 'hp' ? 'selected' : ''}>HPが高い順</option>
+                                <option value="atk" ${sortOrder === 'atk' ? 'selected' : ''}>攻撃力が高い順</option>
+                                <option value="spd" ${sortOrder === 'spd' ? 'selected' : ''}>速さが高い順</option>
+                            </select>
+                            <button onclick="toggleZukanSortDir('${sortOrder}', '${sortDir}')" class="pixel-btn px-2 py-1 text-xs font-bold bg-slate-800 border-slate-600">
+                                ${sortDir === 'desc' ? '🔽 降順(高)' : '🔼 昇順(低)'}
+                            </button>
+                        </div>
+                        <button onclick="renderHomeScreen()" class="pixel-btn px-3 py-1 text-xs">ホームに戻る</button>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full mb-4 px-2 max-h-[500px] overflow-y-auto">
+            `;
+
+            chars.forEach(c => {
                 const isUnlocked = playerState.unlockedChars.includes(c.id);
-                const statusStr = isUnlocked ? '<span class="text-emerald-400">[解放済み]</span>' : '<span class="text-slate-500">[🔒 未解放 - ガチャで獲得]</span>';
-                text += `👤 <b class="text-amber-300">${c.name}</b> (${c.title}) ${statusStr}\n`;
-                text += `タイプ: ${c.type}\n`;
-                text += `HP:${c.hp} / 攻:${c.atk} / 防:${c.def} / 速:${c.spd} / 避:${c.eva}%\n${c.desc}\n\n`;
+                html += `
+                    <div onclick="renderZukanDetailScreen('${c.id}', '${sortOrder}', '${sortDir}')" 
+                         class="pixel-box p-3 bg-slate-900 cursor-pointer flex flex-col items-center justify-between border-2 transition-all hover:border-amber-400 ${!isUnlocked ? 'opacity-50 grayscale' : 'border-slate-700'}">
+                        <canvas id="zukan-cvs-${c.id}" width="85" height="85" class="pixel-box bg-slate-950 mb-2"></canvas>
+                        <span class="text-xs font-bold ${isUnlocked ? 'text-amber-300' : 'text-slate-400'}">${c.name}</span>
+                        <span class="text-[10px] text-slate-400 truncate max-w-full">${c.title}</span>
+                        <span class="text-[10px] mt-1 font-bold ${isUnlocked ? 'text-emerald-400' : 'text-red-400'}">
+                            ${isUnlocked ? '✨ 所持済み' : '🔒 未所持'}
+                        </span>
+                    </div>
+                `;
             });
-            showModal("キャラクター図鑑", text);
+
+            html += `
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+
+            setTimeout(() => {
+                chars.forEach(c => {
+                    const cvs = document.getElementById(`zukan-cvs-${c.id}`);
+                    if (cvs) CharacterRenderer.drawCharacter(cvs, c.id);
+                });
+            }, 50);
+        }
+
+        function onZukanSortChange() {
+            const select = document.getElementById('zukan-sort-order');
+            if (select) {
+                renderZukanScreen(select.value, 'desc');
+            }
+        }
+
+        function toggleZukanSortDir(currentOrder, currentDir) {
+            const newDir = currentDir === 'desc' ? 'asc' : 'desc';
+            renderZukanScreen(currentOrder, newDir);
+        }
+
+        function renderZukanDetailScreen(charId, sortOrder = 'default', sortDir = 'desc') {
+            audioSystem.playSelect();
+            const container = document.getElementById('screen-container');
+
+            let chars = Object.values(CHARACTER_DATA);
+            if (sortOrder === 'hp') {
+                chars.sort((a, b) => sortDir === 'desc' ? b.hp - a.hp : a.hp - b.hp);
+            } else if (sortOrder === 'atk') {
+                chars.sort((a, b) => sortDir === 'desc' ? b.atk - a.atk : a.atk - b.atk);
+            } else if (sortOrder === 'spd') {
+                chars.sort((a, b) => sortDir === 'desc' ? b.spd - a.spd : a.spd - b.spd);
+            }
+
+            const currentIndex = chars.findIndex(c => c.id === charId);
+            const c = chars[currentIndex] || CHARACTER_DATA[charId];
+            if (!c) return;
+
+            const prevChar = chars[(currentIndex - 1 + chars.length) % chars.length];
+            const nextChar = chars[(currentIndex + 1) % chars.length];
+
+            const isUnlocked = playerState.unlockedChars.includes(c.id);
+
+            let html = `
+                <div id="zukan-detail-wrapper" class="w-full flex flex-col items-center max-w-md mx-auto py-2 px-3">
+                    <div class="flex justify-between items-center w-full mb-3">
+                        <button onclick="renderZukanScreen('${sortOrder}', '${sortDir}')" class="pixel-btn px-3 py-1 text-xs">📖 一覧に戻る</button>
+                        <div class="flex gap-2">
+                            <button onclick="renderZukanDetailScreen('${prevChar.id}', '${sortOrder}', '${sortDir}')" class="pixel-btn px-3 py-1 text-xs bg-slate-800">◀ 前へ</button>
+                            <button onclick="renderZukanDetailScreen('${nextChar.id}', '${sortOrder}', '${sortDir}')" class="pixel-btn px-3 py-1 text-xs bg-slate-800">次へ ▶</button>
+                        </div>
+                    </div>
+
+                    <div class="pixel-box-gold p-4 bg-amber-950/80 w-full flex flex-col items-center space-y-4 relative">
+                        <div class="absolute top-2 right-2 text-xs font-mono font-bold px-2 py-0.5 rounded border ${isUnlocked ? 'bg-emerald-950 text-emerald-300 border-emerald-600' : 'bg-red-950 text-red-300 border-red-600'}">
+                            ${isUnlocked ? '✨ 所持済み' : '🔒 未所持'}
+                        </div>
+
+                        <div class="text-center mt-2">
+                            <h2 class="text-xl font-bold text-amber-300 font-pixel mb-1">${c.name}</h2>
+                            <p class="text-xs text-amber-200">${c.title}</p>
+                            <p class="text-[11px] text-slate-300 mt-0.5">${c.type}</p>
+                        </div>
+
+                        <canvas id="zukan-detail-cvs" width="140" height="140" class="pixel-box bg-slate-950 shadow-lg border-2 border-amber-500"></canvas>
+
+                        <div class="w-full bg-slate-950 p-3 rounded border border-amber-800 space-y-2 text-xs font-mono">
+                            <div class="text-amber-300 font-bold mb-1 border-b border-amber-900 pb-1">📊 ステータス</div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div class="flex justify-between"><span class="text-slate-400">HP:</span><span class="text-emerald-400 font-bold">${c.hp}</span></div>
+                                <div class="flex justify-between"><span class="text-slate-400">攻撃力:</span><span class="text-red-400 font-bold">${c.atk}</span></div>
+                                <div class="flex justify-between"><span class="text-slate-400">防御力:</span><span class="text-blue-400 font-bold">${c.def}</span></div>
+                                <div class="flex justify-between"><span class="text-slate-400">素早さ:</span><span class="text-yellow-400 font-bold">${c.spd}</span></div>
+                                <div class="flex justify-between col-span-2"><span class="text-slate-400">回避率:</span><span class="text-purple-400 font-bold">${c.eva}%</span></div>
+                            </div>
+                        </div>
+
+                        <div class="w-full bg-slate-950 p-3 rounded border border-amber-800 space-y-2 text-xs font-mono">
+                            <div class="text-amber-300 font-bold mb-1 border-b border-amber-900 pb-1">📖 キャラクター解説</div>
+                            <p class="text-slate-200 leading-relaxed whitespace-pre-line">${c.zukanDesc || c.desc}</p>
+                        </div>
+
+                        <div class="w-full bg-slate-950 p-3 rounded border border-amber-800 space-y-2 text-xs font-mono">
+                            <div class="text-amber-300 font-bold mb-1 border-b border-amber-900 pb-1">⚔ 所持スキル</div>
+                            <div class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+            `;
+
+            c.skills.forEach(s => {
+                const cdStr = s.cooldown > 0 ? ` [CT: ${s.cooldown}T]` : '';
+                html += `
+                    <div class="bg-slate-900 p-2 rounded border border-slate-800">
+                        <div class="font-bold text-amber-200">${s.name}${cdStr}</div>
+                        <div class="text-[10px] text-slate-400">${s.desc}</div>
+                    </div>
+                `;
+            });
+
+            html += `
+                            </div>
+                        </div>
+
+                        <div class="text-[11px] text-slate-400 text-center font-mono">
+                            ( 💡 左右のボタン または スマートフォンなら左右スワイプで切り替え可能 )
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+
+            setTimeout(() => {
+                const cvs = document.getElementById('zukan-detail-cvs');
+                if (cvs) CharacterRenderer.drawCharacter(cvs, c.id);
+            }, 50);
+
+            // Touch / Swipe support
+            const wrapper = document.getElementById('zukan-detail-wrapper');
+            if (wrapper) {
+                let touchStartX = 0;
+                let touchEndX = 0;
+                wrapper.addEventListener('touchstart', e => {
+                    touchStartX = e.changedTouches[0].screenX;
+                }, { passive: true });
+                wrapper.addEventListener('touchend', e => {
+                    touchEndX = e.changedTouches[0].screenX;
+                    const threshold = 40;
+                    if (touchEndX < touchStartX - threshold) {
+                        renderZukanDetailScreen(nextChar.id, sortOrder, sortDir);
+                    } else if (touchEndX > touchStartX + threshold) {
+                        renderZukanDetailScreen(prevChar.id, sortOrder, sortDir);
+                    }
+                }, { passive: true });
+            }
+        }
+
+        function openCharacterListModal() {
+            renderZukanScreen();
         }
 
         function openCharDetail(id) {
-            audioSystem.playSelect();
-            const c = CHARACTER_DATA[id];
-            if (!c) return;
-            const isUnlocked = playerState.unlockedChars.includes(id);
-
-            let text = `👤 <b class="text-amber-300">${c.name}</b> (${c.title}) ${isUnlocked ? '✨解放済み' : '🔒未解放'}\n\n`;
-            text += `タイプ: ${c.type}\n`;
-            text += `ステータス: HP ${c.hp} / 攻撃 ${c.atk} / 防御 ${c.def} / 素早さ ${c.spd} / 回避 ${c.eva}%\n\n`;
-            text += `【所持スキル】\n`;
-            c.skills.forEach(s => {
-                const cdStr = s.cooldown > 0 ? ` [CT: ${s.cooldown}T]` : ' [CT: 0]';
-                text += `・${s.name}${cdStr}: ${s.desc}\n`;
-            });
-            text += `\n${c.desc}`;
-            showModal(c.name, text);
+            renderZukanDetailScreen(id);
         }
 
         const CHARACTER_DATA = {
@@ -1170,14 +1347,15 @@ dopagaking: {
                     { id: 'ndaihyo_mind', name: '消しゴムを食う', type: 'heal_cleanse', healRate: 0.20, cooldown: 2, desc: '心を整えHPを回復し、自身のステータス低下をリセットする。' }
                 ]
             },
-            pasha: {
+             pasha: {
                 id: 'pasha',
                 name: 'パシャ僧',
                 title: '暗黒スマホ僧侶',
                 type: '闇属性 / バランス',
                 hp: 128, atk: 24, def: 19, spd: 29, eva: 21,
                 image: 'images/pasha.webp',
-                desc: 'スマホを手に右手を封印している暗黒僧侶。回避率が高く、HP減半で「ダークモード」が自動発動して攻撃力アップ！',
+                desc: 'スマホとカメラを駆使し、高い回避率と素早さで相手を翻弄するテクニカルな闇属性ファイター！\n眩い光で敵の目をくらます『カメラフラッシュ』や、罪深い記憶を呼び起こす『カメラロール参照』で戦線を維持する。\nさらに、過酷な過去から生まれた強烈な執念により、HPが半分以下になると「ダークモード」が自動発動して攻撃力が急上昇！\nピンチから一転して反撃の牙を剥く、危険な二面性を秘めたキャラクター。',
+                zukanDesc: 'かつてはごく普通の少年だったが、ある日偶然見かけた超人気女優「コートニー」を一目見て心を奪われ、思わずスマホで写真を撮ってしまったことから人生が一変。\n過剰な詮索とスキャンダル騒ぎにより逮捕寸前まで追い詰められ、世間の冷たい目に晒された。\nその消せない「過去の過ち」と深い後悔を引きずり続けた結果、心に巣食った闇に引きずり込まれていく。\n\nいつしか彼は、手にしたカメラの「強烈なフラッシュ」で周囲の人間をくらませ、自分と同じように様々な人々を漆黒の闇夜へと道連れにしようと企むようになった。\nその歪んだ執念と深まる闇こそが、のちに恐怖の「半浸闇化状態」を招き、彼を最強のダークモンスターへと変貌させる引き金となったのだ……。',
                 skills: [
                     { id: 'pasha_attack', name: '通常攻撃', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, desc: '標準的な闇の物理攻撃。' },
                     { id: 'pasha_flash', name: 'カメラフラッシュ', type: 'attack', power: 1.35, isNormalAttack: false, cooldown: 2, desc: '強烈なフラッシュでダメージを与える。' },
@@ -3398,3 +3576,7 @@ case 'dopa_juggler_skill':
         window.openOpponentProfileModal = openOpponentProfileModal;
         window.renderMetaScreen = renderMetaScreen;
         window.loadAndRenderMeta = loadAndRenderMetaContent;
+        window.renderZukanScreen = renderZukanScreen;
+        window.renderZukanDetailScreen = renderZukanDetailScreen;
+        window.onZukanSortChange = onZukanSortChange;
+        window.toggleZukanSortDir = toggleZukanSortDir;
