@@ -2245,8 +2245,7 @@ if (p2.id === 'dopagaking' && (p2.dopaChargeCount || 0) > 0 && (p2.dopaChargeCou
     ctx.fillStyle = '#0f172a';
     ctx.fillRect(0, 0, p2Cvs.width, p2Cvs.height);
     const pixelSize = Math.max(2, Math.floor(p2Cvs.width / 32));
-    const offsetX = Math.floor((p2Cvs.width - 32 * pixelS
-    ize) / 2);
+    const offsetX = Math.floor((p2Cvs.width - 32 * pixelSize) / 2);
     const offsetY = Math.floor((p2Cvs.height - 32 * pixelSize) / 2);
     const drawPx = (x, y, color, sizeX = 1, sizeY = 1) => {
         ctx.fillStyle = color;
