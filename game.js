@@ -2706,34 +2706,31 @@ case 'dopa_juggler_skill':
                 }
             }
 
-            if (p1Cvs && p1.id === 'courtney') {
-                p1Cvs.onclick = () => {
-                    if (activeBattle.battleEnded || activeBattle.waitingForOpponent || activeBattle.p1.isResting) return;
-                    if (activeBattle.myPlayerNum !== 1 && activeBattle.isOnline) return;
-
-                    if (p1.courtneyChargeCount < 8) {
-                        p1.courtneyChargeCount++;
-                        audioSystem.playBuff();
-                        activeBattle.submitAction(activeBattle.myPlayerNum, 'courtney_charge_only');
-                    } else {
-                        showModal("MAXチャージ", "これ以上溜められません！スキルから「FEEL SO HOT ///」を選択して解放してください！");
-                    }
-                };
-            }
-
          const myActiveChar = activeBattle.myPlayerNum === 1 ? p1 : p2;
-        const myCvs = activeBattle.myPlayerNum === 1 ? p1Cvs : p2Cvs;
+         const myCvs = activeBattle.myPlayerNum === 1 ? p1Cvs : p2Cvs;
 
-        if (myCvs && myActiveChar.id === 'dopagaking') {
-            myCvs.onclick = () => {
-                if (activeBattle.battleEnded || activeBattle.waitingForOpponent || myActiveChar.isResting) return;
-                if (activeBattle.isOnline && activeBattle.myPlayerNum !== 1 && activeBattle.myPlayerNum !== 2) return;
-                if ((myActiveChar.dopaChargeCount || 0) >= 5) return;
+         if (myCvs && myActiveChar.id === 'courtney') {
+             myCvs.onclick = () => {
+                 if (activeBattle.battleEnded || activeBattle.waitingForOpponent || myActiveChar.isResting) return;
+                 if (activeBattle.isOnline && activeBattle.myPlayerNum !== 1 && activeBattle.isOnline && activeBattle.myPlayerNum !== 2) return;
 
-                // タップによるローカル側の即時二重加算を防ぎ、チャージアクション送信による一元管理へ移行
-                activeBattle.submitAction(activeBattle.myPlayerNum, 'dopa_charge_step');
-            };
-        }
+                 if ((myActiveChar.courtneyChargeCount || 0) < 8) {
+                     myActiveChar.courtneyChargeCount++;
+                     audioSystem.playBuff();
+                     activeBattle.submitAction(activeBattle.myPlayerNum, 'courtney_charge_only');
+                 } else {
+                     showModal("MAXチャージ", "これ以上溜められません！スキルから「FEEL SO HOT ///」を選択して解放してください！");
+                 }
+             };
+         } else if (myCvs && myActiveChar.id === 'dopagaking') {
+             myCvs.onclick = () => {
+                 if (activeBattle.battleEnded || activeBattle.waitingForOpponent || myActiveChar.isResting) return;
+                 if (activeBattle.isOnline && activeBattle.myPlayerNum !== 1 && activeBattle.myPlayerNum !== 2) return;
+                 if ((myActiveChar.dopaChargeCount || 0) >= 5) return;
+
+                 activeBattle.submitAction(activeBattle.myPlayerNum, 'dopa_charge_step');
+             };
+         }
 
 
             const grid = document.getElementById('skill-buttons-grid');
