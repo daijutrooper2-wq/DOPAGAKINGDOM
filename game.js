@@ -459,7 +459,7 @@ static drawDopagaking(p, isCharged) {
 
         let playerState = {
             dopa: 1000,
-            unlockedChars: ['iwaba', 'asaiomizu', 'ndaihyo', 'courtney'], 
+            unlockedChars: ['iwaba', 'asaiomizu', 'ndaihyo', 'courtney', 'pasha_dark'], 
             selectedPlayerChar: 'courtney',
             selectedEnemyChar: 'pasha'
         };
