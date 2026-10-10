@@ -949,6 +949,7 @@ dopagaking: {
                 title: '暗黒スマホ僧侶',
                 type: '闇属性 / バランス',
                 hp: 128, atk: 24, def: 19, spd: 29, eva: 21,
+                image: 'images/pasha.webp',
                 desc: 'スマホを手に右手を封印している暗黒僧侶。回避率が高く、HP減半で「ダークモード」が自動発動して攻撃力アップ！',
                 skills: [
                     { id: 'pasha_attack', name: '通常攻撃', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, desc: '標準的な闇の物理攻撃。' },
