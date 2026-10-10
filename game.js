@@ -605,7 +605,7 @@ static drawDopagaking(p, isCharged) {
                                     <h3 class="text-xs sm:text-sm text-amber-300 font-mono tracking-widest mb-2">SCENE 1 : AWAKENING</h3>
                                     <h2 class="text-xl sm:text-2xl font-bold text-amber-400 font-pixel mb-4">🌟 DOPAエネルギーの覚醒 🌟</h2>
                                     <p class="text-xs sm:text-sm text-slate-200 leading-relaxed font-mono">
-                                        静まり返った宇宙の闇から、王国を包み込む神聖なるエネルギー「DOPA」の核が今、目覚めようとしている……！
+                                        静まり返った宇宙の闇から、王国を包み込む<br>神聖なるエネルギー「DOPA」の核が今、目覚めようとしている……！
                                     </p>
                                 </div>
                             </div>
@@ -624,7 +624,7 @@ static drawDopagaking(p, isCharged) {
                                     <h3 class="text-xs sm:text-sm text-blue-300 font-mono tracking-widest mb-2">SCENE 2 : DOPAGA KINGDOM</h3>
                                     <h2 class="text-xl sm:text-2xl font-bold text-blue-400 font-pixel mb-4">👑 黄金と光のドパガ王国 👑</h2>
                                     <p class="text-xs sm:text-sm text-slate-200 leading-relaxed font-mono">
-                                        溢れるDOPAの光に導かれ、栄光あるドパガキングダムの城塞が悠然と姿を現す！
+                                        溢れるDOPAの光に導かれ、<br>栄光あるドパガキングダムの城塞が悠然と姿を現す！
                                     </p>
                                 </div>
                             </div>
@@ -656,7 +656,7 @@ static drawDopagaking(p, isCharged) {
                                         <span class="text-xs font-bold text-amber-400">ドパガキング</span>
                                     </div>
                                 </div>
-                                <p class="text-xs text-slate-300 font-mono mt-2">王国に迫る闇を払うため、個性豊かな最強の挑戦者たちが今ここに立ち上がる！</p>
+                                <p class="text-xs text-slate-300 font-mono mt-2">王国に迫る闇を払うため、<br>個性豊かな最強の挑戦者たちが今ここに立ち上がる！</p>
                             </div>
                         `;
                         setTimeout(() => {
@@ -676,7 +676,7 @@ static drawDopagaking(p, isCharged) {
                                     <h3 class="text-xs sm:text-sm text-red-300 font-mono tracking-widest mb-2">SCENE 4 : CLASH</h3>
                                     <h2 class="text-xl sm:text-2xl font-bold text-yellow-300 font-pixel mb-4">💥 激突・光と闇の決戦 💥</h2>
                                     <p class="text-xs sm:text-sm text-slate-100 leading-relaxed font-mono">
-                                        交錯するエネルギーと熱気！ すべてを賭けた激闘の幕が、今まさに切って落とされる！
+                                        交錯するエネルギーと熱気！<br>すべてを賭けた激闘の幕が、今まさに切って落とされる！
                                     </p>
                                 </div>
                             </div>
@@ -696,7 +696,7 @@ static drawDopagaking(p, isCharged) {
                                         DOPAGA KINGDOM RPG
                                     </h1>
                                     <p class="text-xs sm:text-sm text-amber-100 font-mono mb-6">
-                                        王国に真の平和を取り戻せ！ 最強の王者の座を掴むのは誰だ――？
+                                        王国に真の平和を取り戻せ！<br>最強の王者の座を掴むのは誰だ――？
                                     </p>
                                     <button onclick="renderHomeScreen()" class="pixel-btn pixel-btn-primary px-8 py-3 text-base font-bold font-pixel shadow-lg">
                                         冒険へ出発！ ▶
