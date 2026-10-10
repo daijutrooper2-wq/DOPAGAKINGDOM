@@ -951,18 +951,7 @@ pasha_dark: {
                 };
             }
 
-           // 修正後
-            getDrawCharId() {
-                if (this.id === 'dopagaking') {
-                    if (this.dopaChargeCount >= 5) {
-                        return 'dopagaking_charged';
-                    }
-                    if (this.dopaChargeCount >= 1) {
-                        return 'dopagaking_crown';
-                    }
-                }
-                return this.id;
-            }
+
 
             startBattle() {
                 this.log(`⚔️ バトル開始！ 【${this.p1.charName}】 VS 【${this.p2.charName}】`, 'text-amber-300 font-bold');
@@ -2202,6 +2191,9 @@ case 'dopa_juggler_skill':
                         ctx.fillRect(offsetX + x * pixelSize, offsetY + y * pixelSize, sizeX * pixelSize, sizeY * pixelSize);
                     };
                     CharacterRenderer.drawCourtneyCharged(drawPx);
+                } else if (p1.id === 'pasha' && p1.isDarkMode) {
+                    p1Cvs.classList.remove('animate-courtney-shake');
+                    CharacterRenderer.drawCharacter(p1Cvs, 'pasha_dark', p1.isMiniZou);
                 } else {
                     p1Cvs.classList.remove('animate-courtney-shake');
                     CharacterRenderer.drawCharacter(p1Cvs, p1.id, p1.isMiniZou);
@@ -2238,6 +2230,9 @@ case 'dopa_juggler_skill':
                         ctx.fillRect(offsetX + x * pixelSize, offsetY + y * pixelSize, sizeX * pixelSize, sizeY * pixelSize);
                     };
                     CharacterRenderer.drawCourtneyCharged(drawPx);
+                } else if (p2.id === 'pasha' && p2.isDarkMode) {
+                    p2Cvs.classList.remove('animate-courtney-shake');
+                    CharacterRenderer.drawCharacter(p2Cvs, 'pasha_dark', p2.isMiniZou);
                 } else {
                     p2Cvs.classList.remove('animate-courtney-shake');
                     CharacterRenderer.drawCharacter(p2Cvs, p2.id, p2.isMiniZou);
