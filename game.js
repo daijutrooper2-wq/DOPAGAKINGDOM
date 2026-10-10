@@ -1994,6 +1994,7 @@ case 'dopa_juggler_skill':
                             </div>
                         </div>
                     </div>
+                    
 
                     <div class="w-full grid grid-cols-2 gap-4 my-1 relative items-center justify-items-center">
                         <div class="relative flex flex-col items-center w-full">
