@@ -74,15 +74,27 @@
                     img.onload = () => { 
                         img.isLoaded = true; 
                         if (typeof updateBattleUI === 'function') updateBattleUI();
-                        // キャラ選択画面等のCanvasを自動再描画
-                        Object.keys(CHARACTER_DATA).forEach(id => {
-                            const cvs = document.getElementById(`select-cvs-${id}`);
-                            if (cvs) {
-                                const c = CHARACTER_DATA[id];
-                                let targetPath = c.image;
-                                if (targetPath === src) {
-                                    CharacterRenderer.drawCharacter(cvs, id);
-                                }
+                        // DOM上の全キャンバスを再描画して最新画像を確実に反映
+                        document.querySelectorAll('canvas').forEach(cvs => {
+                            const id = cvs.id;
+                            if (id.startsWith('select-cvs-')) {
+                                CharacterRenderer.drawCharacter(cvs, id.replace('select-cvs-', ''));
+                            } else if (id.startsWith('icon-sel-cvs-')) {
+                                CharacterRenderer.drawCharacter(cvs, id.replace('icon-sel-cvs-', ''));
+                            } else if (id.startsWith('usage-cvs-')) {
+                                CharacterRenderer.drawCharacter(cvs, id.replace('usage-cvs-', ''));
+                            } else if (id.startsWith('op-cvs-')) {
+                                CharacterRenderer.drawCharacter(cvs, id.replace('op-cvs-', ''));
+                            } else if (id === 'header-profile-icon' && typeof playerState !== 'undefined') {
+                                CharacterRenderer.drawCharacter(cvs, playerState.selectedIcon || 'courtney');
+                            } else if (id === 'profile-main-icon' && typeof playerState !== 'undefined') {
+                                CharacterRenderer.drawCharacter(cvs, playerState.selectedIcon || 'courtney');
+                            } else if (id === 'opp-profile-cvs') {
+                                CharacterRenderer.drawCharacter(cvs, window.lastOppIcon || 'pasha');
+                            } else if (id === 'p1-canvas' && typeof activeBattle !== 'undefined' && activeBattle && activeBattle.p1) {
+                                CharacterRenderer.drawCharacter(cvs, activeBattle.p1.id, activeBattle.p1.isMiniZou);
+                            } else if (id === 'p2-canvas' && typeof activeBattle !== 'undefined' && activeBattle && activeBattle.p2) {
+                                CharacterRenderer.drawCharacter(cvs, activeBattle.p2.id, activeBattle.p2.isMiniZou);
                             }
                         });
                     };
@@ -2835,6 +2847,14 @@ case 'dopa_juggler_skill':
         }
 
         window.addEventListener('DOMContentLoaded', async () => {
+            // 全キャラクターの画像・専用画像を事前プリロード
+            Object.values(CHARACTER_DATA).forEach(c => {
+                if (c.image) CharacterRenderer.getImage(c.image);
+                if (c.chargedImage) CharacterRenderer.getImage(c.chargedImage);
+            });
+            CharacterRenderer.getImage('images/pasha.webp');
+            CharacterRenderer.getImage('images/pasha-dark.webp');
+
             await loadPlayerState();
             renderOpeningScreen();
         });
