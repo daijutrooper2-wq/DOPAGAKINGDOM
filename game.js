@@ -1975,18 +1975,18 @@ case 'dopa_juggler_skill':
             container.innerHTML = `
                 <div id="battle-stage" class="w-full flex flex-col items-center relative transition-colors duration-200">
                     <div class="w-full grid grid-cols-2 gap-3 mb-2">
-                        <div class="pixel-box p-2 bg-slate-900/90 relative">
+                        <div id="p1-box-container" class="pixel-box p-2 bg-slate-900/90 relative border-blue-500 ring-2 ring-blue-500/50">
                             <div class="flex justify-between items-center mb-1">
-                                <span id="p1-name-label" class="font-bold text-xs sm:text-sm text-blue-300 font-pixel">Player 1</span>
+                                <span id="p1-name-label" class="font-bold text-xs sm:text-sm text-blue-300 font-pixel">自分</span>
                                 <span id="p1-hp-text" class="text-xs font-mono font-bold text-slate-200">100/100</span>
                             </div>
                             <div class="w-full bg-slate-950 h-3 rounded-sm border border-slate-700 overflow-hidden p-0.5">
                                 <div id="p1-hp-bar" class="hp-bar-fill h-full bg-emerald-500 rounded-sm" style="width: 100%;"></div>
                             </div>
                         </div>
-                        <div class="pixel-box p-2 bg-slate-900/90 relative">
+                        <div id="p2-box-container" class="pixel-box p-2 bg-slate-900/90 relative border-red-500 ring-2 ring-red-500/50">
                             <div class="flex justify-between items-center mb-1">
-                                <span id="p2-name-label" class="font-bold text-xs sm:text-sm text-red-300 font-pixel">Enemy</span>
+                                <span id="p2-name-label" class="font-bold text-xs sm:text-sm text-red-300 font-pixel">相手</span>
                                 <span id="p2-hp-text" class="text-xs font-mono font-bold text-slate-200">100/100</span>
                             </div>
                             <div class="w-full bg-slate-950 h-3 rounded-sm border border-slate-700 overflow-hidden p-0.5">
@@ -1996,11 +1996,13 @@ case 'dopa_juggler_skill':
                     </div>
 
                     <div class="w-full grid grid-cols-2 gap-4 my-1 relative items-center justify-items-center">
-                        <div class="relative flex flex-col items-center">
-                            <canvas id="p1-canvas" width="110" height="110" class="pixel-box bg-slate-950 shadow-lg cursor-pointer" title="コートニーのアイコンタップでチャージ！"></canvas>
+                        <div class="relative flex flex-col items-center w-full">
+                            <div class="absolute -top-3 z-10 bg-blue-600 text-white font-pixel text-[10px] px-2 py-0.5 rounded border border-blue-300 shadow">YOU (自分)</div>
+                            <canvas id="p1-canvas" width="110" height="110" class="pixel-box bg-slate-950 shadow-lg cursor-pointer border-2 border-blue-500 mt-2" title="自分のキャラクター"></canvas>
                         </div>
-                        <div class="relative flex flex-col items-center">
-                            <canvas id="p2-canvas" width="110" height="110" class="pixel-box bg-slate-950 shadow-lg"></canvas>
+                        <div class="relative flex flex-col items-center w-full">
+                            <div class="absolute -top-3 z-10 bg-red-600 text-white font-pixel text-[10px] px-2 py-0.5 rounded border border-red-300 shadow">OPPONENT (相手)</div>
+                            <canvas id="p2-canvas" width="110" height="110" class="pixel-box bg-slate-950 shadow-lg border-2 border-red-500 mt-2" title="対戦相手のキャラクター"></canvas>
                         </div>
                     </div>
 
