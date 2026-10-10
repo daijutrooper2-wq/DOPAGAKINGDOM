@@ -1240,6 +1240,7 @@ pasha_dark: {
                 title: 'トゲ髪のアタッカー',
                 type: '火属性 / 超超攻撃特化',
                 hp: 105, atk: 28, def: 14, spd: 31, eva: 12,
+                image: 'images/moenan.webp',
                 desc: 'トゲ髪が目印の超攻撃的ハンター。素早さと威力が圧倒的で「筋トレ」後のハンドボールシュートは一撃必殺。',
                 skills: [
                     { id: 'moenan_cat', name: '高速猫パンチ', type: 'attack', power: 1.10, isNormalAttack: true, cooldown: 0, desc: '鋭い爪の通常攻撃。' },
@@ -2854,6 +2855,7 @@ case 'dopa_juggler_skill':
             });
             CharacterRenderer.getImage('images/pasha.webp');
             CharacterRenderer.getImage('images/pasha-dark.webp');
+            CharacterRenderer.getImage('images/moenan.webp');
 
             await loadPlayerState();
             renderOpeningScreen();
