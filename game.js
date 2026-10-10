@@ -151,7 +151,7 @@ if (charData) {
                     // 8. 縦横比を維持してCanvas内に収める
                     const hRatio = w / img.width;
                     const vRatio = h / img.height;
-                    const ratio = Math.min(hRatio, vRatio);
+                    const ratio = Math.min(hRatio, vRatio) * 1.2;
                     const centerShiftX = (w - img.width * ratio) / 2;
                     const centerShiftY = (h - img.height * ratio) / 2;
 
@@ -171,7 +171,7 @@ if (charData) {
                 ctx.ellipse(w / 2, h - 10, w * 0.38, h * 0.09, 0, 0, Math.PI * 2);
                 ctx.fill();
 
-                const pixelSize = Math.max(2, Math.floor(w / 32));
+                const pixelSize = Math.max(2, Math.floor(w / 26));
                 const offsetX = Math.floor((w - 32 * pixelSize) / 2);
                 const offsetY = Math.floor((h - 32 * pixelSize) / 2);
 
@@ -663,20 +663,20 @@ static drawDopagaking(p, isCharged) {
                                 <h3 class="text-xs sm:text-sm text-pink-400 font-mono tracking-widest">SCENE 3 : FIGHTERS ASSEMBLE</h3>
                                 <h2 class="text-lg sm:text-xl font-bold text-amber-300 font-pixel mb-2">⚡ 伝説のファイターたち集結 ⚡</h2>
                                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full max-w-lg">
-                                    <div class="pixel-box p-3 bg-slate-900 flex flex-col items-center animate-cutin border-pink-400">
-                                        <canvas id="op-cvs-courtney" width="60" height="60" class="pixel-box bg-slate-950 mb-1"></canvas>
+                                     <div class="pixel-box p-3 bg-slate-900 flex flex-col items-center animate-cutin border-pink-400">
+                                        <canvas id="op-cvs-courtney" width="76" height="76" class="pixel-box bg-slate-950 mb-1"></canvas>
                                         <span class="text-xs font-bold text-pink-300">コートニー</span>
                                     </div>
                                     <div class="pixel-box p-3 bg-slate-900 flex flex-col items-center animate-cutin border-yellow-400">
-                                        <canvas id="op-cvs-ndaihyo" width="60" height="60" class="pixel-box bg-slate-950 mb-1"></canvas>
+                                        <canvas id="op-cvs-ndaihyo" width="76" height="76" class="pixel-box bg-slate-950 mb-1"></canvas>
                                         <span class="text-xs font-bold text-yellow-300">N高代表</span>
                                     </div>
                                     <div class="pixel-box p-3 bg-slate-900 flex flex-col items-center animate-cutin border-purple-400">
-                                        <canvas id="op-cvs-pasha" width="60" height="60" class="pixel-box bg-slate-950 mb-1"></canvas>
+                                        <canvas id="op-cvs-pasha" width="76" height="76" class="pixel-box bg-slate-950 mb-1"></canvas>
                                         <span class="text-xs font-bold text-purple-300">パシャ僧</span>
                                     </div>
                                     <div class="pixel-box p-3 bg-slate-900 flex flex-col items-center animate-cutin border-amber-400">
-                                        <canvas id="op-cvs-dopagaking" width="60" height="60" class="pixel-box bg-slate-950 mb-1"></canvas>
+                                        <canvas id="op-cvs-dopagaking" width="76" height="76" class="pixel-box bg-slate-950 mb-1"></canvas>
                                         <span class="text-xs font-bold text-amber-400">ドパガキング</span>
                                     </div>
                                 </div>
@@ -2340,7 +2340,7 @@ case 'dopa_juggler_skill':
                 html += `
                     <div onclick="${isUnlocked ? `selectChar('${c.id}',${isOnline})` : `openCharDetail('${c.id}')`}" 
                          class="pixel-box p-2 bg-slate-900 cursor-pointer flex flex-col items-center justify-between border-2 transition-all ${isSelected ? 'border-amber-400 bg-amber-950/40 scale-105' : 'border-slate-700 hover:border-slate-400'} ${!isUnlocked ? 'opacity-60' : ''}">
-                        <canvas id="select-cvs-${c.id}" width="70" height="70" class="pixel-box bg-slate-950 mb-1"></canvas>
+                        <canvas id="select-cvs-${c.id}" width="90" height="90" class="pixel-box bg-slate-950 mb-1"></canvas>
                         <span class="text-xs font-bold ${isSelected ? 'text-amber-300 font-pixel' : 'text-slate-200'}">${c.name}</span>
                         <span class="text-[10px] text-slate-400">${c.title}</span>
                         ${!isUnlocked ? '<span class="text-[10px] text-red-400 font-bold mt-1">🔒 未解放</span>' : ''}
@@ -2555,11 +2555,11 @@ case 'dopa_juggler_skill':
                     <div class="w-full grid grid-cols-2 gap-4 my-1 relative items-center justify-items-center">
                         <div class="relative flex flex-col items-center w-full">
                             <div class="absolute -top-3 z-10 bg-blue-600 text-white font-pixel text-[10px] px-2 py-0.5 rounded border border-blue-300 shadow">YOU (自分)</div>
-                            <canvas id="p1-canvas" width="110" height="110" class="pixel-box bg-slate-950 shadow-lg cursor-pointer border-2 border-blue-500 mt-2" title="自分のキャラクター"></canvas>
+                            <canvas id="p1-canvas" width="145" height="145" class="pixel-box bg-slate-950 shadow-lg cursor-pointer border-2 border-blue-500 mt-2" title="自分のキャラクター"></canvas>
                         </div>
                         <div class="relative flex flex-col items-center w-full">
                             <div class="absolute -top-3 z-10 bg-red-600 text-white font-pixel text-[10px] px-2 py-0.5 rounded border border-red-300 shadow">OPPONENT (相手)</div>
-                            <canvas id="p2-canvas" width="110" height="110" class="pixel-box bg-slate-950 shadow-lg border-2 border-red-500 mt-2" title="対戦相手のキャラクター"></canvas>
+                            <canvas id="p2-canvas" width="145" height="145" class="pixel-box bg-slate-950 shadow-lg border-2 border-red-500 mt-2" title="対戦相手のキャラクター"></canvas>
                         </div>
                     </div>
 
@@ -2676,7 +2676,7 @@ case 'dopa_juggler_skill':
                     ctx.clearRect(0, 0, p1Cvs.width, p1Cvs.height);
                     ctx.fillStyle = '#0f172a';
                     ctx.fillRect(0, 0, p1Cvs.width, p1Cvs.height);
-                    const pixelSize = Math.max(2, Math.floor(p1Cvs.width / 32));
+                    const pixelSize = Math.max(2, Math.floor(p1Cvs.width / 26));
                     const offsetX = Math.floor((p1Cvs.width - 32 * pixelSize) / 2);
                     const offsetY = Math.floor((p1Cvs.height - 32 * pixelSize) / 2);
                     const drawPx = (x, y, color, sizeX = 1, sizeY = 1) => {
@@ -2692,7 +2692,7 @@ case 'dopa_juggler_skill':
                     ctx.clearRect(0, 0, p1Cvs.width, p1Cvs.height);
                     ctx.fillStyle = '#0f172a';
                     ctx.fillRect(0, 0, p1Cvs.width, p1Cvs.height);
-                    const pixelSize = Math.max(2, Math.floor(p1Cvs.width / 32));
+                    const pixelSize = Math.max(2, Math.floor(p1Cvs.width / 26));
                     const offsetX = Math.floor((p1Cvs.width - 32 * pixelSize) / 2);
                     const offsetY = Math.floor((p1Cvs.height - 32 * pixelSize) / 2);
                     const drawPx = (x, y, color, sizeX = 1, sizeY = 1) => {
@@ -2715,7 +2715,7 @@ case 'dopa_juggler_skill':
                     ctx.clearRect(0, 0, p2Cvs.width, p2Cvs.height);
                     ctx.fillStyle = '#0f172a';
                     ctx.fillRect(0, 0, p2Cvs.width, p2Cvs.height);
-                    const pixelSize = Math.max(2, Math.floor(p2Cvs.width / 32));
+                    const pixelSize = Math.max(2, Math.floor(p2Cvs.width / 26));
                     const offsetX = Math.floor((p2Cvs.width - 32 * pixelSize) / 2);
                     const offsetY = Math.floor((p2Cvs.height - 32 * pixelSize) / 2);
                     const drawPx = (x, y, color, sizeX = 1, sizeY = 1) => {
@@ -2731,7 +2731,7 @@ case 'dopa_juggler_skill':
                     ctx.clearRect(0, 0, p2Cvs.width, p2Cvs.height);
                     ctx.fillStyle = '#0f172a';
                     ctx.fillRect(0, 0, p2Cvs.width, p2Cvs.height);
-                    const pixelSize = Math.max(2, Math.floor(p2Cvs.width / 32));
+                    const pixelSize = Math.max(2, Math.floor(p2Cvs.width / 26));
                     const offsetX = Math.floor((p2Cvs.width - 32 * pixelSize) / 2);
                     const offsetY = Math.floor((p2Cvs.height - 32 * pixelSize) / 2);
                     const drawPx = (x, y, color, sizeX = 1, sizeY = 1) => {
@@ -2879,7 +2879,7 @@ case 'dopa_juggler_skill':
                     usageHtml += `
                         <div class="pixel-box p-2 bg-slate-900 flex items-center justify-between text-xs">
                             <div class="flex items-center gap-2">
-                                <canvas id="usage-cvs-${cId}" width="36" height="36" class="pixel-box bg-slate-950 rounded"></canvas>
+                                 <canvas id="usage-cvs-${cId}" width="46" height="46" class="pixel-box bg-slate-950 rounded"></canvas>
                                 <div>
                                     <b class="text-amber-300">${cData.name}</b>
                                     <div class="text-[10px] text-slate-400">使用回数: ${count}回</div>
@@ -2925,7 +2925,7 @@ case 'dopa_juggler_skill':
                     <div class="pixel-box-gold p-4 bg-amber-950/80 w-full space-y-3">
                         <div class="flex items-center justify-between flex-wrap gap-3">
                             <div class="flex items-center gap-3">
-                                <canvas id="profile-main-icon" width="60" height="60" class="pixel-box bg-slate-950 rounded cursor-pointer border-amber-400" onclick="openIconSelectModal()" title="クリックしてアイコン変更"></canvas>
+                                 <canvas id="profile-main-icon" width="80" height="80" class="pixel-box bg-slate-950 rounded cursor-pointer border-amber-400" onclick="openIconSelectModal()" title="クリックしてアイコン変更"></canvas>
                                 <div>
                                     <div class="flex items-center gap-2 mb-1">
                                         <input id="profile-name-input" type="text" value="${playerState.playerName || ''}" maxlength="12" class="pixel-box bg-slate-950 px-2 py-1 text-sm font-bold text-amber-300 w-36 outline-none border-amber-600">
@@ -3019,7 +3019,7 @@ case 'dopa_juggler_skill':
 
                 html += `
                     <div onclick="setProfileIcon('${c.id}')" class="pixel-box p-2 bg-slate-950 cursor-pointer flex flex-col items-center justify-center border-2 ${isSelected ? 'border-amber-400 bg-amber-950/40' : 'border-slate-700 hover:border-slate-400'}">
-                        <canvas id="icon-sel-cvs-${c.id}" width="50" height="50" class="pixel-box bg-slate-900 mb-1"></canvas>
+                        <canvas id="icon-sel-cvs-${c.id}" width="68" height="68" class="pixel-box bg-slate-900 mb-1"></canvas>
                         <span class="text-[11px] font-bold text-slate-200 truncate max-w-full">${c.name}</span>
                     </div>
                 `;
@@ -3080,7 +3080,7 @@ case 'dopa_juggler_skill':
             let html = `
                 <div class="flex flex-col items-center justify-center space-y-3 p-1 w-full max-w-sm mx-auto">
                     <div class="flex items-center gap-3 bg-slate-950 p-3 rounded border border-cyan-500/50 w-full">
-                        <canvas id="opp-profile-cvs" width="55" height="55" class="pixel-box bg-slate-900 rounded"></canvas>
+                        <canvas id="opp-profile-cvs" width="72" height="72" class="pixel-box bg-slate-900 rounded"></canvas>
                         <div class="text-left">
                             <h3 class="text-sm font-bold text-cyan-300 font-pixel">${h.opponentName}</h3>
                             <span class="text-[10px] text-slate-400 font-mono">オンライン対戦プレイヤー</span>
