@@ -1298,6 +1298,7 @@ pasha_dark: {
                 this.heartbeatTimer = null;
                 this.currentTurnLogs = [];
                 this.onlineSyncStarted = false;
+                this.latestRoomData = null;
             }
 
             log(msg, colorClass = 'text-slate-200') {
@@ -1437,6 +1438,7 @@ pasha_dark: {
                 this.firestoreUnsub = window.fbOnSnapshot(roomRef, (snapshot) => {
                     const data = snapshot.data();
                     if (!data) return;
+                    this.latestRoomData = data;
 
                     const oppLastSeen = this.myPlayerNum === 1 ? data.p2LastSeen : data.p1LastSeen;
                     if (oppLastSeen && (Date.now() - oppLastSeen > 20000) && !this.battleEnded && this.isOnline) {
@@ -2128,14 +2130,13 @@ case 'dopa_juggler_skill':
                         result = 'draw';
                     }
 
-                    const myCharId = this.isOnline && this.myPlayerNum === 2 ? this.p2.id : this.p1.id;
-                    const oppChar = this.isOnline && this.myPlayerNum === 2 ? this.p1 : this.p2;
-                    const oppName = oppChar.charName || '対戦相手';
-                    const oppIcon = oppChar.id;
+                    const oppProfile = this.latestRoomData ? (this.myPlayerNum === 1 ? this.latestRoomData.p2Profile : this.latestRoomData.p1Profile) : null;
+                    const oppName = oppProfile?.playerName || oppChar.charName || '対戦相手';
+                    const oppIcon = oppProfile?.selectedIcon || oppChar.id;
                     const isBot = !this.isOnline;
 
                     if (typeof recordBattleResult === 'function') {
-                        recordBattleResult(result, myCharId, oppName, oppIcon, isBot);
+                        recordBattleResult(result, myCharId, oppName, oppIcon, isBot, isBot ? null : 'online_opp', oppProfile);
                     }
 
                     if (this.onBattleEnd) this.onBattleEnd(winnerText);
