@@ -66,8 +66,14 @@
                     const img = new Image();
                     img.isLoaded = false;
                     img.hasError = false;
-                    img.onload = () => { img.isLoaded = true; };
-                    img.onerror = () => { img.hasError = true; };
+                    img.onload = () => { 
+                        img.isLoaded = true; 
+                        if (typeof updateBattleUI === 'function') updateBattleUI();
+                    };
+                    img.onerror = () => { 
+                        img.hasError = true; 
+                        console.error("画像読み込みエラー (Image Load Error):", src);
+                    };
                     img.src = src;
                     this.imageCache[src] = img;
                 }
