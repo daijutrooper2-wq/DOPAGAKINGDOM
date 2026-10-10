@@ -810,7 +810,20 @@ static drawDopagaking(p, isCharged) {
             updateHeaderProfile();
         }
 
-        async function recordBattleResult(result, myCharId, opponentName, opponentIcon, isBot, opponentId = null) {
+        function getMyProfileSnapshot() {
+            const winRate = playerState.totalBattles > 0 ? ((playerState.wins / playerState.totalBattles) * 100).toFixed(1) : 0;
+            return {
+                playerName: playerState.playerName || '名無しファイター',
+                selectedIcon: playerState.selectedIcon || 'courtney',
+                totalBattles: playerState.totalBattles || 0,
+                wins: playerState.wins || 0,
+                losses: playerState.losses || 0,
+                winRate: winRate,
+                charUsage: playerState.charUsage || {}
+            };
+        }
+
+        async function recordBattleResult(result, myCharId, opponentName, opponentIcon, isBot, opponentId = null, opponentProfile = null) {
             playerState.totalBattles++;
             if (result === 'win') playerState.wins++;
             else if (result === 'lose') playerState.losses++;
@@ -824,7 +837,8 @@ static drawDopagaking(p, isCharged) {
                 opponentName: opponentName,
                 opponentIcon: opponentIcon || 'pasha',
                 isBot: isBot,
-                opponentId: opponentId || (isBot ? 'bot_cpu' : 'online_player')
+                opponentId: opponentId || (isBot ? 'bot_cpu' : 'online_player'),
+                opponentProfile: opponentProfile
             };
             playerState.battleHistory.unshift(historyItem);
             if (playerState.battleHistory.length > 50) {
@@ -1458,6 +1472,24 @@ pasha_dark: {
                             }
 
                             if (data.battleEnded) {
+                                if (!this.statsRecorded) {
+                                    this.statsRecorded = true;
+                                    let result = 'draw';
+                                    if (this.p2.hp > 0 && this.p1.hp <= 0) result = 'win';
+                                    else if (this.p2.hp <= 0 && this.p1.hp > 0) result = 'lose';
+                                    else result = 'draw';
+
+                                    const myCharId = this.p2.id;
+                                    const oppChar = this.p1;
+                                    const oppName = data.p1Profile?.playerName || oppChar.charName || '対戦相手';
+                                    const oppIcon = data.p1Profile?.selectedIcon || oppChar.id;
+                                    const oppProfile = data.p1Profile || null;
+
+                                    if (typeof recordBattleResult === 'function') {
+                                        recordBattleResult(result, myCharId, oppName, oppIcon, false, 'online_p1', oppProfile);
+                                    }
+                                }
+
                                 this.battleEnded = true;
                                 this.stopTimer();
                                 if (this.onBattleEnd) this.onBattleEnd(data.winnerText);
@@ -2376,7 +2408,9 @@ case 'dopa_juggler_skill':
                 await window.fbSetDoc(roomRef, {
                     roomId: roomId,
                     p1Char: playerState.selectedPlayerChar,
+                    p1Profile: getMyProfileSnapshot(),
                     p2Char: null,
+                    p2Profile: null,
                     p1Action: null,
                     p2Action: null,
                     status: 'waiting',
@@ -2429,6 +2463,7 @@ case 'dopa_juggler_skill':
 
                 await window.fbUpdateDoc(roomRef, {
                     p2Char: playerState.selectedPlayerChar,
+                    p2Profile: getMyProfileSnapshot(),
                     status: 'playing',
                     p2LastSeen: Date.now()
                 });
@@ -2968,20 +3003,61 @@ case 'dopa_juggler_skill':
             const h = playerState.battleHistory[historyIndex];
             if (!h || h.isBot) return;
 
+            const p = h.opponentProfile;
+            let usageHtml = '';
+            if (p && p.charUsage && Object.keys(p.charUsage).length > 0) {
+                const totalC = Object.values(p.charUsage).reduce((a, b) => a + b, 0);
+                usageHtml = `<div class="pixel-box p-3 bg-slate-900 w-full space-y-1 text-left"><h4 class="text-xs font-bold text-amber-300 font-pixel mb-1">📊 相手の使用キャラ傾向</h4><div class="space-y-1 max-h-36 overflow-y-auto pr-1">`;
+                Object.entries(p.charUsage).forEach(([cId, cnt]) => {
+                    const cData = CHARACTER_DATA[cId] || { name: cId };
+                    const pct = totalC > 0 ? ((cnt / totalC) * 100).toFixed(1) : 0;
+                    usageHtml += `
+                        <div class="bg-slate-950 p-1.5 rounded flex items-center justify-between text-xs font-mono">
+                            <span class="text-slate-200">${cData.name} (${cnt}回)</span>
+                            <span class="text-emerald-400 font-bold">${pct}%</span>
+                        </div>
+                    `;
+                });
+                usageHtml += `</div></div>`;
+            } else {
+                usageHtml = `<div class="pixel-box p-3 bg-slate-900 w-full text-xs text-slate-400 font-mono">使用キャラクター記録なし</div>`;
+            }
+
+            let oppWinRate = p && p.totalBattles > 0 ? ((p.wins / p.totalBattles) * 100).toFixed(1) : (p?.winRate || 0);
+            let oppBattles = p ? p.totalBattles : '非公開';
+            let oppWins = p ? p.wins : '非公開';
+            let oppLosses = p ? p.losses : '非公開';
+
             let html = `
-                <div class="text-center space-y-3 p-1">
-                    <div class="flex flex-col items-center gap-2">
-                        <canvas id="opp-profile-cvs" width="60" height="60" class="pixel-box bg-slate-950 rounded border-cyan-400"></canvas>
-                        <div>
-                            <h3 class="text-base font-bold text-cyan-300 font-pixel">${h.opponentName}</h3>
-                            <span class="text-[10px] text-slate-400">オンライン対戦プレイヤー</span>
+                <div class="flex flex-col items-center justify-center space-y-3 p-1 w-full max-w-sm mx-auto">
+                    <div class="flex items-center gap-3 bg-slate-950 p-3 rounded border border-cyan-500/50 w-full">
+                        <canvas id="opp-profile-cvs" width="55" height="55" class="pixel-box bg-slate-900 rounded"></canvas>
+                        <div class="text-left">
+                            <h3 class="text-sm font-bold text-cyan-300 font-pixel">${h.opponentName}</h3>
+                            <span class="text-[10px] text-slate-400 font-mono">オンライン対戦プレイヤー</span>
                         </div>
                     </div>
-                    <div class="pixel-box p-3 bg-slate-950 text-left text-xs space-y-1 font-mono">
-                        <p>・直近対戦日時: ${h.date}</p>
-                        <p>・対戦結果: ${h.result === 'win' ? 'こちらの勝利' : (h.result === 'lose' ? 'こちらの敗北' : '引き分け')}</p>
-                        <p>・公開戦績: 閲覧専用データ</p>
+
+                    <div class="grid grid-cols-4 gap-1.5 w-full text-center font-mono text-xs">
+                        <div class="bg-slate-950 p-2 rounded border border-slate-800">
+                            <div class="text-slate-400 text-[10px]">総対戦</div>
+                            <div class="text-amber-300 font-bold">${oppBattles}</div>
+                        </div>
+                        <div class="bg-slate-950 p-2 rounded border border-slate-800">
+                            <div class="text-slate-400 text-[10px]">勝利</div>
+                            <div class="text-emerald-400 font-bold">${oppWins}</div>
+                        </div>
+                        <div class="bg-slate-950 p-2 rounded border border-slate-800">
+                            <div class="text-slate-400 text-[10px]">敗北</div>
+                            <div class="text-red-400 font-bold">${oppLosses}</div>
+                        </div>
+                        <div class="bg-slate-950 p-2 rounded border border-slate-800">
+                            <div class="text-slate-400 text-[10px]">勝率</div>
+                            <div class="text-cyan-400 font-bold">${oppWinRate}%</div>
+                        </div>
                     </div>
+
+                    ${usageHtml}
                 </div>
             `;
             showModal("対戦相手プロフィール", html);
