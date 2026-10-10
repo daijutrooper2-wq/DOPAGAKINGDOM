@@ -909,6 +909,18 @@ pasha_dark: {
             startBattle() {
                 this.log(`⚔️ バトル開始！ 【${this.p1.charName}】 VS 【${this.p2.charName}】`, 'text-amber-300 font-bold');
                 
+                const myChar = (this.isOnline && this.myPlayerNum === 2) ? this.p2 : this.p1;
+                if (myChar.id === 'dopagaking') {
+                    const statusBody = `【ドパガキングのステータス決定！】\n` +
+                        `HP：${myChar.hp}\n` +
+                        `攻撃力：${myChar.atk}\n` +
+                        `防御力：${myChar.def}\n` +
+                        `回避率：${myChar.eva}%\n` +
+                        `素早さ：${myChar.spd}`;
+                    
+                    showModal("👑 ドパガキング参戦", statusBody);
+                }
+
                 if (this.isOnline && this.roomId) {
                     this.initOnlineSync();
                 } else {
@@ -2269,7 +2281,7 @@ if (p2.id === 'dopagaking' && (p2.dopaChargeCount || 0) > 0 && (p2.dopaChargeCou
                 const btn = document.createElement('button');
                 btn.className = `pixel-btn p-2 text-xs font-bold flex flex-col items-center justify-center ${disabled ? 'pixel-btn-disabled' : 'pixel-btn-primary'}`;
                 btn.disabled = disabled;
-                
+
                 let extraBadge = '';
                 if (s.id === 'courtney_feel') {
                     extraBadge = ` (溜め: ${activePlayer.courtneyChargeCount || 0}/8)`;
