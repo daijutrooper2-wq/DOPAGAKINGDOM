@@ -1994,7 +1994,7 @@ case 'dopa_juggler_skill':
                             </div>
                         </div>
                     </div>
-                    
+
 
                     <div class="w-full grid grid-cols-2 gap-4 my-1 relative items-center justify-items-center">
                         <div class="relative flex flex-col items-center w-full">
@@ -2115,42 +2115,76 @@ case 'dopa_juggler_skill':
             const p2Cvs = document.getElementById('p2-canvas');
 
             if (p1Cvs) {
+                if (p1.id === 'dopagaking' && (p1.dopaChargeCount || 0) > 0 && (p1.dopaChargeCount || 0) < 5) {
+                    const ctx = p1Cvs.getContext('2d');
+                    ctx.clearRect(0, 0, p1Cvs.width, p1Cvs.height);
+                    ctx.fillStyle = '#0f172a';
+                    ctx.fillRect(0, 0, p1Cvs.width, p1Cvs.height);
+                    const pixelSize = Math.max(2, Math.floor(p1Cvs.width / 32));
+                    const offsetX = Math.floor((p1Cvs.width - 32 * pixelSize) / 2);
+                    const offsetY = Math.floor((p1Cvs.height - 32 * pixelSize) / 2);
+                    const drawPx = (x, y, color, sizeX = 1, sizeY = 1) => {
+                        ctx.fillStyle = color;
+                        ctx.fillRect(offsetX + x * pixelSize, offsetY + y * pixelSize, sizeX * pixelSize, sizeY * pixelSize);
+                    };
+                    CharacterRenderer.drawCrown(drawPx);
+                } else if (p1.id === 'dopagaking' && (p1.dopaChargeCount || 0) >= 5 && p1.selectedInheritChar) {
+                    CharacterRenderer.drawCharacter(p1Cvs, p1.selectedInheritChar, false);
+                } else if (p1.id === 'courtney' && (p1.courtneyChargeCount || 0) > 0) {
+                    p1Cvs.classList.add('animate-courtney-shake');
+                    const ctx = p1Cvs.getContext('2d');
+                    ctx.clearRect(0, 0, p1Cvs.width, p1Cvs.height);
+                    ctx.fillStyle = '#0f172a';
+                    ctx.fillRect(0, 0, p1Cvs.width, p1Cvs.height);
+                    const pixelSize = Math.max(2, Math.floor(p1Cvs.width / 32));
+                    const offsetX = Math.floor((p1Cvs.width - 32 * pixelSize) / 2);
+                    const offsetY = Math.floor((p1Cvs.height - 32 * pixelSize) / 2);
+                    const drawPx = (x, y, color, sizeX = 1, sizeY = 1) => {
+                        ctx.fillStyle = color;
+                        ctx.fillRect(offsetX + x * pixelSize, offsetY + y * pixelSize, sizeX * pixelSize, sizeY * pixelSize);
+                    };
+                    CharacterRenderer.drawCourtneyCharged(drawPx);
+                } else {
+                    p1Cvs.classList.remove('animate-courtney-shake');
+                    CharacterRenderer.drawCharacter(p1Cvs, p1.id, p1.isMiniZou);
+                }
+            }
 
-// p1Cvs 描画の判定部分
-// --- p1Cvs の描画判定 ---
-if (p1.id === 'dopagaking' && (p1.dopaChargeCount || 0) > 0 && (p1.dopaChargeCount || 0) < 5) {
-    const ctx = p1Cvs.getContext('2d');
-    ctx.clearRect(0, 0, p1Cvs.width, p1Cvs.height);
-    ctx.fillStyle = '#0f172a';
-    ctx.fillRect(0, 0, p1Cvs.width, p1Cvs.height);
-    const pixelSize = Math.max(2, Math.floor(p1Cvs.width / 32));
-    const offsetX = Math.floor((p1Cvs.width - 32 * pixelSize) / 2);
-    const offsetY = Math.floor((p1Cvs.height - 32 * pixelSize) / 2);
-    const drawPx = (x, y, color, sizeX = 1, sizeY = 1) => {
-        ctx.fillStyle = color;
-        ctx.fillRect(offsetX + x * pixelSize, offsetY + y * pixelSize, sizeX * pixelSize, sizeY * pixelSize);
-    };
-    CharacterRenderer.drawCrown(drawPx);
-} else if (p1.id === 'dopagaking' && (p1.dopaChargeCount || 0) >= 5 && p1.selectedInheritChar) {
-    CharacterRenderer.drawCharacter(p1Cvs, p1.selectedInheritChar, false);
-} else if (p1.id === 'courtney' && (p1.courtneyChargeCount || 0) > 0) {
-    p1Cvs.classList.add('animate-courtney-shake');
-    const ctx = p1Cvs.getContext('2d');
-    ctx.clearRect(0, 0, p1Cvs.width, p1Cvs.height);
-    ctx.fillStyle = '#0f172a';
-    ctx.fillRect(0, 0, p1Cvs.width, p1Cvs.height);
-    const pixelSize = Math.max(2, Math.floor(p1Cvs.width / 32));
-    const offsetX = Math.floor((p1Cvs.width - 32 * pixelSize) / 2);
-    const offsetY = Math.floor((p1Cvs.height - 32 * pixelSize) / 2);
-    const drawPx = (x, y, color, sizeX = 1, sizeY = 1) => {
-        ctx.fillStyle = color;
-        ctx.fillRect(offsetX + x * pixelSize, offsetY + y * pixelSize, sizeX * pixelSize, sizeY * pixelSize);
-    };
-    CharacterRenderer.drawCourtneyCharged(drawPx);
-} else {
-    p1Cvs.classList.remove('animate-courtney-shake');
-    CharacterRenderer.drawCharacter(p1Cvs, p1.id, p1.isMiniZou);
-}
+            if (p2Cvs) {
+                if (p2.id === 'dopagaking' && (p2.dopaChargeCount || 0) > 0 && (p2.dopaChargeCount || 0) < 5) {
+                    const ctx = p2Cvs.getContext('2d');
+                    ctx.clearRect(0, 0, p2Cvs.width, p2Cvs.height);
+                    ctx.fillStyle = '#0f172a';
+                    ctx.fillRect(0, 0, p2Cvs.width, p2Cvs.height);
+                    const pixelSize = Math.max(2, Math.floor(p2Cvs.width / 32));
+                    const offsetX = Math.floor((p2Cvs.width - 32 * pixelSize) / 2);
+                    const offsetY = Math.floor((p2Cvs.height - 32 * pixelSize) / 2);
+                    const drawPx = (x, y, color, sizeX = 1, sizeY = 1) => {
+                        ctx.fillStyle = color;
+                        ctx.fillRect(offsetX + x * pixelSize, offsetY + y * pixelSize, sizeX * pixelSize, sizeY * pixelSize);
+                    };
+                    CharacterRenderer.drawCrown(drawPx);
+                } else if (p2.id === 'dopagaking' && (p2.dopaChargeCount || 0) >= 5 && p2.selectedInheritChar) {
+                    CharacterRenderer.drawCharacter(p2Cvs, p2.selectedInheritChar, false);
+                } else if (p2.id === 'courtney' && (p2.courtneyChargeCount || 0) > 0) {
+                    p2Cvs.classList.add('animate-courtney-shake');
+                    const ctx = p2Cvs.getContext('2d');
+                    ctx.clearRect(0, 0, p2Cvs.width, p2Cvs.height);
+                    ctx.fillStyle = '#0f172a';
+                    ctx.fillRect(0, 0, p2Cvs.width, p2Cvs.height);
+                    const pixelSize = Math.max(2, Math.floor(p2Cvs.width / 32));
+                    const offsetX = Math.floor((p2Cvs.width - 32 * pixelSize) / 2);
+                    const offsetY = Math.floor((p2Cvs.height - 32 * pixelSize) / 2);
+                    const drawPx = (x, y, color, sizeX = 1, sizeY = 1) => {
+                        ctx.fillStyle = color;
+                        ctx.fillRect(offsetX + x * pixelSize, offsetY + y * pixelSize, sizeX * pixelSize, sizeY * pixelSize);
+                    };
+                    CharacterRenderer.drawCourtneyCharged(drawPx);
+                } else {
+                    p2Cvs.classList.remove('animate-courtney-shake');
+                    CharacterRenderer.drawCharacter(p2Cvs, p2.id, p2.isMiniZou);
+                }
+            }
 
 // --- p2Cvs の描画判定（BOT/敵側のドパガキング対応） ---
 if (p2.id === 'dopagaking' && (p2.dopaChargeCount || 0) > 0 && (p2.dopaChargeCount || 0) < 5) {
@@ -2175,7 +2209,8 @@ if (p2.id === 'dopagaking' && (p2.dopaChargeCount || 0) > 0 && (p2.dopaChargeCou
     ctx.fillStyle = '#0f172a';
     ctx.fillRect(0, 0, p2Cvs.width, p2Cvs.height);
     const pixelSize = Math.max(2, Math.floor(p2Cvs.width / 32));
-    const offsetX = Math.floor((p2Cvs.width - 32 * pixelSize) / 2);
+    const offsetX = Math.floor((p2Cvs.width - 32 * pixelS
+    ize) / 2);
     const offsetY = Math.floor((p2Cvs.height - 32 * pixelSize) / 2);
     const drawPx = (x, y, color, sizeX = 1, sizeY = 1) => {
         ctx.fillStyle = color;
