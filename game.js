@@ -844,7 +844,7 @@ static drawDopagaking(p, isCharged) {
             }
         }
 
-        async function recordBattleResult(result, myCharId, opponentName, opponentIcon, isBot, opponentId = null, opponentProfile = null) {
+        async function recordBattleResult(result, myCharId, opponentName, opponentIcon, isBot, opponentId = null, opponentProfile = null, oppCharId = null) {
             playerState.totalBattles++;
             if (result === 'win') playerState.wins++;
             else if (result === 'lose') playerState.losses++;
@@ -868,7 +868,7 @@ static drawDopagaking(p, isCharged) {
 
             await savePlayerState();
             updateHeaderProfile();
-            await recordGlobalMatchResult(myCharId, opponentIcon, result, isBot);
+            await recordGlobalMatchResult(myCharId, oppCharId || opponentIcon, result, isBot);
         }
 
         function showModal(title, body) {
@@ -1503,15 +1503,16 @@ pasha_dark: {
                                     else if (this.p2.hp <= 0 && this.p1.hp > 0) result = 'lose';
                                     else result = 'draw';
 
-                                    const myCharId = this.p2.id;
-                                    const oppChar = this.p1;
-                                    const oppName = data.p1Profile?.playerName || oppChar.charName || '対戦相手';
-                                    const oppIcon = data.p1Profile?.selectedIcon || oppChar.id;
-                                    const oppProfile = data.p1Profile || null;
+                                     const myCharId = this.p2.id;
+                                     const oppChar = this.p1;
+                                     const oppCharId = oppChar.id;
+                                     const oppName = data.p1Profile?.playerName || oppChar.charName || '対戦相手';
+                                     const oppIcon = data.p1Profile?.selectedIcon || oppChar.id;
+                                     const oppProfile = data.p1Profile || null;
 
-                                    if (typeof recordBattleResult === 'function') {
-                                        recordBattleResult(result, myCharId, oppName, oppIcon, false, 'online_p1', oppProfile);
-                                    }
+                                     if (typeof recordBattleResult === 'function') {
+                                         recordBattleResult(result, myCharId, oppName, oppIcon, false, 'online_p1', oppProfile, oppCharId);
+                                     }
                                 }
 
                                 this.battleEnded = true;
@@ -2152,13 +2153,16 @@ case 'dopa_juggler_skill':
                         result = 'draw';
                     }
 
+                    const myCharId = (this.isOnline && this.myPlayerNum === 2) ? this.p2.id : this.p1.id;
+                    const oppChar = (this.isOnline && this.myPlayerNum === 2) ? this.p1 : this.p2;
+                    const oppCharId = oppChar.id;
                     const oppProfile = this.latestRoomData ? (this.myPlayerNum === 1 ? this.latestRoomData.p2Profile : this.latestRoomData.p1Profile) : null;
                     const oppName = oppProfile?.playerName || oppChar.charName || '対戦相手';
                     const oppIcon = oppProfile?.selectedIcon || oppChar.id;
                     const isBot = !this.isOnline;
 
                     if (typeof recordBattleResult === 'function') {
-                        recordBattleResult(result, myCharId, oppName, oppIcon, isBot, isBot ? null : 'online_opp', oppProfile);
+                        recordBattleResult(result, myCharId, oppName, oppIcon, isBot, isBot ? null : 'online_opp', oppProfile, oppCharId);
                     }
 
                     if (this.onBattleEnd) this.onBattleEnd(winnerText);
@@ -3091,6 +3095,262 @@ case 'dopa_juggler_skill':
             }, 50);
         }
 
+        async function renderMetaScreen() {
+            audioSystem.playSelect();
+            const container = document.getElementById('screen-container');
+            container.innerHTML = `
+                <div class="flex flex-col items-center justify-center w-full max-w-3xl space-y-4 py-4 px-2">
+                    <h2 class="text-xl sm:text-2xl font-bold text-amber-300 font-pixel">📊 現環境データ (META ANALYSIS)</h2>
+                    
+                    <div class="pixel-box-gold p-4 bg-amber-950/90 w-full space-y-3">
+                        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-amber-800 pb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-amber-200 font-bold">集計期間:</span>
+                                <select id="meta-period-select" onchange="loadAndRenderMeta()" class="pixel-box bg-slate-950 text-amber-300 text-xs px-2 py-1 outline-none border-amber-600">
+                                    <option value="all">全期間 (All Time)</option>
+                                    <option value="30">直近 30日</option>
+                                    <option value="7">直近 7日</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs text-amber-200 font-bold">対戦モード:</span>
+                                <select id="meta-mode-select" onchange="loadAndRenderMeta()" class="pixel-box bg-slate-950 text-amber-300 text-xs px-2 py-1 outline-none border-amber-600">
+                                    <option value="all">すべて (All)</option>
+                                    <option value="pvp">オンライン対戦 (PvP)</option>
+                                    <option value="bot">BOT戦 (Solo)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="meta-content-area" class="space-y-4">
+                            <div class="text-center py-8 text-amber-300 font-mono animate-pulse">
+                                🔄 グローバル環境データを読み込み中...
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="renderHomeScreen()" class="pixel-btn px-6 py-2 text-xs font-bold">ホームに戻る</button>
+                </div>
+            `;
+
+            await loadAndRenderMetaContent();
+        }
+
+        async function loadAndRenderMetaContent() {
+            const area = document.getElementById('meta-content-area');
+            if (!area) return;
+
+            const periodSel = document.getElementById('meta-period-select');
+            const modeSel = document.getElementById('meta-mode-select');
+            const period = periodSel ? periodSel.value : 'all';
+            const mode = modeSel ? modeSel.value : 'all';
+
+            let matches = [];
+            if (window.fbDb && window.fbCollection && window.fbGetDocs) {
+                try {
+                    const colRef = window.fbCollection(window.fbDb, 'artifacts', window.fbAppId, 'public', 'data', 'global_matches');
+                    const snap = await window.fbGetDocs(colRef);
+                    snap.forEach(doc => {
+                        const d = doc.data();
+                        if (d) matches.push(d);
+                    });
+                } catch(e) {
+                    console.error("Fetch Global Matches Error:", e);
+                }
+            }
+
+            if (matches.length === 0 && playerState.battleHistory && playerState.battleHistory.length > 0) {
+                playerState.battleHistory.forEach(h => {
+                    matches.push({
+                        timestamp: Date.now(),
+                        isBot: h.isBot,
+                        myChar: h.myChar,
+                        oppChar: h.opponentProfile?.selectedIcon || h.opponentIcon || 'pasha',
+                        result: h.result
+                    });
+                });
+            }
+
+            if (mode === 'pvp') {
+                matches = matches.filter(m => m.isBot === false);
+            } else if (mode === 'bot') {
+                matches = matches.filter(m => m.isBot === true);
+            }
+
+            const now = Date.now();
+            if (period === '7') {
+                const limitTime = now - 7 * 24 * 60 * 60 * 1000;
+                matches = matches.filter(m => m.timestamp && m.timestamp >= limitTime);
+            } else if (period === '30') {
+                const limitTime = now - 30 * 24 * 60 * 60 * 1000;
+                matches = matches.filter(m => m.timestamp && m.timestamp >= limitTime);
+            }
+
+            const totalCount = matches.length;
+
+            if (totalCount < 5) {
+                area.innerHTML = `
+                    <div class="pixel-box p-6 bg-slate-900 text-center space-y-3">
+                        <p class="text-amber-400 font-bold font-pixel text-sm">⚠️ データ不足 (INSUFFICIENT DATA)</p>
+                        <p class="text-xs text-slate-300">十分な対戦データが集まっていません（現在の対象試合数: ${totalCount}件 / 最低5件必要）。</p>
+                        <p class="text-[11px] text-slate-400">オンライン対戦やBOT戦をプレイして、環境データ蓄積にご協力ください！架空のデータは表示されません。</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const charStats = {};
+            const usageCounts = {};
+            let totalUsage = 0;
+            const matchupData = {};
+
+            const charIds = Object.keys(CHARACTER_DATA);
+            charIds.forEach(id => {
+                charStats[id] = { matches: 0, wins: 0, losses: 0, draws: 0 };
+                usageCounts[id] = 0;
+                matchupData[id] = {};
+                charIds.forEach(otherId => {
+                    matchupData[id][otherId] = { matches: 0, wins: 0 };
+                });
+            });
+
+            matches.forEach(m => {
+                const my = m.myChar;
+                const opp = m.oppChar;
+                const res = m.result;
+
+                if (my && charStats[my]) {
+                    charStats[my].matches++;
+                    usageCounts[my]++;
+                    totalUsage++;
+                    if (res === 'win') charStats[my].wins++;
+                    else if (res === 'lose') charStats[my].losses++;
+                    else charStats[my].draws++;
+                }
+
+                if (my && opp && matchupData[my] && matchupData[my][opp]) {
+                    matchupData[my][opp].matches++;
+                    if (res === 'win') {
+                        matchupData[my][opp].wins++;
+                    }
+                }
+            });
+
+            const rankedChars = charIds.map(id => {
+                const s = charStats[id];
+                const winRate = s.matches > 0 ? (s.wins / s.matches) * 100 : 0;
+                const usageRate = totalUsage > 0 ? (usageCounts[id] / totalUsage) * 100 : 0;
+                return { id, ...s, winRate, usageRate };
+            }).sort((a, b) => b.winRate - a.winRate || b.matches - a.matches);
+
+            let statsHtml = `
+                <div class="space-y-3">
+                    <h3 class="text-xs font-bold text-amber-300 font-pixel">🏆 キャラ別成績ランキング (総対戦: ${totalCount}件)</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs font-mono border-collapse">
+                            <thead>
+                                <tr class="bg-slate-950 text-amber-400 border-b border-amber-800">
+                                    <th class="p-2">順位 / キャラ</th>
+                                    <th class="p-2 text-center">対戦数</th>
+                                    <th class="p-2 text-center">勝利数</th>
+                                    <th class="p-2 text-center">勝率</th>
+                                    <th class="p-2 text-center">使用率</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800">
+            `;
+
+            rankedChars.forEach((c, idx) => {
+                const cData = CHARACTER_DATA[c.id] || { name: c.id };
+                let rankBadge = `${idx + 1}位`;
+                if (idx === 0) rankBadge = '👑 1位';
+                else if (idx === 1) rankBadge = '🥈 2位';
+                else if (idx === 2) rankBadge = '🥉 3位';
+
+                statsHtml += `
+                    <tr class="hover:bg-slate-900/60">
+                        <td class="p-2 flex items-center gap-2">
+                            <span class="w-10 text-amber-300 font-bold">${rankBadge}</span>
+                            <span class="font-bold text-slate-100">${cData.name}</span>
+                        </td>
+                        <td class="p-2 text-center text-slate-300">${c.matches}</td>
+                        <td class="p-2 text-center text-emerald-400">${c.wins}</td>
+                        <td class="p-2 text-center font-bold text-cyan-400">${c.winRate.toFixed(1)}%</td>
+                        <td class="p-2 text-center text-amber-200">${c.usageRate.toFixed(1)}%</td>
+                    </tr>
+                `;
+            });
+
+            statsHtml += `</tbody></table></div></div>`;
+
+            let matchupHtml = `
+                <div class="space-y-3 pt-4 border-t border-amber-800">
+                    <h3 class="text-xs font-bold text-amber-300 font-pixel">⚔️ キャラ相性表 (行: 自分 VS 列: 相手の勝率)</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-center text-[10px] font-mono border-collapse">
+                            <thead>
+                                <tr class="bg-slate-950 text-amber-400 border-b border-amber-800">
+                                    <th class="p-1.5 text-left">自分 \\ 相手</th>
+            `;
+            charIds.forEach(id => {
+                const c = CHARACTER_DATA[id];
+                matchupHtml += `<th class="p-1.5 truncate max-w-[60px]">${c ? c.name : id}</th>`;
+            });
+            matchupHtml += `</tr></thead><tbody class="divide-y divide-slate-800">`;
+
+            charIds.forEach(myId => {
+                const myC = CHARACTER_DATA[myId];
+                matchupHtml += `<tr class="hover:bg-slate-900/60"><td class="p-1.5 text-left font-bold text-slate-200 truncate max-w-[80px]">${myC ? myC.name : myId}</td>`;
+                charIds.forEach(oppId => {
+                    if (myId === oppId) {
+                        matchupHtml += `<td class="p-1.5 bg-slate-950 text-slate-600">---</td>`;
+                    } else {
+                        const m = matchupData[myId][oppId];
+                        if (m.matches === 0) {
+                            matchupHtml += `<td class="p-1.5 text-slate-500">データなし</td>`;
+                        } else {
+                            const wr = (m.wins / m.matches) * 100;
+                            let colorClass = 'bg-slate-900 text-slate-200';
+                            if (wr >= 55) colorClass = 'bg-emerald-950/80 text-emerald-300 font-bold';
+                            else if (wr <= 45) colorClass = 'bg-red-950/80 text-red-300 font-bold';
+                            matchupHtml += `<td class="p-1.5 ${colorClass}">${wr.toFixed(0)}%<br><span class="text-[9px] text-slate-400">(${m.matches}戦)</span></td>`;
+                        }
+                    }
+                });
+                matchupHtml += `</tr>`;
+            });
+            matchupHtml += `</tbody></table></div></div>`;
+
+            const topChar = rankedChars[0];
+            const bottomChar = rankedChars[rankedChars.length - 1];
+            const popularChar = [...rankedChars].sort((a, b) => b.usageRate - a.usageRate)[0];
+
+            let analysisHtml = `
+                <div class="space-y-3 pt-4 border-t border-amber-800">
+                    <h3 class="text-xs font-bold text-amber-300 font-pixel">📊 環境分析インサイト (ENVIRONMENT INSIGHTS)</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                        <div class="pixel-box p-3 bg-slate-950 space-y-1">
+                            <span class="text-[10px] text-emerald-400 font-bold">👑 勝率トップ (強キャラ)</span>
+                            <div class="font-bold text-amber-300 text-sm">${CHARACTER_DATA[topChar.id]?.name || topChar.id}</div>
+                            <div class="text-[11px] text-slate-300">勝率: <span class="text-cyan-400 font-bold">${topChar.winRate.toFixed(1)}%</span> (${topChar.matches}戦)</div>
+                        </div>
+                        <div class="pixel-box p-3 bg-slate-950 space-y-1">
+                            <span class="text-[10px] text-purple-400 font-bold">🔥 使用率トップ (人気)</span>
+                            <div class="font-bold text-amber-300 text-sm">${CHARACTER_DATA[popularChar.id]?.name || popularChar.id}</div>
+                            <div class="text-[11px] text-slate-300">使用率: <span class="text-amber-400 font-bold">${popularChar.usageRate.toFixed(1)}%</span> (${popularChar.matches}戦)</div>
+                        </div>
+                        <div class="pixel-box p-3 bg-slate-950 space-y-1">
+                            <span class="text-[10px] text-red-400 font-bold">⚡ 要研究・苦戦キャラ</span>
+                            <div class="font-bold text-amber-300 text-sm">${CHARACTER_DATA[bottomChar.id]?.name || bottomChar.id}</div>
+                            <div class="text-[11px] text-slate-300">勝率: <span class="text-red-400 font-bold">${bottomChar.winRate.toFixed(1)}%</span> (${bottomChar.matches}戦)</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            area.innerHTML = statsHtml + matchupHtml + analysisHtml;
+        }
+
         // HTML の onclick 属性から参照される関数をグローバル公開
         window.audioSystem = audioSystem;
         window.renderOpeningScreen = renderOpeningScreen;
@@ -3114,3 +3374,5 @@ case 'dopa_juggler_skill':
         window.openIconSelectModal = openIconSelectModal;
         window.setProfileIcon = setProfileIcon;
         window.openOpponentProfileModal = openOpponentProfileModal;
+        window.renderMetaScreen = renderMetaScreen;
+        window.loadAndRenderMeta = loadAndRenderMetaContent;
