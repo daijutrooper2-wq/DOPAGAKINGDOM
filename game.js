@@ -815,47 +815,161 @@ static drawDopagaking(p, isCharged) {
             });
         }
 
-        async function openGachaModal() {
-            audioSystem.playSelect();
-            if (playerState.dopa < 100) {
-                showModal("DOPA不足", "ガチャを引くには 100 DOPA が必要です！");
-                return;
-            }
-            await addDopa(-100);
+        const GACHA_ITEMS = [
+            { name: "N高クリケット部の特製木製バット", rarity: "SR", dopa: 150, charId: "ndaihyo" },
+            { name: "ASAIOMIZUのサイン入りスパイク", rarity: "SR", dopa: 120, charId: "asaiomizu" },
+            { name: "パシャ僧のカメラレンズクロス", rarity: "R", dopa: 80, charId: "pasha" },
+            { name: "もえなん愛用の練習用ハンドボール", rarity: "R", dopa: 50, charId: "moenan" },
+            { name: "コートニーのメロメロ海外ガールステッカー", rarity: "SR", dopa: 100, charId: "courtney" },
+            { name: "桃ピンのナス盛り合わせ", rarity: "R", dopa: 30, charId: "momo" },
+            { name: "岩盤星人の穴の空いたスニーカー", rarity: "R", dopa: 30, charId: "iwaba" },
+            { name: "ドパガキングの黄金の王冠レプリカ", rarity: "SR", dopa: 150, charId: "dopagaking" },
+            { name: "パシャ憎の闇のスマートフォンケース", rarity: "SR", dopa: 130, charId: "pasha_dark" }
+        ];
 
+        function openGachaModal() {
+            audioSystem.playSelect();
             const allCharIds = Object.keys(CHARACTER_DATA);
             const lockedChars = allCharIds.filter(id => !playerState.unlockedChars.includes(id));
 
-            if (lockedChars.length > 0 && Math.random() < 0.70) {
-                const newCharId = lockedChars[Math.floor(Math.random() * lockedChars.length)];
-                playerState.unlockedChars.push(newCharId);
-                await savePlayerState();
-                audioSystem.playVictory();
-                showModal("🎉 ガチャ結果 (100 DOPA消費)", 
-                    `<div class="text-center p-2">
-                        <p class="text-amber-300 font-bold text-lg mb-2">✨ 新キャラクター解放！ ✨</p>
-                        <p class="text-2xl font-bold text-emerald-400 font-pixel mb-2">【 ${CHARACTER_DATA[newCharId].name} 】</p>
-                        <p class="text-xs text-slate-300 mb-3">${CHARACTER_DATA[newCharId].title}</p>
-                        <p class="text-xs text-amber-200 bg-slate-800 p-2 rounded">対戦で新キャラクターが使えるようになりました！</p>
-                    </div>`
-                );
-            } else {
-                const rewards = [
-                    { text: "🏏 【SR】 N高クリケット部の特製木製バット (150 DOPA獲得！)", bonusDopa: 150 },
-                    { text: "✨ 【SR】 ASAIOMIZUのサイン入りスパイク (120 DOPA獲得！)", bonusDopa: 120 },
-                    { text: "🎵 【R】 パシャ僧のカメラレンズクロス (80 DOPA獲得！)", bonusDopa: 80 },
-                    { text: "⚽ 【R】 もえなん愛用の練習用ハンドボール (50 DOPA獲得！)", bonusDopa: 50 },
-                    { text: "💖 【SR】 コートニーのメロメロ海外ガールステッカー (100 DOPA獲得！)", bonusDopa: 100 },
-                    { text: "🍆 【R】 桃ピンのナス盛り合わせ (30 DOPA獲得！)", bonusDopa: 30 },
-                    { text: "👟 【R】 岩盤星人の穴の空いたスニーカー (30 DOPA獲得！)", bonusDopa: 30 },
-                    { text: "⚡ 【⚡️⚡️SSR⚡️⚡️】 なおあきどこや！！(1000 DOPA獲得！)", bonusDopa: 1000 }
-                ];
+            const titleEl = document.getElementById('modal-title');
+            const bodyEl = document.getElementById('modal-body');
+            const overlay = document.getElementById('modal-overlay');
+            const actionsEl = document.getElementById('modal-actions');
 
-                const result = rewards[Math.floor(Math.random() * rewards.length)];
-                if (result.bonusDopa) await addDopa(result.bonusDopa);
-                audioSystem.playSpecial();
-                showModal("🎰 ガチャ結果 (100 DOPA消費)", `<p class="font-bold text-amber-300 text-base mb-2">${result.text}</p>`);
+            if (titleEl) titleEl.innerText = "🎰 DOPAガチャ本舗";
+            if (bodyEl) {
+                bodyEl.innerHTML = `
+                    <div class="text-center space-y-3 py-1">
+                        <div class="text-2xl mb-1">🎁✨</div>
+                        <p class="text-xs text-amber-200 leading-tight">
+                            未獲得キャラは一律確率で排出！コンプ後はアイテムのみ！<br>
+                            所持DOPA: <span id="gacha-dopa-display" class="text-amber-400 font-bold">${playerState.dopa}</span> DOPA
+                        </p>
+                        <div class="bg-slate-950 px-3 py-1.5 rounded border border-slate-800 text-[11px] text-slate-300 inline-block">
+                            残り未獲得: <b class="text-amber-300">${lockedChars.length}</b> / ${allCharIds.length} 体
+                        </div>
+                        <div class="flex flex-col sm:flex-row justify-center gap-2 pt-1">
+                            <button onclick="executeGacha(1)" class="pixel-btn pixel-btn-primary px-4 py-2.5 font-bold text-xs">
+                                1回引く (100 DOPA)
+                            </button>
+                            <button onclick="executeGacha(10)" class="pixel-btn pixel-btn-warning px-4 py-2.5 font-bold text-xs">
+                                🌟 10連 (1000 DOPA)
+                            </button>
+                        </div>
+                    </div>
+                `;
             }
+            if (actionsEl) {
+                actionsEl.innerHTML = `<button onclick="closeModal()" class="pixel-btn px-5 py-1.5 font-bold text-xs">とじる</button>`;
+            }
+            if (overlay) overlay.classList.remove('hidden');
+        }
+
+        async function executeGacha(count) {
+            audioSystem.playSelect();
+            const cost = count * 100;
+            if (playerState.dopa < cost) {
+                showModal("DOPA不足", `ガチャを ${count}回 引くには ${cost} DOPA が必要です！（現在: ${playerState.dopa} DOPA）`);
+                return;
+            }
+
+            await addDopa(-cost);
+
+            const allCharIds = Object.keys(CHARACTER_DATA);
+            let currentLocked = allCharIds.filter(id => !playerState.unlockedChars.includes(id));
+            
+            let results = [];
+            let totalBonusDopa = 0;
+            let newlyUnlocked = [];
+
+            for (let i = 0; i < count; i++) {
+                let hitChar = false;
+                if (currentLocked.length > 0 && Math.random() < 0.40) {
+                    hitChar = true;
+                }
+
+                if (hitChar && currentLocked.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * currentLocked.length);
+                    const charId = currentLocked[randomIndex];
+                    
+                    currentLocked.splice(randomIndex, 1);
+                    
+                    if (!playerState.unlockedChars.includes(charId)) {
+                        playerState.unlockedChars.push(charId);
+                        newlyUnlocked.push(charId);
+                    }
+
+                    results.push({
+                        type: 'character',
+                        id: charId,
+                        name: CHARACTER_DATA[charId].name,
+                        title: CHARACTER_DATA[charId].title
+                    });
+                } else {
+                    const item = GACHA_ITEMS[Math.floor(Math.random() * GACHA_ITEMS.length)];
+                    totalBonusDopa += item.dopa;
+                    results.push({
+                        type: 'item',
+                        name: item.name,
+                        rarity: item.rarity,
+                        dopa: item.dopa
+                    });
+                }
+            }
+
+            if (totalBonusDopa > 0) {
+                await addDopa(totalBonusDopa);
+            }
+
+            await savePlayerState();
+
+            if (newlyUnlocked.length > 0) {
+                audioSystem.playVictory();
+            } else {
+                audioSystem.playSpecial();
+            }
+
+            let resultHtml = `<div class="text-center p-2 space-y-3 max-h-72 overflow-y-auto">`;
+            if (newlyUnlocked.length > 0) {
+                resultHtml += `<p class="text-amber-300 font-bold text-base mb-1">🎉 新キャラクター解放！ 🎉</p>`;
+            } else {
+                resultHtml += `<p class="text-amber-300 font-bold text-base mb-1">🎁 ガチャ結果 (${count}回) 🎁</p>`;
+            }
+
+            if (totalBonusDopa > 0) {
+                resultHtml += `<p class="text-emerald-400 font-bold text-sm bg-slate-950 p-2 rounded border border-emerald-800">💰 アイテム報酬 合計 +${totalBonusDopa} DOPA 獲得！</p>`;
+            }
+
+            resultHtml += `<div class="grid grid-cols-1 gap-2 text-left mt-2">`;
+            results.forEach((res) => {
+                if (res.type === 'character') {
+                    resultHtml += `
+                        <div class="pixel-box p-2 bg-amber-950/60 border-amber-400 flex items-center justify-between text-xs">
+                            <div>
+                                <span class="bg-amber-500 text-black px-1.5 py-0.5 rounded font-bold text-[10px] mr-1">キャラ</span>
+                                <b class="text-amber-300 text-sm">【 ${res.name} 】</b>
+                                <span class="text-slate-300 ml-1">(${res.title})</span>
+                            </div>
+                            <span class="text-emerald-400 font-bold">✨NEW!</span>
+                        </div>
+                    `;
+                } else {
+                    let rarityColor = res.rarity === 'SR' ? 'text-purple-400 border-purple-500 bg-purple-950/40' : 'text-blue-400 border-blue-500 bg-blue-950/40';
+                    resultHtml += `
+                        <div class="pixel-box p-2 bg-slate-900 ${rarityColor} flex items-center justify-between text-xs">
+                            <div>
+                                <span class="px-1.5 py-0.5 rounded font-bold text-[10px] mr-1 border ${res.rarity === 'SR' ? 'bg-purple-900 text-purple-200 border-purple-400' : 'bg-blue-900 text-blue-200 border-blue-400'}">${res.rarity}</span>
+                                <span class="text-slate-100">${res.name}</span>
+                            </div>
+                            <span class="text-amber-400 font-mono font-bold">+${res.dopa} DOPA</span>
+                        </div>
+                    `;
+                }
+            });
+            resultHtml += `</div></div>`;
+
+            showModal(`🎰 ガチャ結果 (${count}連)`, resultHtml);
         }
 
         function openCharacterListModal() {
@@ -2585,6 +2699,7 @@ case 'dopa_juggler_skill':
         window.selectChar = selectChar;
         window.openCharDetail = openCharDetail;
         window.openGachaModal = openGachaModal;
+        window.executeGacha = executeGacha;
         window.openCharacterListModal = openCharacterListModal;
         window.openOnlineLobby = openOnlineLobby;
         window.createOnlineRoom = createOnlineRoom;
