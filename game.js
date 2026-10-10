@@ -14,7 +14,7 @@
         const firebaseReady = (async () => {
             const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
             const { getAuth, signInAnonymously, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
-            const { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot, deleteDoc, collection } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+            const { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot, deleteDoc, collection, addDoc, getDocs, query, orderBy, limit } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
 
             window.fbApp = initializeApp(firebaseConfig);
             window.fbDb = getFirestore(window.fbApp);
@@ -27,6 +27,11 @@
             window.fbOnSnapshot = onSnapshot;
             window.fbDeleteDoc = deleteDoc;
             window.fbCollection = collection;
+            window.fbAddDoc = addDoc;
+            window.fbGetDocs = getDocs;
+            window.fbQuery = query;
+            window.fbOrderBy = orderBy;
+            window.fbLimit = limit;
 
             window._firebaseAuthHelpers = { signInAnonymously, onAuthStateChanged };
         })().catch((err) => {
@@ -823,6 +828,22 @@ static drawDopagaking(p, isCharged) {
             };
         }
 
+        async function recordGlobalMatchResult(myCharId, oppCharId, result, isBot) {
+            if (!window.fbDb || !window.fbCollection || !window.fbAddDoc) return;
+            try {
+                const colRef = window.fbCollection(window.fbDb, 'artifacts', window.fbAppId, 'public', 'data', 'global_matches');
+                await window.fbAddDoc(colRef, {
+                    timestamp: Date.now(),
+                    isBot: isBot,
+                    myChar: myCharId,
+                    oppChar: oppCharId,
+                    result: result
+                });
+            } catch(e) {
+                console.error("Global Match Record Error:", e);
+            }
+        }
+
         async function recordBattleResult(result, myCharId, opponentName, opponentIcon, isBot, opponentId = null, opponentProfile = null) {
             playerState.totalBattles++;
             if (result === 'win') playerState.wins++;
@@ -847,6 +868,7 @@ static drawDopagaking(p, isCharged) {
 
             await savePlayerState();
             updateHeaderProfile();
+            await recordGlobalMatchResult(myCharId, opponentIcon, result, isBot);
         }
 
         function showModal(title, body) {
@@ -2258,12 +2280,15 @@ case 'dopa_juggler_skill':
                         </button>
                     </div>
 
-                    <div class="grid grid-cols-3 gap-2 w-full">
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full">
                         <button onclick="openGachaModal()" class="pixel-btn pixel-btn-success p-3 text-xs font-bold flex items-center justify-center gap-1">
                             <span>🎰 ガチャ</span>
                         </button>
                         <button onclick="openCharacterListModal()" class="pixel-btn p-3 text-xs font-bold flex items-center justify-center gap-1">
                             <span>📖 図鑑</span>
+                        </button>
+                        <button onclick="renderMetaScreen()" class="pixel-btn pixel-btn-primary p-3 text-xs font-bold flex items-center justify-center gap-1">
+                            <span>📊 環境データ</span>
                         </button>
                         <button onclick="renderOpeningScreen()" class="pixel-btn pixel-btn-purple p-3 text-xs font-bold flex items-center justify-center gap-1">
                             <span>🎬 オープニング</span>
