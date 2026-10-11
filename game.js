@@ -1371,15 +1371,12 @@ pasha_dark: {
                 type: '闇属性 / 超火力・回避特化',
                 hp: 113, atk: 25, def: 17, spd: 13, eva: 25,
                 image: 'images/pasha-dark.webp',
-                hasEvasionBuff: true,
-                evasionMultiplier: 1.1,
-                currentAtkBuff: 1.0,
                 desc: '圧倒的な攻撃力と高回避を誇る超攻撃型。回避するたびに攻撃力が跳ね上がるアビリティを持ち、ハマれば一撃で全てを破壊するロマンと脅威を兼ね備えています。',
                 skills: [
-                    { id: 'pasha_dark_attack', name: '通常攻撃', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, desc: '暗黒のフラッシュを浴びせる基本の通常攻撃。' },
+                    { id: 'pasha_dark_attack', name: '通常攻撃', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, desc: 'カメラのフラッシュで攻撃＋20パーセントの確率で自身の回避率3％アップ' },
                     { id: 'pasha_dark_stealth', name: 'ステルスオブダーク', type: 'attack', power: 1.25, isNormalAttack: false, cooldown: 2, desc: '敵はこの攻撃を絶対に回避できない＋自身の回避率を2%アップする。' },
-                    { id: 'pasha_dark_crime', name: 'パーフェクトクライム', type: 'heal', healRate: 0.95, cooldown: 3, desc: '自らの罪を深く自覚することでHPを110回復／次のターンのみ自身の防御力ダウン' },
-                    { id: 'pasha_dark_nightmare', name: 'アブソリュートナイトメア', type: 'special', power: 1.85, isNormalAttack: false, cooldown: 4, desc: '攻撃力がアップし、敵に超大ダメージを与える！' }
+                    { id: 'pasha_dark_crime', name: 'パーフェクトクライム', type: 'pasha_crime_skill', cooldown: 3, desc: 'HPを110回復。だが次の一ターンの間自身の防御力ダウン' },
+                    { id: 'pasha_dark_nightmare', name: 'アブソリュートナイトメア', type: 'pasha_nightmare_skill', cooldown: 4, desc: 'このターンのみ自身の攻撃力1.3倍＋このあとの3ターンは敵の防御力が大幅ダウン。しかしこのターンを終えた後次のターン自分は行動不能となり、相手にターンが回る' }
                 ]
             },
 
@@ -1584,7 +1581,10 @@ pasha_dark: {
                     isMiniZou: false,
                     momoRevived: false,
                     isDarkMode: false,
-                    defendBuffTurns: 0
+                    defendBuffTurns: 0,
+                    crimeDefDownTurns: 0,
+                    nightmareDefTurns: 0,
+                    nightmareAtkActive: false
                 };
             }
 
@@ -1740,14 +1740,17 @@ pasha_dark: {
                 if (this.onStateChange) this.onStateChange(this);
             }
 
-           serializePlayer(p) {
+            serializePlayer(p) {
     return {
         hp: p.hp,
         maxHp: p.maxHp,
+        atk: p.atk,
+        def: p.def,
+        spd: p.spd,
+        eva: p.eva,
         buffAtk: p.buffAtk,
         buffDef: p.buffDef,
         cooldowns: { ...p.cooldowns },
-        // undefinedにならないよう、値がない場合は 0 または null にフォールバックする
         courtneyChargeCount: p.courtneyChargeCount !== undefined ? p.courtneyChargeCount : 0,
         dopaChargeCount: p.dopaChargeCount !== undefined ? p.dopaChargeCount : 0,
         selectedInheritChar: p.selectedInheritChar || null,
@@ -1761,7 +1764,10 @@ pasha_dark: {
         isMiniZou: p.isMiniZou,
         momoRevived: p.momoRevived,
         isDarkMode: p.isDarkMode,
-        defendBuffTurns: p.defendBuffTurns
+        defendBuffTurns: p.defendBuffTurns,
+        crimeDefDownTurns: p.crimeDefDownTurns || 0,
+        nightmareDefTurns: p.nightmareDefTurns || 0,
+        nightmareAtkActive: !!p.nightmareAtkActive
     };
 }
 
@@ -1769,6 +1775,10 @@ pasha_dark: {
                 if (!state) return;
                 p.hp = state.hp;
                 p.maxHp = state.maxHp;
+                if (state.atk !== undefined) p.atk = state.atk;
+                if (state.def !== undefined) p.def = state.def;
+                if (state.spd !== undefined) p.spd = state.spd;
+                if (state.eva !== undefined) p.eva = state.eva;
                 p.buffAtk = state.buffAtk;
                 p.buffDef = state.buffDef;
                 p.cooldowns = { ...state.cooldowns };
@@ -1786,6 +1796,9 @@ pasha_dark: {
                 p.momoRevived = state.momoRevived;
                 p.isDarkMode = state.isDarkMode;
                 p.defendBuffTurns = state.defendBuffTurns;
+                p.crimeDefDownTurns = state.crimeDefDownTurns || 0;
+                p.nightmareDefTurns = state.nightmareDefTurns || 0;
+                p.nightmareAtkActive = !!state.nightmareAtkActive;
             }
 
             startTimer() {
@@ -1931,6 +1944,13 @@ pasha_dark: {
 
           executePlayerAction(attacker, defender, skillId) {
                 if (attacker.hp <= 0) return;
+
+                if (attacker.isResting) {
+                    attacker.isResting = false;
+                    this.log(`💤 ${attacker.charName} は前ターンの反動で動けない！（行動不能）`, 'text-slate-400 font-bold');
+                    this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'miss', '行動不能');
+                    return;
+                }
 
                 if (skillId === 'courtney_charge_only') {
                     // オンライン/オフライン共通で「溜め進行」は必ず同じ状態更新ルートで行う（1ターン最大8回まで1加算）
@@ -2226,13 +2246,33 @@ case 'dopa_juggler_skill':
                         this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
                         audioSystem.playHeal();
                         break;
+                    case 'pasha_crime_skill':
+                        attacker.hp = Math.min(attacker.maxHp, attacker.hp + 110);
+                        attacker.buffDef *= 0.7;
+                        attacker.crimeDefDownTurns = 1;
+                        this.log(`🖤 ${attacker.charName} の「パーフェクトクライム」！ HPを 110 回復！ (次ターン防御力ダウン)`, 'text-purple-300 font-bold');
+                        this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'heal', '+110');
+                        audioSystem.playHeal();
+                        break;
+                    case 'pasha_nightmare_skill':
+                        attacker.buffAtk *= 1.3;
+                        attacker.nightmareAtkActive = true;
+                        defender.buffDef *= 0.5;
+                        defender.nightmareDefTurns = 3;
+                        attacker.isResting = true;
+                        this.log(`🖤💥 ${attacker.charName} の「アブソリュートナイトメア」！ このターン攻撃力1.3倍、3ターンの間相手の防御力が大幅ダウン！ (※次ターン反動で行動不能)`, 'text-purple-400 font-black text-base');
+                        this.triggerCutin('🖤 アブソリュートナイトメア！', '敵の防御大幅ダウン＆次ターン反動行動不能！');
+                        this.applyDamageSkill(attacker, defender, skill);
+                        break;
                 }
             }
 
             applyDamageSkill(attacker, defender, skill, isCounter = false) {
-                if (defender.tempEvadeNext) {
+                const isStealth = (skill.id === 'pasha_dark_stealth');
+
+                if (defender.tempEvadeNext && !isStealth) {
                     defender.tempEvadeNext = false;
-                    this.log(`✨ ${defender.charName} は「アエグ」の効果により次の攻撃を完全に回避した！`, 'text-pink-300 font-bold');
+                    this.log(`✨ ${defender.charName} は「アエグ」等の効果により次の攻撃を完全に回避した！`, 'text-pink-300 font-bold');
                     this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'miss', '絶対回避!');
                     return;
                 }
@@ -2251,11 +2291,31 @@ case 'dopa_juggler_skill':
                     return;
                 }
 
-                const hitRate = 100 - (defender.eva || 10);
-                if (Math.random() * 100 > hitRate) {
-                    this.log(`🌀 ${defender.charName} は攻撃を回避した！`, 'text-sky-300');
-                    this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'miss', 'MISS');
-                    return;
+                if (!isStealth) {
+                    const hitRate = 100 - (defender.eva || 10);
+                    if (Math.random() * 100 > hitRate) {
+                        this.log(`🌀 ${defender.charName} は攻撃を回避した！`, 'text-sky-300');
+                        this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'miss', 'MISS');
+                        if (defender.id === 'pasha_dark') {
+                            defender.buffAtk *= 1.1;
+                            this.log(`✨🦇 パシャ憎の回避アビリティ発動！ 攻撃力が 1.1倍 に跳ね上がった！（現在倍率: ${defender.buffAtk.toFixed(2)}倍）`, 'text-purple-300 font-bold');
+                            this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'buff', '攻撃力1.1倍!');
+                        }
+                        return;
+                    }
+                } else {
+                    if (defender.tempEvadeNext) defender.tempEvadeNext = false;
+                    attacker.eva = (attacker.eva || 10) + 2;
+                    this.log(`🖤 ${attacker.charName} の「ステルスオブダーク」！ 相手の回避を完全に無視して命中！ 自身の回避率が 2% アップ（現在: ${attacker.eva}%）`, 'text-purple-300 font-bold');
+                    this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'buff', '回避率+2%');
+                }
+
+                if (attacker.id === 'pasha_dark' && skill.isNormalAttack) {
+                    if (Math.random() < 0.2) {
+                        attacker.eva = (attacker.eva || 10) + 3;
+                        this.log(`📸 ${attacker.charName} のカメラフラッシュ発動！ 自身の回避率が 3% アップした！（現在: ${attacker.eva}%）`, 'text-purple-300 font-bold');
+                        this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'buff', '回避率+3%');
+                    }
                 }
 
                 let baseDmg = (attacker.atk * (skill.power || 1.0) * attacker.buffAtk) - (defender.def * 0.4 * defender.buffDef);
@@ -2366,17 +2426,33 @@ case 'dopa_juggler_skill':
             endTurnPhase() {
                 this.turn++;
 
-                Object.keys(this.p1.cooldowns).forEach(key => {
-                    if (this.p1.cooldowns[key] > 0) this.p1.cooldowns[key]--;
-                });
-                if (this.p1.defendBuffTurns > 0) this.p1.defendBuffTurns--;
-                if (this.p1.buffDef < 1.0) this.p1.buffDef = 1.0;
+                [this.p1, this.p2].forEach(p => {
+                    Object.keys(p.cooldowns).forEach(key => {
+                        if (p.cooldowns[key] > 0) p.cooldowns[key]--;
+                    });
+                    if (p.defendBuffTurns > 0) p.defendBuffTurns--;
 
-                Object.keys(this.p2.cooldowns).forEach(key => {
-                    if (this.p2.cooldowns[key] > 0) this.p2.cooldowns[key]--;
+                    if (p.crimeDefDownTurns > 0) {
+                        p.crimeDefDownTurns--;
+                        if (p.crimeDefDownTurns === 0) {
+                            p.buffDef = Math.max(1.0, p.buffDef);
+                        }
+                    } else if (p.buffDef < 1.0 && !p.nightmareDefTurns) {
+                        p.buffDef = 1.0;
+                    }
+
+                    if (p.nightmareDefTurns > 0) {
+                        p.nightmareDefTurns--;
+                        if (p.nightmareDefTurns === 0) {
+                            p.buffDef = 1.0;
+                        }
+                    }
+
+                    if (p.nightmareAtkActive) {
+                        p.nightmareAtkActive = false;
+                        p.buffAtk /= 1.3;
+                    }
                 });
-                if (this.p2.defendBuffTurns > 0) this.p2.defendBuffTurns--;
-                if (this.p2.buffDef < 1.0) this.p2.buffDef = 1.0;
 
                 if (this.turn >= 30 && !this.isSuddenDeath) {
                     this.isSuddenDeath = true;
