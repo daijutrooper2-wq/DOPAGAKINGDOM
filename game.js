@@ -1533,8 +1533,6 @@ pasha_dark: {
 
 
 
-
-
             createBattlePlayer(charId, displayName) {
                 const master = CHARACTER_DATA[charId] || CHARACTER_DATA.pasha;
 
