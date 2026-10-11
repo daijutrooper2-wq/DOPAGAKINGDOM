@@ -3229,7 +3229,7 @@ case 'dopa_juggler_skill':
                     <div class="pixel-box-gold p-4 bg-amber-950/80 w-full space-y-3">
                         <div class="flex items-center justify-between flex-wrap gap-3">
                             <div class="flex items-center gap-3">
-                                 <canvas id="profile-main-icon" width="80" height="80" class="pixel-box bg-slate-950 rounded cursor-pointer border-amber-400" onclick="openIconSelectModal()" title="クリックしてアイコン変更"></canvas>
+                                 <canvas id="profile-main-icon" width="105" height="105" class="pixel-box bg-slate-950 rounded cursor-pointer border-amber-400" onclick="openIconSelectModal()" title="クリックしてアイコン変更"></canvas>
                                 <div>
                                     <div class="flex items-center gap-2 mb-1">
                                         <input id="profile-name-input" type="text" value="${playerState.playerName || ''}" maxlength="12" class="pixel-box bg-slate-950 px-2 py-1 text-sm font-bold text-amber-300 w-36 outline-none border-amber-600">
@@ -3323,7 +3323,7 @@ case 'dopa_juggler_skill':
 
                 html += `
                     <div onclick="setProfileIcon('${c.id}')" class="pixel-box p-2 bg-slate-950 cursor-pointer flex flex-col items-center justify-center border-2 ${isSelected ? 'border-amber-400 bg-amber-950/40' : 'border-slate-700 hover:border-slate-400'}">
-                        <canvas id="icon-sel-cvs-${c.id}" width="68" height="68" class="pixel-box bg-slate-900 mb-1"></canvas>
+                        <canvas id="icon-sel-cvs-${c.id}" width="88" height="88" class="pixel-box bg-slate-900 mb-1"></canvas>
                         <span class="text-[11px] font-bold text-slate-200 truncate max-w-full">${c.name}</span>
                     </div>
                 `;
@@ -3384,7 +3384,7 @@ case 'dopa_juggler_skill':
             let html = `
                 <div class="flex flex-col items-center justify-center space-y-3 p-1 w-full max-w-sm mx-auto">
                     <div class="flex items-center gap-3 bg-slate-950 p-3 rounded border border-cyan-500/50 w-full">
-                        <canvas id="opp-profile-cvs" width="72" height="72" class="pixel-box bg-slate-900 rounded"></canvas>
+                        <canvas id="opp-profile-cvs" width="92" height="92" class="pixel-box bg-slate-900 rounded"></canvas>
                         <div class="text-left">
                             <h3 class="text-sm font-bold text-cyan-300 font-pixel">${h.opponentName}</h3>
                             <span class="text-[10px] text-slate-400 font-mono">オンライン対戦プレイヤー</span>
