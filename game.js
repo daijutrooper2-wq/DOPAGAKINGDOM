@@ -1376,7 +1376,7 @@ pasha_dark: {
                     { id: 'pasha_dark_attack', name: '通常攻撃', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, desc: 'カメラのフラッシュで攻撃＋20パーセントの確率で自身の回避率3％アップ' },
                     { id: 'pasha_dark_stealth', name: 'ステルスオブダーク', type: 'attack', power: 1.25, isNormalAttack: false, cooldown: 2, desc: '敵はこの攻撃を絶対に回避できない＋自身の回避率を2%アップする。' },
                     { id: 'pasha_dark_crime', name: 'パーフェクトクライム', type: 'pasha_crime_skill', cooldown: 3, desc: 'HPを110回復。だが次の一ターンの間自身の防御力ダウン' },
-                    { id: 'pasha_dark_nightmare', name: 'アブソリュートナイトメア', type: 'pasha_nightmare_skill', cooldown: 4, desc: 'このターンのみ自身の攻撃力1.3倍＋このあとの3ターンは敵の防御力が大幅ダウン。使用後すぐに相手にターンが渡される' }
+                    { id: 'pasha_dark_nightmare', name: 'アブソリュートナイトメア', type: 'pasha_nightmare_skill', cooldown: 4, desc: 'このターンのみ自身の攻撃力1.3倍＋このあとの3ターンは敵の防御力が大幅ダウン。しかしこのターンを終えた後次のターン自分は行動不能となり、相手にターンが回る' }
                 ]
             },
 
@@ -1445,7 +1445,6 @@ pasha_dark: {
         class BotInputAdapter {
             getDecision(botChar, opponentChar) {
                 if (botChar.isResting) return 'rest';
-                if (botChar.nightmareRecoil) return 'rest';
                 if (botChar.eggplantReady) return 'momo_eggplant_burst';
                 if (botChar.recordedSkill) return 'asaiomizu_copied';
 
@@ -1584,8 +1583,7 @@ pasha_dark: {
                     defendBuffTurns: 0,
                     crimeDefDownTurns: 0,
                     nightmareDefTurns: 0,
-                    nightmareAtkActive: false,
-                    nightmareRecoil: false
+                    nightmareAtkActive: false
                 };
             }
 
@@ -1768,8 +1766,7 @@ pasha_dark: {
         defendBuffTurns: p.defendBuffTurns,
         crimeDefDownTurns: p.crimeDefDownTurns || 0,
         nightmareDefTurns: p.nightmareDefTurns || 0,
-        nightmareAtkActive: !!p.nightmareAtkActive,
-        nightmareRecoil: !!p.nightmareRecoil
+        nightmareAtkActive: !!p.nightmareAtkActive
     };
 }
 
@@ -1801,7 +1798,6 @@ pasha_dark: {
                 p.crimeDefDownTurns = state.crimeDefDownTurns || 0;
                 p.nightmareDefTurns = state.nightmareDefTurns || 0;
                 p.nightmareAtkActive = !!state.nightmareAtkActive;
-                p.nightmareRecoil = !!state.nightmareRecoil;
             }
 
             startTimer() {
@@ -1831,8 +1827,8 @@ pasha_dark: {
                 if (this.battleEnded) return;
                 this.log('⏰ 制限時間切れ！自動選択します。', 'text-amber-400 font-bold');
 
-                const p1Default = this.p1.isResting ? 'rest' : (this.p1.nightmareRecoil ? 'rest' : (this.p1.eggplantReady ? 'momo_eggplant_burst' : this.p1.skills[0].id));
-                const p2Default = this.p2.isResting ? 'rest' : (this.p2.nightmareRecoil ? 'rest' : (this.p2.eggplantReady ? 'momo_eggplant_burst' : this.p2.skills[0].id));
+                const p1Default = this.p1.isResting ? 'rest' : (this.p1.eggplantReady ? 'momo_eggplant_burst' : this.p1.skills[0].id);
+                const p2Default = this.p2.isResting ? 'rest' : (this.p2.eggplantReady ? 'momo_eggplant_burst' : this.p2.skills[0].id);
 
                 if (this.isOnline) {
                     if (this.myPlayerNum === 1 && !this.p1Action) this.submitAction(1, p1Default);
@@ -1944,38 +1940,6 @@ pasha_dark: {
                 this.p2Action = null;
                 this.waitingForOpponent = false;
 
-                if (!this.battleEnded && !this.isOnline) {
-                    let needsImmediateProcess = false;
-                    if (this.p1.nightmareRecoil) {
-                        this.p1Action = 'rest';
-                        needsImmediateProcess = true;
-                    }
-                    if (this.p2.nightmareRecoil) {
-                        this.p2Action = 'rest';
-                        needsImmediateProcess = true;
-                    }
-                    if (needsImmediateProcess) {
-                        if (this.p1Action && !this.p2Action) {
-                            this.p2Action = this.botAdapter.getDecision(this.p2, this.p1);
-                        }
-                        if (this.p2Action && !this.p1Action) {
-                            this.p1Action = this.botAdapter.getDecision(this.p1, this.p2);
-                        }
-                        if (this.p1Action && this.p2Action) {
-                            this.stopTimer();
-                            await this.processTurn();
-                            return;
-                        }
-                    }
-                } else if (!this.battleEnded && this.isOnline) {
-                    const localPlayer = this.myPlayerNum === 1 ? this.p1 : this.p2;
-                    if (localPlayer.nightmareRecoil && !this.waitingForOpponent && !this.p1Action && !this.p2Action) {
-                        setTimeout(() => {
-                            this.submitAction(this.myPlayerNum, 'rest');
-                        }, 100);
-                    }
-                }
-
                 if (this.onStateChange) this.onStateChange(this);
                 if (!this.battleEnded) this.startTimer();
             }
@@ -1987,13 +1951,6 @@ pasha_dark: {
                     attacker.isResting = false;
                     this.log(`💤 ${attacker.charName} は前ターンの反動で動けない！（行動不能）`, 'text-slate-400 font-bold');
                     this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'miss', '行動不能');
-                    return;
-                }
-
-                if (attacker.nightmareRecoil) {
-                    attacker.nightmareRecoil = false;
-                    this.log(`🖤 ${attacker.charName} は「アブソリュートナイトメア」の反動で即座にターンを渡した！`, 'text-purple-400 font-bold');
-                    this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'miss', 'ナイトメア反動');
                     return;
                 }
 
@@ -2304,9 +2261,9 @@ case 'dopa_juggler_skill':
                         attacker.nightmareAtkActive = true;
                         defender.buffDef *= 0.5;
                         defender.nightmareDefTurns = 3;
-                        attacker.nightmareRecoil = true;
-                        this.log(`🖤💥 ${attacker.charName} の「アブソリュートナイトメア」！ このターン攻撃力1.3倍、3ターンの間相手の防御力が大幅ダウン！ (※次のターン反動でターンが渡される)`, 'text-purple-400 font-black text-base');
-                        this.triggerCutin('🖤 アブソリュートナイトメア！', '敵の防御大幅ダウン＆次ターン即座に相手にターン渡し！');
+                        attacker.isResting = true;
+                        this.log(`🖤💥 ${attacker.charName} の「アブソリュートナイトメア」！ このターン攻撃力1.3倍、3ターンの間相手の防御力が大幅ダウン！ (※次ターン反動で行動不能)`, 'text-purple-400 font-black text-base');
+                        this.triggerCutin('🖤 アブソリュートナイトメア！', '敵の防御大幅ダウン＆次ターン反動行動不能！');
                         this.applyDamageSkill(attacker, defender, skill);
                         break;
                 }
@@ -2947,8 +2904,8 @@ case 'dopa_juggler_skill':
             const p1HpBar = document.getElementById('p1-hp-bar');
             const p2HpBar = document.getElementById('p2-hp-bar');
 
-            let p1StatusExtra = p1.digActive ? ' (ディグ中)' : (p1.isResting ? ' (休み)' : (p1.nightmareRecoil ? ' (ナイトメア反動)' : (p1.eggplantReady ? ' (ゾウ変身中)' : (p1.id === 'courtney' && p1.courtneyChargeCount > 0 ? ` (溜め:${p1.courtneyChargeCount}回)` : (p1.defendBuffTurns > 0 ? ' (鉄壁)' : '')))));
-            let p2StatusExtra = p2.digActive ? ' (ディグ中)' : (p2.isResting ? ' (休み)' : (p2.nightmareRecoil ? ' (ナイトメア反動)' : (p2.eggplantReady ? ' (ゾウ変身中)' : (p2.id === 'courtney' && p2.courtneyChargeCount > 0 ? ` (溜め:${p2.courtneyChargeCount}回)` : (p2.defendBuffTurns > 0 ? ' (鉄壁)' : '')))));
+            let p1StatusExtra = p1.digActive ? ' (ディグ中)' : (p1.isResting ? ' (休み)' : (p1.eggplantReady ? ' (ゾウ変身中)' : (p1.id === 'courtney' && p1.courtneyChargeCount > 0 ? ` (溜め:${p1.courtneyChargeCount}回)` : (p1.defendBuffTurns > 0 ? ' (鉄壁)' : ''))));
+            let p2StatusExtra = p2.digActive ? ' (ディグ中)' : (p2.isResting ? ' (休み)' : (p2.eggplantReady ? ' (ゾウ変身中)' : (p2.id === 'courtney' && p2.courtneyChargeCount > 0 ? ` (溜め:${p2.courtneyChargeCount}回)` : (p2.defendBuffTurns > 0 ? ' (鉄壁)' : ''))));
 
             if (p1Label) p1Label.innerText = `${p1.charName}${p1StatusExtra}`;
             if (p2Label) p2Label.innerText = `${p2.charName}${p2StatusExtra}`;
@@ -3135,7 +3092,7 @@ case 'dopa_juggler_skill':
             grid.innerHTML = '';
 
             const activePlayer = activeBattle.myPlayerNum === 1 ? p1 : p2;
-            const isMyTurnBlocked = activeBattle.battleEnded || activeBattle.waitingForOpponent || activePlayer.isResting || activePlayer.nightmareRecoil;
+            const isMyTurnBlocked = activeBattle.battleEnded || activeBattle.waitingForOpponent || activePlayer.isResting;
 
             if (activePlayer.eggplantReady) {
                 const btn = document.createElement('button');
