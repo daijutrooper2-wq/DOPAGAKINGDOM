@@ -116,13 +116,13 @@
 
                 // 7. 特殊状態（王冠、チャージ、ミニぞう等）に応じた画像パスの判定
                 let targetCharId = charId;
-                if (isMiniZou) targetCharId = 'minizou';
+                if (isMiniZou && !(CHARACTER_DATA[charId] && CHARACTER_DATA[charId].chargedImage)) targetCharId = 'minizou';
 
                 const charData = CHARACTER_DATA[targetCharId] || CHARACTER_DATA[charId];
 let imagePath = null;
 if (charData) {
-    // 特殊状態の専用画像（chargedImage）があり、かつチャージ状態の場合のみ優先、それ以外は image を使用
-    if (charId.includes('charged') && charData.chargedImage) {
+    // 特殊状態の専用画像（chargedImage）があり、かつチャージ状態(isMiniZou等)の場合のみ優先、それ以外は image を使用
+    if ((isMiniZou || charId.includes('charged')) && charData.chargedImage) {
         imagePath = charData.chargedImage;
     } else {
         imagePath = charData.image;
@@ -1402,6 +1402,7 @@ pasha_dark: {
                 type: '土属性 / 超耐久一発型',
                 hp: 160, atk: 18, def: 25, spd: 14, eva: 9,
                 image: 'images/momopin.webp',
+                chargedImage: 'images/chargenasu.webp',
                 desc: '圧倒的タフさを誇る要塞。「ナス準備中」でミニぞうさんに変身し、次のターン手動で大威力の“超ナス乱舞”を繰り出す！',
                 skills: [
                     { id: 'momo_attack', name: 'ポカポカ叩く', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, desc: '通常攻撃。' },
@@ -3168,6 +3169,8 @@ case 'dopa_juggler_skill':
             CharacterRenderer.getImage('images/pasha.webp');
             CharacterRenderer.getImage('images/pasha-dark.webp');
             CharacterRenderer.getImage('images/moenan.webp');
+            CharacterRenderer.getImage('images/momopin.webp');
+            CharacterRenderer.getImage('images/chargenasu.webp');
 
             await loadPlayerState();
             renderOpeningScreen();
