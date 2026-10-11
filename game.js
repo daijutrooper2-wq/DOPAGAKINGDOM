@@ -1401,6 +1401,7 @@ pasha_dark: {
                 title: 'ナスを統べる守護要塞',
                 type: '土属性 / 超耐久一発型',
                 hp: 160, atk: 18, def: 25, spd: 14, eva: 9,
+                image: 'images/momopin.webp',
                 desc: '圧倒的タフさを誇る要塞。「ナス準備中」でミニぞうさんに変身し、次のターン手動で大威力の“超ナス乱舞”を繰り出す！',
                 skills: [
                     { id: 'momo_attack', name: 'ポカポカ叩く', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, desc: '通常攻撃。' },
