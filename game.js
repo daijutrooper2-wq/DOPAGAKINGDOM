@@ -1448,8 +1448,7 @@ pasha_dark: {
 
                 if (botChar.id === 'courtney') {
                     const charges = botChar.courtneyChargeCount || 0;
-                    if (charges < 7 && Math.random() < 0.6) {
-                        botChar.courtneyChargeCount = charges + 1;
+                    if (charges < 8 && Math.random() < 0.6) {
                         return 'courtney_charge_only';
                     }
                 }
@@ -3061,8 +3060,6 @@ case 'dopa_juggler_skill':
                  if (activeBattle.isOnline && activeBattle.myPlayerNum !== 1 && activeBattle.isOnline && activeBattle.myPlayerNum !== 2) return;
 
                  if ((myActiveChar.courtneyChargeCount || 0) < 8) {
-                     myActiveChar.courtneyChargeCount++;
-                     audioSystem.playBuff();
                      activeBattle.submitAction(activeBattle.myPlayerNum, 'courtney_charge_only');
                  } else {
                      showModal("MAXチャージ", "これ以上溜められません！スキルから「FEEL SO HOT ///」を選択して解放してください！");
