@@ -1842,6 +1842,9 @@ pasha_dark: {
 
             async submitAction(pNum, skillId) {
                 if (this.battleEnded) return;
+                if (pNum === 1 && this.p1Action) return;
+                if (pNum === 2 && this.p2Action) return;
+                if (this.waitingForOpponent) return;
 
 
 
@@ -3051,6 +3054,9 @@ case 'dopa_juggler_skill':
                 }
             }
 
+         if (p1Cvs) p1Cvs.onclick = null;
+         if (p2Cvs) p2Cvs.onclick = null;
+
          const myActiveChar = activeBattle.myPlayerNum === 1 ? p1 : p2;
          const myCvs = activeBattle.myPlayerNum === 1 ? p1Cvs : p2Cvs;
 
@@ -3058,6 +3064,8 @@ case 'dopa_juggler_skill':
              myCvs.onclick = () => {
                  if (activeBattle.battleEnded || activeBattle.waitingForOpponent || myActiveChar.isResting) return;
                  if (activeBattle.isOnline && activeBattle.myPlayerNum !== 1 && activeBattle.isOnline && activeBattle.myPlayerNum !== 2) return;
+                 if (activeBattle.myPlayerNum === 1 && activeBattle.p1Action) return;
+                 if (activeBattle.myPlayerNum === 2 && activeBattle.p2Action) return;
 
                  if ((myActiveChar.courtneyChargeCount || 0) < 8) {
                      activeBattle.submitAction(activeBattle.myPlayerNum, 'courtney_charge_only');
@@ -3068,7 +3076,9 @@ case 'dopa_juggler_skill':
          } else if (myCvs && myActiveChar.id === 'dopagaking') {
              myCvs.onclick = () => {
                  if (activeBattle.battleEnded || activeBattle.waitingForOpponent || myActiveChar.isResting) return;
-                 if (activeBattle.isOnline && activeBattle.myPlayerNum !== 1 && activeBattle.myPlayerNum !== 2) return;
+                 if (activeBattle.isOnline && activeBattle.myPlayerNum !== 1 && activeBattle.isOnline && activeBattle.myPlayerNum !== 2) return;
+                 if (activeBattle.myPlayerNum === 1 && activeBattle.p1Action) return;
+                 if (activeBattle.myPlayerNum === 2 && activeBattle.p2Action) return;
                  if ((myActiveChar.dopaChargeCount || 0) >= 5) return;
 
                  activeBattle.submitAction(activeBattle.myPlayerNum, 'dopa_charge_step');
