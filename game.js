@@ -1311,7 +1311,7 @@ dopagaking: {
         { id: 'dopa_juggler', name: 'ジャグラー', type: 'dopa_juggler_skill', power: 1.0, isNormalAttack: false, cooldown: 0, desc: '0～50の完全ランダムダメージを与える通常攻撃！' },
         { id: 'dopa_majesty', name: '王の威厳', type: 'dopa_majesty_skill', cooldown: 2, desc: '70%で次の攻撃を完全に回避、30%でHPを60回復する！' },
         { id: 'dopa_godluck', name: '神頼み', type: 'dopa_godluck_skill', cooldown: 10, desc: '95%で自分が10ダメージ、5%で相手に1000ダメージを与える極限のギャンブル！' },
-        { id: 'dopa_inheritance', name: '王位継承', type: 'dopa_inheritance_skill', cooldown: 0, desc: 'アイコンを5回タップしてチャージ！選ばれた他キャラの通常攻撃×4のダメージを次ターン自動発動！' }
+        { id: 'dopa_inheritance', name: '王位継承', type: 'dopa_inheritance_skill', cooldown: 0, desc: 'アイコン5回タップでチャージ！選ばれたキャラの通常攻撃×4のダメージを与える(次のターン)' }
     ]
 },
 
@@ -1330,7 +1330,7 @@ dopagaking: {
                     { id: 'courtney_attack', name: 'ミツメル', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, desc: '相手をじっと見つめて攻撃する通常攻撃。' },
                     { id: 'courtney_yoseru', name: 'ヨセル', type: 'courtney_yoseru_skill', power: 1.1, isNormalAttack: false, cooldown: 2, desc: '少量のダメージを与えつつ、1ターンの間相手の防御力を0にするデバフスキル！' },
                     { id: 'courtney_aegu', name: 'アエグ', type: 'courtney_aegu_skill', healRate: 0.45, cooldown: 3, desc: '次の相手の攻撃を必ず回避し、自身のライフを45パーセント回復する！' },
-                    { id: 'courtney_feel', name: 'FEEL SO HOT ///', type: 'courtney_charge_release', cooldown: 0, desc: '（アイコンタップで溜め）最大8回まで溜められる特殊技。0回だと弱い攻撃、7回溜めると最大110ダメージ！' }
+                    { id: 'courtney_feel', name: 'FEEL SO HOT ///', type: 'courtney_charge_release', cooldown: 0, desc: '（アイコンタップでチャージ）最大8回までチャージ可能、最大110ダメージ！' }
                 ]
             },
             ndaihyo: {
@@ -1342,9 +1342,9 @@ dopagaking: {
                 desc: 'N高クリケット部代表。高い知性と緻密な戦術で相手の能力を下げつつ優位に立つ。相手が「パシャ僧」の場合は専用パッシブ【パシャ僧キラー】が1試合に1回だけ発動し、現在HPの50%を一気に削る！',
                 skills: [
                     { id: 'ndaihyo_attack', name: '通常攻撃', type: 'attack', power: 1.05, isNormalAttack: true, cooldown: 0, desc: '正確なバッティング攻撃。「パシャ僧」相手には1試合1回【パシャ僧キラー】発動！' },
-                    { id: 'ndaihyo_analysis', name: '弱点分析ショット', type: 'debuff_attack', power: 1.30, isNormalAttack: false, cooldown: 3, desc: '弱点を突き攻撃すると同時に、相手の攻撃力と防御力を低下させる！' },
-                    { id: 'ndaihyo_tactics', name: 'パシャ憎にムカつく', type: 'debuff', cooldown: 6, desc: '相手の隙を突いた頭脳戦術で、攻撃力と防御力を大きく低下させる。' },
-                    { id: 'ndaihyo_mind', name: '消しゴムを食う', type: 'heal_cleanse', healRate: 0.20, cooldown: 2, desc: '心を整えHPを回復し、自身のステータス低下をリセットする。' }
+                    { id: 'ndaihyo_analysis', name: '弱点分析ショット', type: 'debuff_attack', power: 1.30, isNormalAttack: false, cooldown: 3, desc: '相手の攻撃力と防御力を低下させる！' },
+                    { id: 'ndaihyo_tactics', name: 'パシャ憎にムカつく', type: 'debuff', cooldown: 6, desc: '攻撃力と防御力を大きく低下させる。' },
+                    { id: 'ndaihyo_mind', name: '消しゴムを食う', type: 'heal_cleanse', healRate: 0.20, cooldown: 2, desc: 'HPを回復し、自身のデバフを解除する。' }
                 ]
             },
              pasha: {
@@ -1377,8 +1377,8 @@ pasha_dark: {
                 desc: '圧倒的な攻撃力と高回避を誇る超攻撃型。回避するたびに攻撃力が跳ね上がるアビリティを持ち、ハマれば一撃で全てを破壊するロマンと脅威を兼ね備えています。',
                 skills: [
                     { id: 'pasha_dark_attack', name: '通常攻撃', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, desc: '暗黒のフラッシュを浴びせる基本の通常攻撃。' },
-                    { id: 'pasha_dark_stealth', name: 'ステルスオブダーク', type: 'attack', power: 1.25, isNormalAttack: false, cooldown: 2, desc: '敵の回避率を完全に無視してダメージを与え、さらに自身の回避率を2%アップする。' },
-                    { id: 'pasha_dark_crime', name: 'パーフェクトクライム', type: 'heal', healRate: 0.95, cooldown: 3, desc: '自らの罪を深く自覚することで闇のエネルギーを変換し、HPを回復する。' },
+                    { id: 'pasha_dark_stealth', name: 'ステルスオブダーク', type: 'attack', power: 1.25, isNormalAttack: false, cooldown: 2, desc: '敵はこの攻撃を絶対に回避できない＋自身の回避率を2%アップする。' },
+                    { id: 'pasha_dark_crime', name: 'パーフェクトクライム', type: 'heal', healRate: 0.95, cooldown: 3, desc: '自らの罪を深く自覚することでHPを110回復／次のターンのみ自身の防御力ダウン' },
                     { id: 'pasha_dark_nightmare', name: 'アブソリュートナイトメア', type: 'special', power: 1.85, isNormalAttack: false, cooldown: 4, desc: '攻撃力がアップし、敵に超大ダメージを与える！' }
                 ]
             },
@@ -2714,18 +2714,20 @@ case 'dopa_juggler_skill':
                                 <span id="p1-name-label" class="font-bold text-xs sm:text-sm text-blue-300 font-pixel">自分</span>
                                 <span id="p1-hp-text" class="text-xs font-mono font-bold text-slate-200">100/100</span>
                             </div>
-                            <div class="w-full bg-slate-950 h-3 rounded-sm border border-slate-700 overflow-hidden p-0.5">
+                            <div class="w-full bg-slate-950 h-3 rounded-sm border border-slate-700 overflow-hidden p-0.5 mb-1">
                                 <div id="p1-hp-bar" class="hp-bar-fill h-full bg-emerald-500 rounded-sm" style="width: 100%;"></div>
                             </div>
+                            <div id="p1-status-badges" class="flex flex-wrap gap-1 text-[10px] font-mono min-h-[16px]"></div>
                         </div>
                         <div id="p2-box-container" class="pixel-box p-2 bg-slate-900/90 relative border-red-500 ring-2 ring-red-500/50">
                             <div class="flex justify-between items-center mb-1">
                                 <span id="p2-name-label" class="font-bold text-xs sm:text-sm text-red-300 font-pixel">相手</span>
                                 <span id="p2-hp-text" class="text-xs font-mono font-bold text-slate-200">100/100</span>
                             </div>
-                            <div class="w-full bg-slate-950 h-3 rounded-sm border border-slate-700 overflow-hidden p-0.5">
+                            <div class="w-full bg-slate-950 h-3 rounded-sm border border-slate-700 overflow-hidden p-0.5 mb-1">
                                 <div id="p2-hp-bar" class="hp-bar-fill h-full bg-emerald-500 rounded-sm" style="width: 100%;"></div>
                             </div>
+                            <div id="p2-status-badges" class="flex flex-wrap gap-1 text-[10px] font-mono min-h-[16px]"></div>
                         </div>
                     </div>
 
@@ -2844,6 +2846,54 @@ case 'dopa_juggler_skill':
                 p2HpBar.style.width = `${pct2}%`;
                 p2HpBar.className = `hp-bar-fill h-full rounded-sm ${pct2 > 50 ? 'bg-emerald-500' : pct2 > 20 ? 'bg-amber-500' : 'bg-red-500'}`;
             }
+
+            const p1Badges = document.getElementById('p1-status-badges');
+            const p2Badges = document.getElementById('p2-status-badges');
+
+            function getStatusBadgesHtml(p) {
+                let badges = '';
+                if (p.buffAtk && p.buffAtk !== 1.0) {
+                    if (p.buffAtk > 1.0) {
+                        const pct = Math.round((p.buffAtk - 1) * 100);
+                        badges += `<span class="bg-red-950 text-red-300 border border-red-600 px-1 py-0.5 rounded">攻撃力↑(${pct > 0 ? '+' + pct + '%' : ''})</span>`;
+                    } else {
+                        const pct = Math.round((1 - p.buffAtk) * 100);
+                        badges += `<span class="bg-blue-950 text-blue-300 border border-blue-600 px-1 py-0.5 rounded">攻撃力低下(-${pct}%)</span>`;
+                    }
+                }
+                if (p.buffDef && p.buffDef !== 1.0) {
+                    if (p.buffDef > 1.0) {
+                        badges += `<span class="bg-emerald-950 text-emerald-300 border border-emerald-600 px-1 py-0.5 rounded">防御力↑</span>`;
+                    } else {
+                        badges += `<span class="bg-purple-950 text-purple-300 border border-purple-600 px-1 py-0.5 rounded">防御力低下</span>`;
+                    }
+                }
+                if (p.defendBuffTurns && p.defendBuffTurns > 0) {
+                    badges += `<span class="bg-amber-950 text-amber-300 border border-amber-600 px-1 py-0.5 rounded">鉄壁(${p.defendBuffTurns}T)</span>`;
+                }
+                if (p.tempEvadeNext) {
+                    badges += `<span class="bg-cyan-950 text-cyan-300 border border-cyan-600 px-1 py-0.5 rounded">完全回避準備中</span>`;
+                }
+                if (p.digActive) {
+                    badges += `<span class="bg-amber-950 text-amber-300 border border-amber-600 px-1 py-0.5 rounded">ディグ中</span>`;
+                }
+                if (p.isResting) {
+                    badges += `<span class="bg-slate-800 text-slate-300 border border-slate-600 px-1 py-0.5 rounded">休み</span>`;
+                }
+                if (p.eggplantReady) {
+                    badges += `<span class="bg-pink-950 text-pink-300 border border-pink-600 px-1 py-0.5 rounded">ゾウ変身中</span>`;
+                }
+                if (p.courtneyChargeCount && p.courtneyChargeCount > 0) {
+                    badges += `<span class="bg-pink-950 text-pink-300 border border-pink-600 px-1 py-0.5 rounded">溜め(${p.courtneyChargeCount}回)</span>`;
+                }
+                if (p.dopaChargeCount && p.dopaChargeCount > 0) {
+                    badges += `<span class="bg-amber-950 text-amber-300 border border-amber-600 px-1 py-0.5 rounded">チャージ(${p.dopaChargeCount}/5)</span>`;
+                }
+                return badges || '<span class="text-slate-500">通常状態</span>';
+            }
+
+            if (p1Badges) p1Badges.innerHTML = getStatusBadgesHtml(p1);
+            if (p2Badges) p2Badges.innerHTML = getStatusBadgesHtml(p2);
 
             const p1Cvs = document.getElementById('p1-canvas');
             const p2Cvs = document.getElementById('p2-canvas');
