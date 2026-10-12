@@ -574,8 +574,13 @@ static drawDopagaking(p, isCharged) {
             wins: 0,
             losses: 0,
             charUsage: {},
-            battleHistory: []
+            battleHistory: [],
+            lastDailyBonusDate: null
         };
+
+        // 経済システム・DOPA・オッズ管理用変数
+        let currentBattleBet = 100;
+        let currentOpponentBet = 100;
 
         let activeBattle = null;
 
@@ -1138,6 +1143,10 @@ static drawDopagaking(p, isCharged) {
 
         async function executeGacha(count) {
             audioSystem.playSelect();
+            if (playerState.dopa < 0) {
+                showModal("破産救済中（借金制限）", "現在、所持DOPAがマイナス（借金状態）のため、ガチャを利用できません！\nバトルに勝利してDOPAを稼ぎ、借金を返済してください。");
+                return;
+            }
             const cost = count * 100;
             if (playerState.dopa < cost) {
                 showModal("DOPA不足", `ガチャを ${count}回 引くには ${cost} DOPA が必要です！（現在: ${playerState.dopa} DOPA）`);
@@ -2719,23 +2728,32 @@ case 'dopa_juggler_skill':
                     winnerText = '⚔️ 引き分け！相討ちとなりました！';
                     isEnded = true;
                     this.log(winnerText, 'text-yellow-400 font-bold text-center text-sm');
+                    this.log(`🤝 引き分けのため、賭け金 ${currentBattleBet} DOPA は全額返却されました。`, 'text-yellow-400 font-bold text-center');
                 } else if (this.p2.hp <= 0) {
                     winnerText = `🎉 【${this.p1.charName}】の勝利！`;
                     isEnded = true;
                     this.log(winnerText, 'text-emerald-400 font-bold text-center text-sm');
                     audioSystem.playVictory();
                     if (!this.isOnline || this.myPlayerNum === 1) {
-                        await addDopa(100);
-                        this.log('🎁 勝利報酬: 100 DOPA 獲得！', 'text-amber-300 font-bold text-center');
+                        const odds = getCharacterOdds(this.p1.id);
+                        const earnedDopa = Math.floor((currentBattleBet * odds) + currentOpponentBet);
+                        await addDopa(earnedDopa);
+                        this.log(`🎁 勝利報酬: (${currentBattleBet} DOPA × ${odds}倍) + 相手賭け金(${currentOpponentBet} DOPA) = +${earnedDopa} DOPA 獲得！`, 'text-amber-300 font-bold text-center');
                     }
                 } else if (this.p1.hp <= 0) {
                     winnerText = `💀 【${this.p2.charName}】の勝利！`;
                     isEnded = true;
                     this.log(winnerText, 'text-red-400 font-bold text-center text-sm');
                     audioSystem.playDefeat();
+                    if (!this.isOnline || this.myPlayerNum === 1) {
+                        await addDopa(-currentBattleBet);
+                        this.log(`💀 敗北により賭け金 ${currentBattleBet} DOPA を失いました…（※無制限借金システム稼働中：所持金マイナスでもバトル可能）`, 'text-red-400 font-bold text-center');
+                    }
                     if (this.isOnline && this.myPlayerNum === 2) {
-                        await addDopa(100);
-                        this.log('🎁 勝利報酬: 100 DOPA 獲得！', 'text-amber-300 font-bold text-center');
+                        const odds = getCharacterOdds(this.p2.id);
+                        const earnedDopa = Math.floor((currentBattleBet * odds) + currentOpponentBet);
+                        await addDopa(earnedDopa);
+                        this.log(`🎁 勝利報酬: (${currentBattleBet} DOPA × ${odds}倍) + 相手賭け金(${currentOpponentBet} DOPA) = +${earnedDopa} DOPA 獲得！`, 'text-amber-300 font-bold text-center');
                     }
                 }
 
@@ -2896,13 +2914,26 @@ case 'dopa_juggler_skill':
                 activeBattle = null;
             }
 
+            const isBonusAvailable = checkDailyBonusAvailable();
+
             const container = document.getElementById('screen-container');
             container.innerHTML = `
                 <div class="flex flex-col items-center justify-center w-full max-w-lg space-y-4 py-4 text-center">
-                    <div class="pixel-box-gold p-4 bg-amber-950/80 w-full mb-2">
-                        <h2 class="text-2xl sm:text-3xl font-bold text-amber-300 font-pixel mb-1">ドパガキングダム RPG</h2>
-                        <p class="text-xs text-amber-200">全キャラ勝利可能な神バランス調整版 EX！</p>
+                    <div class="pixel-box-gold p-4 bg-amber-950/90 w-full mb-1 border-amber-400 space-y-1.5">
+                        <h2 class="text-xl sm:text-2xl font-bold text-amber-300 font-pixel">👑 ドパガキングダム RPG</h2>
+                        <p class="text-xs text-amber-200 font-mono font-bold">「DOPAがすべての世界」</p>
+                        <p class="text-[11px] text-slate-300 font-mono">最終目標：DOPAを稼ぎ、国を救えるほどの力を手に入れろ！</p>
                     </div>
+
+                    ${isBonusAvailable ? `
+                    <button onclick="claimDailyBonus()" class="pixel-btn pixel-btn-warning w-full py-2.5 font-bold text-xs sm:text-sm shadow-lg animate-pulse flex items-center justify-center gap-2">
+                        <span>🎁 デイリーボーナスを受け取る (+150 DOPA)</span>
+                    </button>
+                    ` : `
+                    <div class="pixel-box p-2 bg-slate-900 w-full text-xs text-slate-400 font-mono">
+                        ✅ 本日のデイリーボーナス受取済み（明日また挑戦！）
+                    </div>
+                    `}
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
                         <button onclick="renderCharacterSelectScreen(false)" class="pixel-btn pixel-btn-primary p-4 text-base font-bold flex flex-col items-center justify-center gap-1">
@@ -2931,9 +2962,9 @@ case 'dopa_juggler_skill':
                     </div>
 
                     <div class="pixel-box p-3 bg-slate-900 text-left w-full text-xs text-slate-300 space-y-1">
-                        <p class="text-pink-400 font-bold">💖 新キャラ「コートニー」特徴:</p>
-                        <p>・恋属性 / 溜め・爆発型海外ガール！バトル中の本人アイコンタップで最大8回までチャージ可能！</p>
-                        <p>・「FEEL SO HOT ///」を解放して最大110ダメージの大爆発を叩き込め！</p>
+                        <p class="text-amber-400 font-bold">💰 経済システム（DOPA & オッズ）:</p>
+                        <p>・バトル前に賭け金を設定！勝率連動の動的オッズで高額DOPAを稼ぎ出せ。</p>
+                        <p>・破産救済：所持DOPAがマイナスでも借金状態でバトル可能（※ガチャは不可）。</p>
                     </div>
                 </div>
             `;
@@ -3018,6 +3049,135 @@ case 'dopa_juggler_skill':
             }
         }
 
+        function getCharacterOdds(charId) {
+            let wins = 0;
+            let total = 0;
+            if (playerState.battleHistory) {
+                playerState.battleHistory.forEach(h => {
+                    if (h.myChar === charId) {
+                        total++;
+                        if (h.result === 'win') wins++;
+                    }
+                });
+            }
+            let winRate = total >= 3 ? (wins / total) * 100 : 50;
+            let odds = 5.0 - (winRate / 100) * 3.8;
+            return Number(Math.max(1.2, Math.min(5.0, odds)).toFixed(2));
+        }
+
+        function checkDailyBonusAvailable() {
+            const today = new Date().toDateString();
+            return playerState.lastDailyBonusDate !== today;
+        }
+
+        async function claimDailyBonus() {
+            audioSystem.playSelect();
+            const today = new Date().toDateString();
+            if (playerState.lastDailyBonusDate === today) {
+                showModal("デイリーボーナス", "本日のデイリーボーナスはすでに受け取り済みです！\n明日またお越しください。");
+                return;
+            }
+            playerState.lastDailyBonusDate = today;
+            await addDopa(150);
+            showModal("🎉 デイリーボーナス獲得！", "王国からの定額給付金として **150 DOPA** を獲得しました！\nDOPAを稼ぎ、国を救う力を手に入れよう！");
+            renderHomeScreen();
+        }
+
+        function renderBettingScreen(isOnline = false) {
+            audioSystem.playSelect();
+            if (!playerState.unlockedChars || playerState.unlockedChars.length === 0 || !playerState.selectedPlayerChar) {
+                showModal("キャラクター未所持", "キャラクターを所持していません！\nガチャでキャラクターを入手してから対戦してください。");
+                renderHomeScreen();
+                return;
+            }
+
+            const container = document.getElementById('screen-container');
+            const selectedCharId = playerState.selectedPlayerChar;
+            const charData = CHARACTER_DATA[selectedCharId] || CHARACTER_DATA.pasha;
+            const odds = getCharacterOdds(selectedCharId);
+
+            const playerDopa = playerState.dopa;
+            let defaultBet = Math.max(10, Math.min(Math.abs(playerDopa) || 100, 500));
+            if (playerDopa <= 0) defaultBet = 100;
+
+            const baseScale = Math.max(100, Math.abs(playerDopa));
+            const oppBet = Math.floor(baseScale * (0.7 + Math.random() * 0.6));
+            currentOpponentBet = oppBet;
+            currentBattleBet = defaultBet;
+
+            let html = `
+                <div class="w-full flex flex-col items-center max-w-lg mx-auto py-3 px-2 space-y-4">
+                    <div class="pixel-box-gold p-4 bg-amber-950/90 w-full text-center space-y-2 border-amber-400">
+                        <h2 class="text-xl font-bold text-amber-300 font-pixel">💰 経済システム：賭け金設定 (DOPA BET)</h2>
+                        <p class="text-xs text-amber-200 font-mono">「DOPAがすべての世界」 — 全てを賭けて勝利を掴め！</p>
+                    </div>
+
+                    <div class="pixel-box p-4 bg-slate-900 w-full space-y-3 text-xs font-mono">
+                        <div class="flex justify-between items-center bg-slate-950 p-2.5 rounded border border-slate-800">
+                            <span class="text-slate-300">所持 DOPA:</span>
+                            <span class="text-amber-400 font-bold text-base font-pixel">${playerState.dopa} DOPA ${playerState.dopa < 0 ? '<span class="text-red-400 text-[10px]">(⚠️ 借金・破産救済中)</span>' : ''}</span>
+                        </div>
+
+                        <div class="flex justify-between items-center bg-slate-950 p-2.5 rounded border border-slate-800">
+                            <span class="text-slate-300">出陣ファイター:</span>
+                            <span class="text-amber-300 font-bold">${charData.name}</span>
+                        </div>
+
+                        <div class="flex justify-between items-center bg-slate-950 p-2.5 rounded border border-slate-800">
+                            <span class="text-slate-300">動的キャラ倍率 (オッズ):</span>
+                            <span class="text-emerald-400 font-bold text-sm">${odds} 倍 <span class="text-[10px] text-slate-400">(環境勝率連動)</span></span>
+                        </div>
+
+                        <div class="flex justify-between items-center bg-slate-950 p-2.5 rounded border border-slate-800">
+                            <span class="text-slate-300">対戦相手の賭け金 (推定):</span>
+                            <span class="text-cyan-400 font-bold text-sm">${currentOpponentBet} DOPA <span class="text-[10px] text-slate-400">(経済力70%〜130%)</span></span>
+                        </div>
+
+                        <div class="space-y-1.5 pt-2">
+                            <label class="text-amber-300 font-bold block">あなたの賭け金を設定 (全ベット可能):</label>
+                            <div class="flex gap-2">
+                                <input id="bet-amount-input" type="number" min="1" value="${currentBattleBet}" class="pixel-box bg-slate-950 px-3 py-2 text-sm font-bold text-amber-300 w-full outline-none border-amber-600">
+                                <button onclick="setAllInBet()" class="pixel-btn pixel-btn-warning px-3 py-2 font-bold text-xs whitespace-nowrap">全額 (ALL IN)</button>
+                            </div>
+                            <p class="text-[10px] text-slate-400">※勝利報酬 = (自分の賭け金 × キャラ倍率 ${odds}倍) + 相手の賭け金 (${currentOpponentBet} DOPA)</p>
+                            <p class="text-[10px] text-red-400">※敗北時は自分の賭け金没収（マイナス所持金でもバトル可能な無制限借金システム搭載）</p>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3 w-full">
+                        <button onclick="renderCharacterSelectScreen(${isOnline})" class="pixel-btn px-4 py-2 text-xs w-1/2">キャラクター選択に戻る</button>
+                        <button onclick="confirmAndStartBattle(${isOnline})" class="pixel-btn pixel-btn-primary py-2 text-sm font-bold w-1/2">バトル開始！ ⚔</button>
+                    </div>
+                </div>
+            `;
+            container.innerHTML = html;
+        }
+
+        function setAllInBet() {
+            audioSystem.playSelect();
+            const input = document.getElementById('bet-amount-input');
+            if (input) {
+                input.value = Math.max(10, Math.abs(playerState.dopa) * 2 || 1000);
+            }
+        }
+
+        function confirmAndStartBattle(isOnline) {
+            audioSystem.playSelect();
+            const input = document.getElementById('bet-amount-input');
+            let bet = input ? parseInt(input.value, 10) : 100;
+            if (isNaN(bet) || bet <= 0) bet = 100;
+            currentBattleBet = bet;
+
+            if (isOnline) {
+                renderOnlineLobbyScreen();
+            } else {
+                const ids = Object.keys(CHARACTER_DATA);
+                const enemyId = ids[Math.floor(Math.random() * ids.length)];
+                playerState.selectedEnemyChar = enemyId;
+                launchBattle(playerState.selectedPlayerChar, enemyId, false);
+            }
+        }
+
         function startBotBattle() {
             audioSystem.playSelect();
             if (!playerState.unlockedChars || playerState.unlockedChars.length === 0 || !playerState.selectedPlayerChar) {
@@ -3025,10 +3185,7 @@ case 'dopa_juggler_skill':
                 renderHomeScreen();
                 return;
             }
-            const ids = Object.keys(CHARACTER_DATA);
-            const enemyId = ids[Math.floor(Math.random() * ids.length)];
-            playerState.selectedEnemyChar = enemyId;
-            launchBattle(playerState.selectedPlayerChar, enemyId, false);
+            renderBettingScreen(false);
         }
 
         function openOnlineLobby() {
@@ -3038,7 +3195,7 @@ case 'dopa_juggler_skill':
                 renderHomeScreen();
                 return;
             }
-            renderOnlineLobbyScreen();
+            renderBettingScreen(true);
         }
 
         function renderOnlineLobbyScreen() {
@@ -4105,5 +4262,9 @@ case 'dopa_juggler_skill':
         window.onZukanSortChange = onZukanSortChange;
         window.toggleZukanSortDir = toggleZukanSortDir;
         window.openGachaLineupModal = openGachaLineupModal;
+        window.renderBettingScreen = renderBettingScreen;
+        window.confirmAndStartBattle = confirmAndStartBattle;
+        window.setAllInBet = setAllInBet;
+        window.claimDailyBonus = claimDailyBonus;
         window.confirmResetPlayerProfile = confirmResetPlayerProfile;
         window.executeResetPlayerProfile = executeResetPlayerProfile;
