@@ -559,12 +559,12 @@ static drawDopagaking(p, isCharged) {
 
         let playerState = {
             dopa: 1000,
-            unlockedChars: ['moenan'], 
-            unlockedIcons: ['moenan'],
-            selectedPlayerChar: 'moenan',
+            unlockedChars: [], 
+            unlockedIcons: [],
+            selectedPlayerChar: null,
             selectedEnemyChar: 'pasha',
             playerName: '名無しファイター',
-            selectedIcon: 'moenan',
+            selectedIcon: null,
             isFirstTime: true,
             totalBattles: 0,
             wins: 0,
@@ -636,6 +636,10 @@ static drawDopagaking(p, isCharged) {
             }
             playerState.isFirstTime = false;
             playerState.dopa = 1000;
+            playerState.unlockedChars = [];
+            playerState.unlockedIcons = [];
+            playerState.selectedPlayerChar = null;
+            playerState.selectedIcon = null;
             await savePlayerState();
             updateHeaderProfile();
             const dopaEl = document.getElementById('dopa-count');
@@ -880,15 +884,18 @@ static drawDopagaking(p, isCharged) {
                     console.error("Firestore Load Player State Error:", e);
                 }
             }
-            if (!playerState.unlockedChars.includes('courtney')) {
-                playerState.unlockedChars.push('courtney');
-            }
             if (!playerState.unlockedIcons || !Array.isArray(playerState.unlockedIcons)) {
                 playerState.unlockedIcons = [...playerState.unlockedChars];
             } else {
                 playerState.unlockedChars.forEach(id => {
                     if (!playerState.unlockedIcons.includes(id)) playerState.unlockedIcons.push(id);
                 });
+            }
+            if (playerState.unlockedChars.length > 0 && (!playerState.selectedPlayerChar || !playerState.unlockedChars.includes(playerState.selectedPlayerChar))) {
+                playerState.selectedPlayerChar = playerState.unlockedChars[0];
+            }
+            if (playerState.unlockedIcons && playerState.unlockedIcons.length > 0 && (!playerState.selectedIcon || !playerState.unlockedIcons.includes(playerState.selectedIcon))) {
+                playerState.selectedIcon = playerState.unlockedIcons[0];
             }
             const el = document.getElementById('dopa-count');
             if (el) el.innerText = playerState.dopa;
@@ -1444,21 +1451,8 @@ static drawDopagaking(p, isCharged) {
             audioSystem.playSelect();
             const container = document.getElementById('screen-container');
 
-            let chars = Object.values(CHARACTER_DATA);
-            if (sortOrder === 'hp') {
-                chars.sort((a, b) => sortDir === 'desc' ? b.hp - a.hp : a.hp - b.hp);
-            } else if (sortOrder === 'atk') {
-                chars.sort((a, b) => sortDir === 'desc' ? b.atk - a.atk : a.atk - b.atk);
-            } else if (sortOrder === 'spd') {
-                chars.sort((a, b) => sortDir === 'desc' ? b.spd - a.spd : a.spd - b.spd);
-            }
-
-            const currentIndex = chars.findIndex(c => c.id === charId);
-            const c = chars[currentIndex] || CHARACTER_DATA[charId];
+            const c = CHARACTER_DATA[charId];
             if (!c) return;
-
-            const prevChar = chars[(currentIndex - 1 + chars.length) % chars.length];
-            const nextChar = chars[(currentIndex + 1) % chars.length];
 
             const isUnlocked = playerState.unlockedChars.includes(c.id);
 
@@ -1466,10 +1460,7 @@ static drawDopagaking(p, isCharged) {
                 <div id="zukan-detail-wrapper" class="w-full flex flex-col items-center max-w-md mx-auto py-2 px-3">
                     <div class="flex justify-between items-center w-full mb-3">
                         <button onclick="renderZukanScreen('${sortOrder}', '${sortDir}')" class="pixel-btn px-3 py-1 text-xs">📖 一覧に戻る</button>
-                        <div class="flex gap-2">
-                            <button onclick="renderZukanDetailScreen('${prevChar.id}', '${sortOrder}', '${sortDir}')" class="pixel-btn px-3 py-1 text-xs bg-slate-800">◀ 前へ</button>
-                            <button onclick="renderZukanDetailScreen('${nextChar.id}', '${sortOrder}', '${sortDir}')" class="pixel-btn px-3 py-1 text-xs bg-slate-800">次へ ▶</button>
-                        </div>
+                        <div></div>
                     </div>
 
                     <div class="pixel-box-gold p-4 bg-amber-950/80 w-full flex flex-col items-center space-y-4 relative">
@@ -1519,10 +1510,6 @@ static drawDopagaking(p, isCharged) {
             html += `
                             </div>
                         </div>
-
-                        <div class="text-[11px] text-slate-400 text-center font-mono">
-                            ( 💡 左右のボタン または スマートフォンなら左右スワイプで切り替え可能 )
-                        </div>
                     </div>
                 </div>
             `;
@@ -1533,25 +1520,6 @@ static drawDopagaking(p, isCharged) {
                 const cvs = document.getElementById('zukan-detail-cvs');
                 if (cvs) CharacterRenderer.drawCharacter(cvs, c.id);
             }, 50);
-
-            // Touch / Swipe support
-            const wrapper = document.getElementById('zukan-detail-wrapper');
-            if (wrapper) {
-                let touchStartX = 0;
-                let touchEndX = 0;
-                wrapper.addEventListener('touchstart', e => {
-                    touchStartX = e.changedTouches[0].screenX;
-                }, { passive: true });
-                wrapper.addEventListener('touchend', e => {
-                    touchEndX = e.changedTouches[0].screenX;
-                    const threshold = 40;
-                    if (touchEndX < touchStartX - threshold) {
-                        renderZukanDetailScreen(nextChar.id, sortOrder, sortDir);
-                    } else if (touchEndX > touchStartX + threshold) {
-                        renderZukanDetailScreen(prevChar.id, sortOrder, sortDir);
-                    }
-                }, { passive: true });
-            }
         }
 
         function openCharacterListModal() {
