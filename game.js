@@ -1260,12 +1260,13 @@ static drawDopagaking(p, isCharged) {
 
             await savePlayerState();
 
-            showGachaSuspenseModal(() => {
+            showGachaSuspenseModal(results, () => {
                 showGachaRevealStep(results, 0);
             });
         }
 
-        function showGachaSuspenseModal(onComplete) {
+        function showGachaSuspenseModal(results, onComplete) {
+            window._currentGachaResults = results;
             audioSystem.playOpeningMelody();
             const titleEl = document.getElementById('modal-title');
             const bodyEl = document.getElementById('modal-body');
