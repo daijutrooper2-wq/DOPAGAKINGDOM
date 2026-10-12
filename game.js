@@ -1297,7 +1297,7 @@ static drawDopagaking(p, isCharged) {
                         <div class="flex justify-center mb-1">
                             ${isChar ? '<span class="bg-amber-500 text-slate-950 px-3 py-1 rounded font-bold text-xs font-pixel shadow">✨ 新キャラクター</span>' : '<span class="bg-blue-600 text-white px-3 py-1 rounded font-bold text-xs font-pixel shadow">👤 プロフィールアイコン</span>'}
                         </div>
-                        <div class="cursor-pointer inline-block group" onclick="closeModal(); openCharDetail('${res.id}');" title="タップして図鑑内容を表示">
+                        <div class="cursor-pointer inline-block group" onclick="closeModal(); openCharDetail('${res.id}', 'gacha_reveal', ${index});" title="タップして図鑑内容を表示">
                             <canvas id="gacha-reveal-cvs" width="140" height="140" class="pixel-box bg-slate-950 border-2 border-amber-400 mx-auto shadow-lg group-hover:scale-105 transition-transform"></canvas>
                         </div>
                         <div>
@@ -1338,7 +1338,7 @@ static drawDopagaking(p, isCharged) {
                 results.forEach((res) => {
                     const isChar = res.type === 'character';
                     html += `
-                        <div class="pixel-box p-2.5 ${isChar ? 'bg-amber-950/60 border-amber-400' : 'bg-blue-950/40 border-blue-500'} flex items-center justify-between text-xs cursor-pointer hover:opacity-90" onclick="closeModal(); openCharDetail('${res.id}');" title="タップして図鑑を表示">
+                        <div class="pixel-box p-2.5 ${isChar ? 'bg-amber-950/60 border-amber-400' : 'bg-blue-950/40 border-blue-500'} flex items-center justify-between text-xs cursor-pointer hover:opacity-90" onclick="closeModal(); openCharDetail('${res.id}', 'gacha_summary');" title="タップして図鑑を表示">
                             <div class="flex items-center gap-2">
                                 <span class="${isChar ? 'bg-amber-500 text-slate-950' : 'bg-blue-600 text-white'} px-2 py-0.5 rounded font-bold text-[10px]">${isChar ? 'キャラ' : 'アイコン'}</span>
                                 <div>
@@ -1408,7 +1408,7 @@ static drawDopagaking(p, isCharged) {
             chars.forEach(c => {
                 const isUnlocked = playerState.unlockedChars.includes(c.id);
                 html += `
-                    <div onclick="renderZukanDetailScreen('${c.id}', '${sortOrder}', '${sortDir}')" 
+                    <div onclick="renderZukanDetailScreen('${c.id}', 'zukan', '${sortOrder}', '${sortDir}')" 
                          class="pixel-box p-3 bg-slate-900 cursor-pointer flex flex-col items-center justify-between border-2 transition-all hover:border-amber-400 ${!isUnlocked ? 'opacity-50 grayscale' : 'border-slate-700'}">
                         <canvas id="zukan-cvs-${c.id}" width="130" height="130" class="pixel-box bg-slate-950 mb-2"></canvas>
                         <span class="text-xs font-bold ${isUnlocked ? 'text-amber-300' : 'text-slate-400'}">${c.name}</span>
@@ -1447,7 +1447,7 @@ static drawDopagaking(p, isCharged) {
             renderZukanScreen(currentOrder, newDir);
         }
 
-        function renderZukanDetailScreen(charId, sortOrder = 'default', sortDir = 'desc') {
+        function renderZukanDetailScreen(charId, returnSource = 'zukan', arg1 = 'default', arg2 = 'desc') {
             audioSystem.playSelect();
             const container = document.getElementById('screen-container');
 
@@ -1456,10 +1456,26 @@ static drawDopagaking(p, isCharged) {
 
             const isUnlocked = playerState.unlockedChars.includes(c.id);
 
+            let backAction = "";
+            let backLabel = "🔙 戻る";
+            if (returnSource === 'gacha_reveal') {
+                const index = typeof arg1 === 'number' ? arg1 : 0;
+                backAction = `showGachaRevealStep(window._currentGachaResults || [], ${index})`;
+            } else if (returnSource === 'gacha_summary') {
+                backAction = `showGachaSummaryModal(window._currentGachaResults || [])`;
+            } else if (returnSource === 'select') {
+                const isOnline = !!arg1;
+                backAction = `renderCharacterSelectScreen(${isOnline})`;
+            } else {
+                const sortOrder = arg1 || 'default';
+                const sortDir = arg2 || 'desc';
+                backAction = `renderZukanScreen('${sortOrder}', '${sortDir}')`;
+            }
+
             let html = `
                 <div id="zukan-detail-wrapper" class="w-full flex flex-col items-center max-w-md mx-auto py-2 px-3">
                     <div class="flex justify-between items-center w-full mb-3">
-                        <button onclick="renderZukanScreen('${sortOrder}', '${sortDir}')" class="pixel-btn px-3 py-1 text-xs">📖 一覧に戻る</button>
+                        <button onclick="${backAction}" class="pixel-btn px-3 py-1 text-xs">${backLabel}</button>
                         <div></div>
                     </div>
 
@@ -1526,8 +1542,8 @@ static drawDopagaking(p, isCharged) {
             renderZukanScreen();
         }
 
-        function openCharDetail(id) {
-            renderZukanDetailScreen(id);
+        function openCharDetail(id, returnSource = 'zukan', arg1 = 'default', arg2 = 'desc') {
+            renderZukanDetailScreen(id, returnSource, arg1, arg2);
         }
 
         const CHARACTER_DATA = {
@@ -2849,7 +2865,7 @@ case 'dopa_juggler_skill':
                 const isSelected = playerState.selectedPlayerChar === c.id;
 
                 html += `
-                    <div onclick="${isUnlocked ? `selectChar('${c.id}',${isOnline})` : `openCharDetail('${c.id}')`}" 
+                    <div onclick="${isUnlocked ? `selectChar('${c.id}',${isOnline})` : `openCharDetail('${c.id}', 'select', ${isOnline})`}" 
                          class="pixel-box p-2 bg-slate-900 cursor-pointer flex flex-col items-center justify-between border-2 transition-all ${isSelected ? 'border-amber-400 bg-amber-950/40 scale-105' : 'border-slate-700 hover:border-slate-400'} ${!isUnlocked ? 'opacity-60' : ''}">
                         <canvas id="select-cvs-${c.id}" width="115" height="115" class="pixel-box bg-slate-950 mb-1"></canvas>
                         <span class="text-xs font-bold ${isSelected ? 'text-amber-300 font-pixel' : 'text-slate-200'}">${c.name}</span>
