@@ -3423,68 +3423,68 @@ case 'dopa_juggler_skill':
             const container = document.getElementById('screen-container');
             container.innerHTML = `
                 <div id="battle-stage" class="w-full flex flex-col items-center relative transition-colors duration-200">
-                    <div class="w-full grid grid-cols-2 gap-3 mb-2">
-                        <div id="p1-box-container" class="pixel-box p-2 bg-slate-900/90 relative border-blue-500 ring-2 ring-blue-500/50">
+                    <div class="w-full grid grid-cols-2 gap-2 sm:gap-3 mb-1 sm:mb-2">
+                        <div id="p1-box-container" class="pixel-box p-1.5 sm:p-2 bg-slate-900/90 relative border-blue-500 ring-2 ring-blue-500/50">
                             <div class="flex justify-between items-center mb-1">
-                                <span id="p1-name-label" class="font-bold text-xs sm:text-sm text-blue-300 font-pixel">自分</span>
-                                <span id="p1-hp-text" class="text-xs font-mono font-bold text-slate-200">100/100</span>
+                                <span id="p1-name-label" class="font-bold text-[11px] sm:text-sm text-blue-300 font-pixel truncate max-w-[120px]">自分</span>
+                                <span id="p1-hp-text" class="text-[11px] sm:text-xs font-mono font-bold text-slate-200">100/100</span>
                             </div>
-                            <div class="w-full bg-slate-950 h-3 rounded-sm border border-slate-700 overflow-hidden p-0.5 mb-1">
+                            <div class="w-full bg-slate-950 h-2.5 sm:h-3 rounded-sm border border-slate-700 overflow-hidden p-0.5 mb-1">
                                 <div id="p1-hp-bar" class="hp-bar-fill h-full bg-emerald-500 rounded-sm" style="width: 100%;"></div>
                             </div>
-                            <div id="p1-status-badges" class="flex flex-wrap gap-1 text-[10px] font-mono min-h-[16px]"></div>
+                            <div id="p1-status-badges" class="flex flex-wrap gap-1 text-[9px] sm:text-[10px] font-mono min-h-[14px] sm:min-h-[16px]"></div>
                         </div>
-                        <div id="p2-box-container" class="pixel-box p-2 bg-slate-900/90 relative border-red-500 ring-2 ring-red-500/50">
+                        <div id="p2-box-container" class="pixel-box p-1.5 sm:p-2 bg-slate-900/90 relative border-red-500 ring-2 ring-red-500/50">
                             <div class="flex justify-between items-center mb-1">
-                                <span id="p2-name-label" class="font-bold text-xs sm:text-sm text-red-300 font-pixel">相手</span>
-                                <span id="p2-hp-text" class="text-xs font-mono font-bold text-slate-200">100/100</span>
+                                <span id="p2-name-label" class="font-bold text-[11px] sm:text-sm text-red-300 font-pixel truncate max-w-[120px]">相手</span>
+                                <span id="p2-hp-text" class="text-[11px] sm:text-xs font-mono font-bold text-slate-200">100/100</span>
                             </div>
-                            <div class="w-full bg-slate-950 h-3 rounded-sm border border-slate-700 overflow-hidden p-0.5 mb-1">
+                            <div class="w-full bg-slate-950 h-2.5 sm:h-3 rounded-sm border border-slate-700 overflow-hidden p-0.5 mb-1">
                                 <div id="p2-hp-bar" class="hp-bar-fill h-full bg-emerald-500 rounded-sm" style="width: 100%;"></div>
                             </div>
-                            <div id="p2-status-badges" class="flex flex-wrap gap-1 text-[10px] font-mono min-h-[16px]"></div>
+                            <div id="p2-status-badges" class="flex flex-wrap gap-1 text-[9px] sm:text-[10px] font-mono min-h-[14px] sm:min-h-[16px]"></div>
                         </div>
                     </div>
 
 
-                    <div class="w-full grid grid-cols-2 gap-4 my-1 relative items-center justify-items-center">
+                    <div class="w-full grid grid-cols-2 gap-2 sm:gap-4 my-0.5 sm:my-1 relative items-center justify-items-center">
                         <div class="relative flex flex-col items-center w-full">
-                            <div class="absolute -top-3 z-10 bg-blue-600 text-white font-pixel text-[10px] px-2 py-0.5 rounded border border-blue-300 shadow">YOU (自分)</div>
-                            <canvas id="p1-canvas" width="180" height="180" class="pixel-box bg-slate-950 shadow-lg cursor-pointer border-2 border-blue-500 mt-2" title="自分のキャラクター"></canvas>
+                            <div class="absolute -top-2.5 z-10 bg-blue-600 text-white font-pixel text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded border border-blue-300 shadow">YOU (自分)</div>
+                            <canvas id="p1-canvas" width="180" height="180" class="pixel-box bg-slate-950 shadow-lg cursor-pointer border-2 border-blue-500 mt-1 sm:mt-2 w-28 h-28 sm:w-[160px] sm:h-[160px]" title="自分のキャラクター"></canvas>
                         </div>
                         <div class="relative flex flex-col items-center w-full">
-                            <div class="absolute -top-3 z-10 bg-red-600 text-white font-pixel text-[10px] px-2 py-0.5 rounded border border-red-300 shadow">OPPONENT (相手)</div>
-                            <canvas id="p2-canvas" width="180" height="180" class="pixel-box bg-slate-950 shadow-lg border-2 border-red-500 mt-2" title="対戦相手のキャラクター"></canvas>
+                            <div class="absolute -top-2.5 z-10 bg-red-600 text-white font-pixel text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded border border-red-300 shadow">OPPONENT (相手)</div>
+                            <canvas id="p2-canvas" width="180" height="180" class="pixel-box bg-slate-950 shadow-lg border-2 border-red-500 mt-1 sm:mt-2 w-28 h-28 sm:w-[160px] sm:h-[160px]" title="対戦相手のキャラクター"></canvas>
                         </div>
                     </div>
 
-                    <div class="my-1 flex items-center justify-between w-full px-2">
-                        <button onclick="confirmRetireBattle()" class="pixel-btn pixel-btn-danger text-xs px-2 py-1 flex items-center gap-1 font-bold">
+                    <div class="my-0.5 sm:my-1 flex items-center justify-between w-full px-1 sm:px-2">
+                        <button onclick="confirmRetireBattle()" class="pixel-btn pixel-btn-danger text-[11px] sm:text-xs px-2 py-1 flex items-center gap-1 font-bold">
                             <span>🏳️ 降参する</span>
                         </button>
-                        <div class="flex items-center gap-3">
-                            <div class="pixel-box-gold px-3 py-1 bg-amber-950/80 text-amber-300 font-pixel text-xs font-bold shadow">
+                        <div class="flex items-center gap-2 sm:gap-3">
+                            <div class="pixel-box-gold px-2.5 py-0.5 sm:py-1 bg-amber-950/80 text-amber-300 font-pixel text-[11px] sm:text-xs font-bold shadow">
                                 🌟 ターン <span id="battle-turn-num">1</span>
                             </div>
                             <div class="flex items-center justify-center gap-1">
-                                <span class="text-xs font-bold text-slate-400">制限時間:</span>
-                                <span id="turn-timer-display" class="font-pixel text-lg font-bold text-amber-400">15</span>
-                                <span class="text-xs text-slate-400">秒</span>
+                                <span class="text-[11px] sm:text-xs font-bold text-slate-400">制限時間:</span>
+                                <span id="turn-timer-display" class="font-pixel text-base sm:text-lg font-bold text-amber-400">15</span>
+                                <span class="text-[11px] sm:text-xs text-slate-400">秒</span>
                             </div>
                         </div>
-                        <div class="w-16"></div>
+                        <div class="w-12 sm:w-16"></div>
                     </div>
 
-                    <div id="battle-log-box" class="pixel-box p-2 bg-slate-950 w-full h-20 overflow-y-auto my-1 text-xs font-mono space-y-1 border-slate-700">
+                    <div id="battle-log-box" class="pixel-box p-1.5 sm:p-2 bg-slate-950 w-full h-14 sm:h-20 overflow-y-auto my-0.5 sm:my-1 text-[11px] sm:text-xs font-mono space-y-1 border-slate-700">
                     </div>
 
-                    <div id="command-panel" class="w-full mt-1">
-                        <div id="skill-buttons-grid" class="grid grid-cols-2 gap-2">
+                    <div id="command-panel" class="w-full mt-0.5 sm:mt-1">
+                        <div id="skill-buttons-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2">
                         </div>
                     </div>
 
-                    <div id="battle-footer-actions" class="mt-3 flex justify-center hidden">
-                        <button onclick="renderHomeScreen()" class="pixel-btn pixel-btn-primary px-8 py-2 font-pixel text-sm">ホームに戻る</button>
+                    <div id="battle-footer-actions" class="mt-2 sm:mt-3 flex justify-center hidden">
+                        <button onclick="renderHomeScreen()" class="pixel-btn pixel-btn-primary px-6 sm:px-8 py-1.5 sm:py-2 font-pixel text-xs sm:text-sm">ホームに戻る</button>
                     </div>
                 </div>
             `;
