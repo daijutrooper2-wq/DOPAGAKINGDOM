@@ -961,7 +961,7 @@ static drawDopagaking(p, isCharged) {
             if (overlay) overlay.classList.remove('hidden');
         }
 
-        function showConfirmModal(title, body, onConfirm) {
+        function showConfirmModal(title, body, onConfirm, confirmText = '決定') {
             const titleEl = document.getElementById('modal-title');
             const bodyEl = document.getElementById('modal-body');
             const overlay = document.getElementById('modal-overlay');
@@ -971,7 +971,7 @@ static drawDopagaking(p, isCharged) {
             if (actionsEl) {
                 actionsEl.innerHTML = `
                     <button onclick="closeModal()" class="pixel-btn px-4 py-2 font-bold text-sm">キャンセル</button>
-                    <button id="modal-confirm-btn" class="pixel-btn pixel-btn-danger px-4 py-2 font-bold text-sm">降参する</button>
+                    <button id="modal-confirm-btn" class="pixel-btn pixel-btn-danger px-4 py-2 font-bold text-sm">${confirmText}</button>
                 `;
                 document.getElementById('modal-confirm-btn').onclick = () => {
                     closeModal();
@@ -994,7 +994,7 @@ static drawDopagaking(p, isCharged) {
                     activeBattle = null;
                 }
                 renderHomeScreen();
-            });
+            }, "降参する");
         }
 
         function openGachaModal() {
@@ -3582,11 +3582,22 @@ case 'dopa_juggler_skill':
                 </div>
             `;
 
+            setTimeout(() => {
+                const mainIconCvs = document.getElementById('profile-main-icon');
+                if (mainIconCvs) CharacterRenderer.drawCharacter(mainIconCvs, playerState.selectedIcon || 'courtney');
+
+                Object.keys(playerState.charUsage).forEach(cId => {
+                    const uCvs = document.getElementById(`usage-cvs-${cId}`);
+                    if (uCvs) CharacterRenderer.drawCharacter(uCvs, cId);
+                });
+            }, 50);
+        }
+
         function confirmResetPlayerProfile() {
             audioSystem.playSelect();
             showConfirmModal("データ初期化の確認", "【注意】これまでのDOPA、所持キャラクター、アイコン、戦績などのプレイデータがすべて消去され、初期状態に戻ります。\n\n（※この初期化はこの端末・アカウントのデータのみに適用され、他のプレイヤーには一切影響しません）\n\n本当にデータを初期化しますか？", () => {
                 executeResetPlayerProfile();
-            });
+            }, "初期化する");
         }
 
         async function executeResetPlayerProfile() {
@@ -3618,17 +3629,6 @@ case 'dopa_juggler_skill':
                 closeModal();
                 renderOpeningScreen();
             }, 1500);
-        }
-
-            setTimeout(() => {
-                const mainIconCvs = document.getElementById('profile-main-icon');
-                if (mainIconCvs) CharacterRenderer.drawCharacter(mainIconCvs, playerState.selectedIcon || 'courtney');
-
-                Object.keys(playerState.charUsage).forEach(cId => {
-                    const uCvs = document.getElementById(`usage-cvs-${cId}`);
-                    if (uCvs) CharacterRenderer.drawCharacter(uCvs, cId);
-                });
-            }, 50);
         }
 
         function savePlayerName() {
