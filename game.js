@@ -560,11 +560,11 @@ static drawDopagaking(p, isCharged) {
         let playerState = {
             dopa: 1000,
             unlockedChars: [], 
-            unlockedIcons: [],
+            unlockedIcons: ['moenan'],
             selectedPlayerChar: null,
             selectedEnemyChar: 'pasha',
             playerName: '名無しファイター',
-            selectedIcon: null,
+            selectedIcon: 'moenan',
             isFirstTime: true,
             totalBattles: 0,
             wins: 0,
@@ -637,9 +637,9 @@ static drawDopagaking(p, isCharged) {
             playerState.isFirstTime = false;
             playerState.dopa = 1000;
             playerState.unlockedChars = [];
-            playerState.unlockedIcons = [];
+            playerState.unlockedIcons = ['moenan'];
             playerState.selectedPlayerChar = null;
-            playerState.selectedIcon = null;
+            playerState.selectedIcon = 'moenan';
             await savePlayerState();
             updateHeaderProfile();
             const dopaEl = document.getElementById('dopa-count');
@@ -884,18 +884,14 @@ static drawDopagaking(p, isCharged) {
                     console.error("Firestore Load Player State Error:", e);
                 }
             }
-            if (!playerState.unlockedIcons || !Array.isArray(playerState.unlockedIcons)) {
-                playerState.unlockedIcons = [...playerState.unlockedChars];
-            } else {
-                playerState.unlockedChars.forEach(id => {
-                    if (!playerState.unlockedIcons.includes(id)) playerState.unlockedIcons.push(id);
-                });
+            if (!playerState.unlockedIcons || !Array.isArray(playerState.unlockedIcons) || playerState.unlockedIcons.length === 0) {
+                playerState.unlockedIcons = ['moenan'];
             }
             if (playerState.unlockedChars.length > 0 && (!playerState.selectedPlayerChar || !playerState.unlockedChars.includes(playerState.selectedPlayerChar))) {
                 playerState.selectedPlayerChar = playerState.unlockedChars[0];
             }
-            if (playerState.unlockedIcons && playerState.unlockedIcons.length > 0 && (!playerState.selectedIcon || !playerState.unlockedIcons.includes(playerState.selectedIcon))) {
-                playerState.selectedIcon = playerState.unlockedIcons[0];
+            if (!playerState.selectedIcon || !playerState.unlockedIcons.includes(playerState.selectedIcon)) {
+                playerState.selectedIcon = playerState.unlockedIcons[0] || 'moenan';
             }
             const el = document.getElementById('dopa-count');
             if (el) el.innerText = playerState.dopa;
@@ -1144,7 +1140,6 @@ static drawDopagaking(p, isCharged) {
                     const idx = Math.floor(Math.random() * lockedChars.length);
                     const charId = lockedChars.splice(idx, 1)[0];
                     if (!playerState.unlockedChars.includes(charId)) playerState.unlockedChars.push(charId);
-                    if (!playerState.unlockedIcons.includes(charId)) playerState.unlockedIcons.push(charId);
                     results.push({
                         type: 'character',
                         id: charId,
@@ -1169,7 +1164,6 @@ static drawDopagaking(p, isCharged) {
                         const idx = Math.floor(Math.random() * lockedChars.length);
                         const charId = lockedChars.splice(idx, 1)[0];
                         if (!playerState.unlockedChars.includes(charId)) playerState.unlockedChars.push(charId);
-                        if (!playerState.unlockedIcons.includes(charId)) playerState.unlockedIcons.push(charId);
                         results.push({
                             type: 'character',
                             id: charId,
@@ -1188,7 +1182,6 @@ static drawDopagaking(p, isCharged) {
                     const idx = Math.floor(Math.random() * lockedChars.length);
                     const charId = lockedChars.splice(idx, 1)[0];
                     if (!playerState.unlockedChars.includes(charId)) playerState.unlockedChars.push(charId);
-                    if (!playerState.unlockedIcons.includes(charId)) playerState.unlockedIcons.push(charId);
                     results.push({
                         type: 'character',
                         id: charId,
@@ -1209,7 +1202,6 @@ static drawDopagaking(p, isCharged) {
                     const idx = Math.floor(Math.random() * lockedChars.length);
                     const charId = lockedChars.splice(idx, 1)[0];
                     if (!playerState.unlockedChars.includes(charId)) playerState.unlockedChars.push(charId);
-                    if (!playerState.unlockedIcons.includes(charId)) playerState.unlockedIcons.push(charId);
                     results.push({
                         type: 'character',
                         id: charId,
@@ -3607,11 +3599,11 @@ case 'dopa_juggler_skill':
             playerState = {
                 dopa: 1000,
                 unlockedChars: [],
-                unlockedIcons: [],
+                unlockedIcons: ['moenan'],
                 selectedPlayerChar: null,
                 selectedEnemyChar: 'pasha',
                 playerName: '名無しファイター',
-                selectedIcon: null,
+                selectedIcon: 'moenan',
                 isFirstTime: true,
                 totalBattles: 0,
                 wins: 0,
