@@ -560,6 +560,7 @@ static drawDopagaking(p, isCharged) {
         let playerState = {
             dopa: 1000,
             unlockedChars: ['iwaba', 'asaiomizu', 'ndaihyo', 'courtney', 'pasha_dark'], 
+            unlockedIcons: ['iwaba', 'asaiomizu', 'ndaihyo', 'courtney', 'pasha_dark'],
             selectedPlayerChar: 'courtney',
             selectedEnemyChar: 'pasha',
             playerName: '名無しファイター',
@@ -768,6 +769,7 @@ static drawDopagaking(p, isCharged) {
                     await window.fbSetDoc(userDocRef, {
                         dopa: playerState.dopa,
                         unlockedChars: playerState.unlockedChars,
+                        unlockedIcons: playerState.unlockedIcons,
                         playerName: playerState.playerName,
                         selectedIcon: playerState.selectedIcon,
                         totalBattles: playerState.totalBattles,
@@ -805,6 +807,9 @@ static drawDopagaking(p, isCharged) {
                         if (data.unlockedChars && Array.isArray(data.unlockedChars)) {
                             playerState.unlockedChars = data.unlockedChars;
                         }
+                        if (data.unlockedIcons && Array.isArray(data.unlockedIcons)) {
+                            playerState.unlockedIcons = data.unlockedIcons;
+                        }
                         if (data.playerName) playerState.playerName = data.playerName;
                         if (data.selectedIcon) playerState.selectedIcon = data.selectedIcon;
                         if (data.totalBattles !== undefined) playerState.totalBattles = data.totalBattles;
@@ -821,6 +826,13 @@ static drawDopagaking(p, isCharged) {
             }
             if (!playerState.unlockedChars.includes('courtney')) {
                 playerState.unlockedChars.push('courtney');
+            }
+            if (!playerState.unlockedIcons || !Array.isArray(playerState.unlockedIcons)) {
+                playerState.unlockedIcons = [...playerState.unlockedChars];
+            } else {
+                playerState.unlockedChars.forEach(id => {
+                    if (!playerState.unlockedIcons.includes(id)) playerState.unlockedIcons.push(id);
+                });
             }
             const el = document.getElementById('dopa-count');
             if (el) el.innerText = playerState.dopa;
@@ -932,22 +944,12 @@ static drawDopagaking(p, isCharged) {
             });
         }
 
-        const GACHA_ITEMS = [
-            { name: "N高クリケット部の特製木製バット", rarity: "SR", dopa: 150, charId: "ndaihyo" },
-            { name: "ASAIOMIZUのサイン入りスパイク", rarity: "SR", dopa: 120, charId: "asaiomizu" },
-            { name: "パシャ僧のカメラレンズクロス", rarity: "R", dopa: 80, charId: "pasha" },
-            { name: "もえなん愛用の練習用ハンドボール", rarity: "R", dopa: 50, charId: "moenan" },
-            { name: "コートニーのメロメロ海外ガールステッカー", rarity: "SR", dopa: 100, charId: "courtney" },
-            { name: "桃ピンのナス盛り合わせ", rarity: "R", dopa: 30, charId: "momo" },
-            { name: "岩盤星人の穴の空いたスニーカー", rarity: "R", dopa: 30, charId: "iwaba" },
-            { name: "ドパガキングの黄金の王冠レプリカ", rarity: "SR", dopa: 150, charId: "dopagaking" },
-            { name: "パシャ憎の闇のスマートフォンケース", rarity: "SR", dopa: 130, charId: "pasha_dark" }
-        ];
-
         function openGachaModal() {
             audioSystem.playSelect();
             const allCharIds = Object.keys(CHARACTER_DATA);
             const lockedChars = allCharIds.filter(id => !playerState.unlockedChars.includes(id));
+            const lockedIcons = allCharIds.filter(id => !(playerState.unlockedIcons || []).includes(id));
+            const isCompleted = lockedChars.length === 0 && lockedIcons.length === 0;
 
             const titleEl = document.getElementById('modal-title');
             const bodyEl = document.getElementById('modal-body');
@@ -956,25 +958,41 @@ static drawDopagaking(p, isCharged) {
 
             if (titleEl) titleEl.innerText = "🎰 DOPAガチャ";
             if (bodyEl) {
-                bodyEl.innerHTML = `
-                    <div class="text-center space-y-3 py-1">
-                        <div class="flex flex-col gap-2.5 w-full">
-                            <button onclick="executeGacha(10)" class="pixel-btn pixel-btn-warning w-full py-3.5 font-bold text-sm sm:text-base shadow-lg animate-pulse">
-                                🌟 10連ガチャ (1000 DOPA)
-                            </button>
-                            <button onclick="executeGacha(1)" class="pixel-btn pixel-btn-primary w-full py-2.5 font-bold text-xs sm:text-sm">
-                                1回ガチャ (100 DOPA)
-                            </button>
+                if (isCompleted) {
+                    bodyEl.innerHTML = `
+                        <div class="text-center space-y-4 py-4">
+                            <p class="text-amber-300 font-bold text-base font-pixel">🏆 完全コンプリート！</p>
+                            <p class="text-xs text-slate-200 leading-relaxed font-mono">
+                                すべてのキャラクターとプロフィールアイコンをコンプリートしました！<br>
+                                アイコン画像、新キャラクター追加をお待ちください。
+                            </p>
                         </div>
-                        <div class="text-[11px] text-slate-300 flex justify-between items-center bg-slate-950 px-3 py-2 rounded border border-slate-800">
-                            <span>所持: <b class="text-amber-400">${playerState.dopa}</b> DOPA</span>
-                            <span>未獲得: <b class="text-amber-300">${lockedChars.length}</b>/${allCharIds.length}体</span>
+                    `;
+                } else {
+                    bodyEl.innerHTML = `
+                        <div class="text-center space-y-3 py-1">
+                            <div class="flex flex-col gap-2.5 w-full">
+                                <button onclick="executeGacha(10)" class="pixel-btn pixel-btn-warning w-full py-3.5 font-bold text-sm sm:text-base shadow-lg animate-pulse">
+                                    🌟 10連ガチャ (1000 DOPA)
+                                </button>
+                                <button onclick="executeGacha(1)" class="pixel-btn pixel-btn-primary w-full py-2.5 font-bold text-xs sm:text-sm">
+                                    1回ガチャ (100 DOPA)
+                                </button>
+                            </div>
+                            <div class="text-[11px] text-slate-300 flex justify-between items-center bg-slate-950 px-3 py-2 rounded border border-slate-800">
+                                <span>所持: <b class="text-amber-400">${playerState.dopa}</b> DOPA</span>
+                                <span>未獲得キャラ: <b class="text-amber-300">${lockedChars.length}</b>/${allCharIds.length}体</span>
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                }
             }
             if (actionsEl) {
-                actionsEl.innerHTML = `<button onclick="closeModal()" class="pixel-btn px-6 py-1.5 font-bold text-xs">もどる</button>`;
+                if (isCompleted) {
+                    actionsEl.innerHTML = `<button onclick="closeModal()" class="pixel-btn px-6 py-1.5 font-bold text-xs">もどる</button>`;
+                } else {
+                    actionsEl.innerHTML = `<button onclick="closeModal()" class="pixel-btn px-6 py-1.5 font-bold text-xs">もどる</button>`;
+                }
             }
             if (overlay) overlay.classList.remove('hidden');
         }
@@ -987,30 +1005,36 @@ static drawDopagaking(p, isCharged) {
                 return;
             }
 
+            const allCharIds = Object.keys(CHARACTER_DATA);
+            let lockedChars = allCharIds.filter(id => !playerState.unlockedChars.includes(id));
+            let lockedIcons = allCharIds.filter(id => !(playerState.unlockedIcons || []).includes(id));
+
+            if (lockedChars.length === 0 && lockedIcons.length === 0) {
+                showModal("コンプリート", "すべてのキャラクターとプロフィールアイコンをコンプリートしています！\nアイコン画像、新キャラクター追加をお待ちください。");
+                return;
+            }
+
             await addDopa(-cost);
 
-            const allCharIds = Object.keys(CHARACTER_DATA);
-            let currentLocked = allCharIds.filter(id => !playerState.unlockedChars.includes(id));
-            
             let results = [];
-            let totalBonusDopa = 0;
-            let newlyUnlocked = [];
 
             for (let i = 0; i < count; i++) {
-                let hitChar = false;
-                if (currentLocked.length > 0 && Math.random() < 0.40) {
-                    hitChar = true;
+                if (lockedChars.length === 0 && lockedIcons.length === 0) break;
+
+                let getChar = false;
+                if (lockedChars.length > 0 && (lockedIcons.length === 0 || Math.random() < 0.45)) {
+                    getChar = true;
                 }
 
-                if (hitChar && currentLocked.length > 0) {
-                    const randomIndex = Math.floor(Math.random() * currentLocked.length);
-                    const charId = currentLocked[randomIndex];
-                    
-                    currentLocked.splice(randomIndex, 1);
-                    
+                if (getChar && lockedChars.length > 0) {
+                    const idx = Math.floor(Math.random() * lockedChars.length);
+                    const charId = lockedChars.splice(idx, 1)[0];
+
                     if (!playerState.unlockedChars.includes(charId)) {
                         playerState.unlockedChars.push(charId);
-                        newlyUnlocked.push(charId);
+                    }
+                    if (!playerState.unlockedIcons.includes(charId)) {
+                        playerState.unlockedIcons.push(charId);
                     }
 
                     results.push({
@@ -1019,70 +1043,180 @@ static drawDopagaking(p, isCharged) {
                         name: CHARACTER_DATA[charId].name,
                         title: CHARACTER_DATA[charId].title
                     });
-                } else {
-                    const item = GACHA_ITEMS[Math.floor(Math.random() * GACHA_ITEMS.length)];
-                    totalBonusDopa += item.dopa;
+                } else if (lockedIcons.length > 0) {
+                    const idx = Math.floor(Math.random() * lockedIcons.length);
+                    const iconId = lockedIcons.splice(idx, 1)[0];
+
+                    if (!playerState.unlockedIcons.includes(iconId)) {
+                        playerState.unlockedIcons.push(iconId);
+                    }
+
                     results.push({
-                        type: 'item',
-                        name: item.name,
-                        rarity: item.rarity,
-                        dopa: item.dopa
+                        type: 'icon',
+                        id: iconId,
+                        name: CHARACTER_DATA[iconId].name,
+                        title: CHARACTER_DATA[iconId].title
+                    });
+                } else if (lockedChars.length > 0) {
+                    const idx = Math.floor(Math.random() * lockedChars.length);
+                    const charId = lockedChars.splice(idx, 1)[0];
+
+                    if (!playerState.unlockedChars.includes(charId)) {
+                        playerState.unlockedChars.push(charId);
+                    }
+                    if (!playerState.unlockedIcons.includes(charId)) {
+                        playerState.unlockedIcons.push(charId);
+                    }
+
+                    results.push({
+                        type: 'character',
+                        id: charId,
+                        name: CHARACTER_DATA[charId].name,
+                        title: CHARACTER_DATA[charId].title
                     });
                 }
             }
 
-            if (totalBonusDopa > 0) {
-                await addDopa(totalBonusDopa);
-            }
+            // 10連の場合: ①獲得したキャラクターを順番に演出を入れながら表示その後②アイテム(プロフィールで使用できるキャラクターアイコン)の順番で表示する
+            results.sort((a, b) => {
+                if (a.type === 'character' && b.type !== 'character') return -1;
+                if (a.type !== 'character' && b.type === 'character') return 1;
+                return 0;
+            });
 
             await savePlayerState();
 
-            if (newlyUnlocked.length > 0) {
+            showGachaSuspenseModal(() => {
+                showGachaRevealStep(results, 0);
+            });
+        }
+
+        function showGachaSuspenseModal(onComplete) {
+            audioSystem.playOpeningMelody();
+            const titleEl = document.getElementById('modal-title');
+            const bodyEl = document.getElementById('modal-body');
+            const actionsEl = document.getElementById('modal-actions');
+
+            if (titleEl) titleEl.innerText = "🎰 抽選中... (DEXING)";
+            if (bodyEl) {
+                bodyEl.innerHTML = `
+                    <div class="text-center space-y-4 py-8">
+                        <div class="w-24 h-24 mx-auto pixel-box bg-amber-950 flex items-center justify-center animate-opening-shake border-4 border-amber-400 shadow-2xl">
+                            <span class="text-4xl animate-bounce">⚡</span>
+                        </div>
+                        <p class="text-amber-300 font-pixel text-sm animate-pulse">DOPAエネルギーが最高潮に達する……！</p>
+                    </div>
+                `;
+            }
+            if (actionsEl) {
+                actionsEl.innerHTML = `<button onclick="skipGachaSuspense()" class="pixel-btn pixel-btn-danger px-4 py-1.5 font-bold text-xs">スキップ ⏩</button>`;
+            }
+
+            window._gachaSuspenseTimeout = setTimeout(() => {
+                window._gachaSuspenseTimeout = null;
+                onComplete();
+            }, 2200);
+        }
+
+        window.skipGachaSuspense = function() {
+            if (window._gachaSuspenseTimeout) {
+                clearTimeout(window._gachaSuspenseTimeout);
+                window._gachaSuspenseTimeout = null;
+            }
+            if (window._currentGachaResults && window._currentGachaResults.length > 0) {
+                showGachaRevealStep(window._currentGachaResults, 0);
+            }
+        };
+
+        function showGachaRevealStep(results, index) {
+            window._currentGachaResults = results;
+            if (index >= results.length) {
+                showGachaSummaryModal(results);
+                return;
+            }
+
+            const res = results[index];
+            const isChar = res.type === 'character';
+
+            if (isChar) {
                 audioSystem.playVictory();
             } else {
-                audioSystem.playSpecial();
+                audioSystem.playBuff();
             }
 
-            let resultHtml = `<div class="text-center p-2 space-y-3 max-h-72 overflow-y-auto">`;
-            if (newlyUnlocked.length > 0) {
-                resultHtml += `<p class="text-amber-300 font-bold text-base mb-1">🎉 新キャラクター解放！ 🎉</p>`;
-            } else {
-                resultHtml += `<p class="text-amber-300 font-bold text-base mb-1">🎁 ガチャ結果 (${count}回) 🎁</p>`;
+            const titleEl = document.getElementById('modal-title');
+            const bodyEl = document.getElementById('modal-body');
+            const actionsEl = document.getElementById('modal-actions');
+
+            if (titleEl) titleEl.innerText = `🎰 ガチャ結果 (${index + 1}/${results.length})`;
+            if (bodyEl) {
+                bodyEl.innerHTML = `
+                    <div class="text-center space-y-3 py-2 animate-cutin">
+                        <div class="flex justify-center mb-1">
+                            ${isChar ? '<span class="bg-amber-500 text-slate-950 px-3 py-1 rounded font-bold text-xs font-pixel shadow">✨ 新キャラクター</span>' : '<span class="bg-blue-600 text-white px-3 py-1 rounded font-bold text-xs font-pixel shadow">👤 プロフィールアイコン</span>'}
+                        </div>
+                        <div class="cursor-pointer inline-block group" onclick="closeModal(); openCharDetail('${res.id}');" title="タップして図鑑内容を表示">
+                            <canvas id="gacha-reveal-cvs" width="140" height="140" class="pixel-box bg-slate-950 border-2 border-amber-400 mx-auto shadow-lg group-hover:scale-105 transition-transform"></canvas>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-amber-300 font-pixel">${res.name}</h3>
+                            <p class="text-xs text-slate-300 mt-0.5">${res.title}</p>
+                        </div>
+                        <p class="text-[11px] text-cyan-300 font-mono">💡 アイコンをタップすると図鑑（解説・ステータス）が表示されます</p>
+                    </div>
+                `;
+            }
+            if (actionsEl) {
+                actionsEl.innerHTML = `
+                    <button onclick="skipGachaRevealAll()" class="pixel-btn pixel-btn-danger px-3 py-1.5 font-bold text-xs">すべてスキップ ⏩</button>
+                    <button onclick="showGachaRevealStep(window._currentGachaResults, ${index + 1})" class="pixel-btn pixel-btn-primary px-6 py-1.5 font-bold text-xs">次へ ▶</button>
+                `;
             }
 
-            if (totalBonusDopa > 0) {
-                resultHtml += `<p class="text-emerald-400 font-bold text-sm bg-slate-950 p-2 rounded border border-emerald-800">💰 アイテム報酬 合計 +${totalBonusDopa} DOPA 獲得！</p>`;
-            }
+            setTimeout(() => {
+                const cvs = document.getElementById('gacha-reveal-cvs');
+                if (cvs) CharacterRenderer.drawCharacter(cvs, res.id);
+            }, 50);
+        }
 
-            resultHtml += `<div class="grid grid-cols-1 gap-2 text-left mt-2">`;
-            results.forEach((res) => {
-                if (res.type === 'character') {
-                    resultHtml += `
-                        <div class="pixel-box p-2 bg-amber-950/60 border-amber-400 flex items-center justify-between text-xs">
-                            <div>
-                                <span class="bg-amber-500 text-black px-1.5 py-0.5 rounded font-bold text-[10px] mr-1">キャラ</span>
-                                <b class="text-amber-300 text-sm">【 ${res.name} 】</b>
-                                <span class="text-slate-300 ml-1">(${res.title})</span>
+        window.skipGachaRevealAll = function() {
+            if (window._currentGachaResults) {
+                showGachaSummaryModal(window._currentGachaResults);
+            }
+        };
+
+        function showGachaSummaryModal(results) {
+            const titleEl = document.getElementById('modal-title');
+            const bodyEl = document.getElementById('modal-body');
+            const actionsEl = document.getElementById('modal-actions');
+
+            if (titleEl) titleEl.innerText = `🎉 ガチャ結果一覧 (${results.length}連)`;
+            if (bodyEl) {
+                let html = `<div class="text-center p-1 space-y-2 max-h-72 overflow-y-auto"><div class="grid grid-cols-1 gap-2 text-left">`;
+                results.forEach((res) => {
+                    const isChar = res.type === 'character';
+                    html += `
+                        <div class="pixel-box p-2.5 ${isChar ? 'bg-amber-950/60 border-amber-400' : 'bg-blue-950/40 border-blue-500'} flex items-center justify-between text-xs cursor-pointer hover:opacity-90" onclick="closeModal(); openCharDetail('${res.id}');" title="タップして図鑑を表示">
+                            <div class="flex items-center gap-2">
+                                <span class="${isChar ? 'bg-amber-500 text-slate-950' : 'bg-blue-600 text-white'} px-2 py-0.5 rounded font-bold text-[10px]">${isChar ? 'キャラ' : 'アイコン'}</span>
+                                <div>
+                                    <b class="${isChar ? 'text-amber-300' : 'text-cyan-300'} text-sm">${res.name}</b>
+                                    <span class="text-slate-300 ml-1">(${res.title})</span>
+                                </div>
                             </div>
-                            <span class="text-emerald-400 font-bold">✨NEW!</span>
+                            <span class="text-emerald-400 font-bold text-[11px]">✨ ゲット!</span>
                         </div>
                     `;
-                } else {
-                    let rarityColor = res.rarity === 'SR' ? 'text-purple-400 border-purple-500 bg-purple-950/40' : 'text-blue-400 border-blue-500 bg-blue-950/40';
-                    resultHtml += `
-                        <div class="pixel-box p-2 bg-slate-900 ${rarityColor} flex items-center justify-between text-xs">
-                            <div>
-                                <span class="px-1.5 py-0.5 rounded font-bold text-[10px] mr-1 border ${res.rarity === 'SR' ? 'bg-purple-900 text-purple-200 border-purple-400' : 'bg-blue-900 text-blue-200 border-blue-400'}">${res.rarity}</span>
-                                <span class="text-slate-100">${res.name}</span>
-                            </div>
-                            <span class="text-amber-400 font-mono font-bold">+${res.dopa} DOPA</span>
-                        </div>
-                    `;
-                }
-            });
-            resultHtml += `</div></div>`;
-
-            showModal(`🎰 ガチャ結果 (${count}連)`, resultHtml);
+                });
+                html += `</div></div>`;
+                bodyEl.innerHTML = html;
+            }
+            if (actionsEl) {
+                actionsEl.innerHTML = `
+                    <button onclick="openGachaModal()" class="pixel-btn pixel-btn-warning px-4 py-1.5 font-bold text-xs">もう一度引く 🎰</button>
+                    <button onclick="closeModal(); renderHomeScreen();" class="pixel-btn pixel-btn-primary px-6 py-1.5 font-bold text-xs">ホームに戻る</button>
+                `;
+            }
         }
 
         function renderZukanScreen(sortOrder = 'default', sortDir = 'desc') {
@@ -3335,9 +3469,9 @@ case 'dopa_juggler_skill':
             `;
 
             Object.values(CHARACTER_DATA).forEach(c => {
-                const isUnlocked = playerState.unlockedChars.includes(c.id);
+                const isIconUnlocked = playerState.unlockedIcons && playerState.unlockedIcons.includes(c.id);
                 const isSelected = playerState.selectedIcon === c.id;
-                if (!isUnlocked) return;
+                if (!isIconUnlocked) return;
 
                 html += `
                     <div onclick="setProfileIcon('${c.id}')" class="pixel-box p-2 bg-slate-950 cursor-pointer flex flex-col items-center justify-center border-2 ${isSelected ? 'border-amber-400 bg-amber-950/40' : 'border-slate-700 hover:border-slate-400'}">
@@ -3352,7 +3486,7 @@ case 'dopa_juggler_skill':
 
             setTimeout(() => {
                 Object.values(CHARACTER_DATA).forEach(c => {
-                    if (playerState.unlockedChars.includes(c.id)) {
+                    if (playerState.unlockedIcons && playerState.unlockedIcons.includes(c.id)) {
                         const cvs = document.getElementById(`icon-sel-cvs-${c.id}`);
                         if (cvs) CharacterRenderer.drawCharacter(cvs, c.id);
                     }
