@@ -92,9 +92,13 @@
                             } else if (id === 'opp-profile-cvs') {
                                 CharacterRenderer.drawCharacter(cvs, window.lastOppIcon || 'pasha');
                             } else if (id === 'p1-canvas' && typeof activeBattle !== 'undefined' && activeBattle && activeBattle.p1) {
-                                CharacterRenderer.drawCharacter(cvs, activeBattle.p1.id, activeBattle.p1.isMiniZou);
+                                const isCharged = (activeBattle.p1.id === 'courtney' && (activeBattle.p1.courtneyChargeCount || 0) > 0) || (activeBattle.p1.id === 'dopagaking' && (activeBattle.p1.dopaChargeCount || 0) > 0 && (activeBattle.p1.dopaChargeCount || 0) < 5);
+                                const renderId = (activeBattle.p1.id === 'dopagaking' && (activeBattle.p1.dopaChargeCount || 0) >= 5 && activeBattle.p1.selectedInheritChar) ? activeBattle.p1.selectedInheritChar : ((activeBattle.p1.id === 'pasha' && activeBattle.p1.isDarkMode) ? 'pasha_dark' : activeBattle.p1.id);
+                                CharacterRenderer.drawCharacter(cvs, renderId, activeBattle.p1.isMiniZou, isCharged);
                             } else if (id === 'p2-canvas' && typeof activeBattle !== 'undefined' && activeBattle && activeBattle.p2) {
-                                CharacterRenderer.drawCharacter(cvs, activeBattle.p2.id, activeBattle.p2.isMiniZou);
+                                const isCharged = (activeBattle.p2.id === 'courtney' && (activeBattle.p2.courtneyChargeCount || 0) > 0) || (activeBattle.p2.id === 'dopagaking' && (activeBattle.p2.dopaChargeCount || 0) > 0 && (activeBattle.p2.dopaChargeCount || 0) < 5);
+                                const renderId = (activeBattle.p2.id === 'dopagaking' && (activeBattle.p2.dopaChargeCount || 0) >= 5 && activeBattle.p2.selectedInheritChar) ? activeBattle.p2.selectedInheritChar : ((activeBattle.p2.id === 'pasha' && activeBattle.p2.isDarkMode) ? 'pasha_dark' : activeBattle.p2.id);
+                                CharacterRenderer.drawCharacter(cvs, renderId, activeBattle.p2.isMiniZou, isCharged);
                             }
                         });
                     };
@@ -108,7 +112,7 @@
                 return this.imageCache[src];
             }
 
-            static drawCharacter(canvas, charId, isMiniZou = false) {
+            static drawCharacter(canvas, charId, isMiniZou = false, isCharged = false) {
                 if (!canvas) return;
                 const ctx = canvas.getContext('2d');
                 const w = canvas.width;
@@ -119,15 +123,15 @@
                 if (isMiniZou && !(CHARACTER_DATA[charId] && CHARACTER_DATA[charId].chargedImage)) targetCharId = 'minizou';
 
                 const charData = CHARACTER_DATA[targetCharId] || CHARACTER_DATA[charId];
-let imagePath = null;
-if (charData) {
-    // 特殊状態の専用画像（chargedImage）があり、かつチャージ状態(isMiniZou等)の場合のみ優先、それ以外は image を使用
-    if ((isMiniZou || charId.includes('charged')) && charData.chargedImage) {
-        imagePath = charData.chargedImage;
-    } else {
-        imagePath = charData.image;
-    }
-}
+                let imagePath = null;
+                if (charData) {
+                    // 特殊状態の専用画像（chargedImage）があり、かつチャージ状態(isMiniZou, isCharged等)の場合のみ優先、それ以外は image を使用
+                    if ((isMiniZou || isCharged || charId.includes('charged') || charId === 'dopagaking_crown') && charData.chargedImage) {
+                        imagePath = charData.chargedImage;
+                    } else {
+                        imagePath = charData.image;
+                    }
+                }
                 if (charId === 'dopagaking_crown') {
                     imagePath = CHARACTER_DATA['dopagaking']?.chargedImage || CHARACTER_DATA['dopagaking']?.image;
                 }
@@ -1551,6 +1555,8 @@ dopagaking: {
     dopaChargeCount: 0,
     selectedInheritChar: null,
     maxHpRandom: 150,
+    image: 'images/dopagaking.webp',
+    chargedImage: 'images/dopagakingcharge.webp',
     desc: 'すべてを運に任せる完全ランダム型の国王。アイコンタップで「王位継承」をチャージし、他キャラの力の4倍ダメージを叩き込む！',
     skills: [
         { id: 'dopa_juggler', name: 'ジャグラー', type: 'dopa_juggler_skill', power: 1.0, isNormalAttack: false, cooldown: 0, desc: '0～50の完全ランダムダメージを与える通常攻撃！' },
@@ -1570,6 +1576,8 @@ dopagaking: {
                 type: '恋属性 / 溜め・爆発型',
                 hp: 140, atk: 18, def: 15, spd: 17, eva: 18,
                 courtneyChargeCount: 0,
+                image: 'images/ALT.webp',
+                chargedImage: 'images/ALT2.webp',
                 desc: '相手をメロメロにして戦う海外ガール。王国初となる「溜め技」を駆使し、最大8回までチャージして一撃の爆発力を高める！',
                 skills: [
                     { id: 'courtney_attack', name: 'ミツメル', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, desc: '相手をじっと見つめて攻撃する通常攻撃。' },
@@ -3261,79 +3269,39 @@ case 'dopa_juggler_skill':
 
             if (p1Cvs) {
                 if (p1.id === 'dopagaking' && (p1.dopaChargeCount || 0) > 0 && (p1.dopaChargeCount || 0) < 5) {
-                    const ctx = p1Cvs.getContext('2d');
-                    ctx.clearRect(0, 0, p1Cvs.width, p1Cvs.height);
-                    ctx.fillStyle = '#0f172a';
-                    ctx.fillRect(0, 0, p1Cvs.width, p1Cvs.height);
-                    const pixelSize = Math.max(2, Math.floor(p1Cvs.width / 26));
-                    const offsetX = Math.floor((p1Cvs.width - 32 * pixelSize) / 2);
-                    const offsetY = Math.floor((p1Cvs.height - 32 * pixelSize) / 2);
-                    const drawPx = (x, y, color, sizeX = 1, sizeY = 1) => {
-                        ctx.fillStyle = color;
-                        ctx.fillRect(offsetX + x * pixelSize, offsetY + y * pixelSize, sizeX * pixelSize, sizeY * pixelSize);
-                    };
-                    CharacterRenderer.drawCrown(drawPx);
+                    p1Cvs.classList.remove('animate-courtney-shake');
+                    CharacterRenderer.drawCharacter(p1Cvs, p1.id, false, true);
                 } else if (p1.id === 'dopagaking' && (p1.dopaChargeCount || 0) >= 5 && p1.selectedInheritChar) {
-                    CharacterRenderer.drawCharacter(p1Cvs, p1.selectedInheritChar, false);
+                    p1Cvs.classList.remove('animate-courtney-shake');
+                    CharacterRenderer.drawCharacter(p1Cvs, p1.selectedInheritChar, false, false);
                 } else if (p1.id === 'courtney' && (p1.courtneyChargeCount || 0) > 0) {
                     p1Cvs.classList.add('animate-courtney-shake');
-                    const ctx = p1Cvs.getContext('2d');
-                    ctx.clearRect(0, 0, p1Cvs.width, p1Cvs.height);
-                    ctx.fillStyle = '#0f172a';
-                    ctx.fillRect(0, 0, p1Cvs.width, p1Cvs.height);
-                    const pixelSize = Math.max(2, Math.floor(p1Cvs.width / 26));
-                    const offsetX = Math.floor((p1Cvs.width - 32 * pixelSize) / 2);
-                    const offsetY = Math.floor((p1Cvs.height - 32 * pixelSize) / 2);
-                    const drawPx = (x, y, color, sizeX = 1, sizeY = 1) => {
-                        ctx.fillStyle = color;
-                        ctx.fillRect(offsetX + x * pixelSize, offsetY + y * pixelSize, sizeX * pixelSize, sizeY * pixelSize);
-                    };
-                    CharacterRenderer.drawCourtneyCharged(drawPx);
+                    CharacterRenderer.drawCharacter(p1Cvs, p1.id, false, true);
                 } else if (p1.id === 'pasha' && p1.isDarkMode) {
                     p1Cvs.classList.remove('animate-courtney-shake');
-                    CharacterRenderer.drawCharacter(p1Cvs, 'pasha_dark', p1.isMiniZou);
+                    CharacterRenderer.drawCharacter(p1Cvs, 'pasha_dark', p1.isMiniZou, false);
                 } else {
                     p1Cvs.classList.remove('animate-courtney-shake');
-                    CharacterRenderer.drawCharacter(p1Cvs, p1.id, p1.isMiniZou);
+                    CharacterRenderer.drawCharacter(p1Cvs, p1.id, p1.isMiniZou, false);
                 }
             }
 
             if (p2Cvs) {
                 if (p2.id === 'dopagaking' && (p2.dopaChargeCount || 0) > 0 && (p2.dopaChargeCount || 0) < 5) {
-                    const ctx = p2Cvs.getContext('2d');
-                    ctx.clearRect(0, 0, p2Cvs.width, p2Cvs.height);
-                    ctx.fillStyle = '#0f172a';
-                    ctx.fillRect(0, 0, p2Cvs.width, p2Cvs.height);
-                    const pixelSize = Math.max(2, Math.floor(p2Cvs.width / 26));
-                    const offsetX = Math.floor((p2Cvs.width - 32 * pixelSize) / 2);
-                    const offsetY = Math.floor((p2Cvs.height - 32 * pixelSize) / 2);
-                    const drawPx = (x, y, color, sizeX = 1, sizeY = 1) => {
-                        ctx.fillStyle = color;
-                        ctx.fillRect(offsetX + x * pixelSize, offsetY + y * pixelSize, sizeX * pixelSize, sizeY * pixelSize);
-                    };
-                    CharacterRenderer.drawCrown(drawPx);
+                    p2Cvs.classList.remove('animate-courtney-shake');
+                    CharacterRenderer.drawCharacter(p2Cvs, p2.id, false, true);
                 } else if (p2.id === 'dopagaking' && (p2.dopaChargeCount || 0) >= 5 && p2.selectedInheritChar) {
-                    CharacterRenderer.drawCharacter(p2Cvs, p2.selectedInheritChar, false);
+                    p2Cvs.classList.remove('animate-courtney-shake');
+                    CharacterRenderer.drawCharacter(p2Cvs, p2.selectedInheritChar, false, false);
                 } else if (p2.id === 'courtney' && (p2.courtneyChargeCount || 0) > 0) {
                     p2Cvs.classList.add('animate-courtney-shake');
-                    const ctx = p2Cvs.getContext('2d');
-                    ctx.clearRect(0, 0, p2Cvs.width, p2Cvs.height);
-                    ctx.fillStyle = '#0f172a';
-                    ctx.fillRect(0, 0, p2Cvs.width, p2Cvs.height);
-                    const pixelSize = Math.max(2, Math.floor(p2Cvs.width / 26));
-                    const offsetX = Math.floor((p2Cvs.width - 32 * pixelSize) / 2);
-                    const offsetY = Math.floor((p2Cvs.height - 32 * pixelSize) / 2);
-                    const drawPx = (x, y, color, sizeX = 1, sizeY = 1) => {
-                        ctx.fillStyle = color;
-                        ctx.fillRect(offsetX + x * pixelSize, offsetY + y * pixelSize, sizeX * pixelSize, sizeY * pixelSize);
-                    };
-                    CharacterRenderer.drawCourtneyCharged(drawPx);
+                    CharacterRenderer.drawCharacter(p2Cvs, p2.id, false, true);
                 } else if (p2.id === 'pasha' && p2.isDarkMode) {
                     p2Cvs.classList.remove('animate-courtney-shake');
-                    CharacterRenderer.drawCharacter(p2Cvs, 'pasha_dark', p2.isMiniZou);
+                    CharacterRenderer.drawCharacter(p2Cvs, 'pasha_dark', p2.isMiniZou, false);
                 } else {
                     p2Cvs.classList.remove('animate-courtney-shake');
-                    CharacterRenderer.drawCharacter(p2Cvs, p2.id, p2.isMiniZou);
+                    CharacterRenderer.drawCharacter(p2Cvs, p2.id, p2.isMiniZou, false);
                 }
             }
 
@@ -3455,6 +3423,10 @@ case 'dopa_juggler_skill':
             CharacterRenderer.getImage('images/ndaihyou.webp');
             CharacterRenderer.getImage('images/ganban.webp');
             CharacterRenderer.getImage('images/asaiomizu.webp');
+            CharacterRenderer.getImage('images/ALT.webp');
+            CharacterRenderer.getImage('images/ALT2.webp');
+            CharacterRenderer.getImage('images/dopagaking.webp');
+            CharacterRenderer.getImage('images/dopagakingcharge.webp');
 
             await loadPlayerState();
             renderOpeningScreen();
