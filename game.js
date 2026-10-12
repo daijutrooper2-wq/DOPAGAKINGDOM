@@ -564,11 +564,11 @@ static drawDopagaking(p, isCharged) {
         let playerState = {
             dopa: 1000,
             unlockedChars: [], 
-            unlockedIcons: ['moenan'],
+            unlockedIcons: ['dopagaking'],
             selectedPlayerChar: null,
             selectedEnemyChar: 'pasha',
             playerName: '名無しファイター',
-            selectedIcon: 'moenan',
+            selectedIcon: 'dopagaking',
             isFirstTime: true,
             totalBattles: 0,
             wins: 0,
@@ -641,9 +641,9 @@ static drawDopagaking(p, isCharged) {
             playerState.isFirstTime = false;
             playerState.dopa = 1000;
             playerState.unlockedChars = [];
-            playerState.unlockedIcons = ['moenan'];
+            playerState.unlockedIcons = ['dopagaking'];
             playerState.selectedPlayerChar = null;
-            playerState.selectedIcon = 'moenan';
+            playerState.selectedIcon = 'dopagaking';
             await savePlayerState();
             updateHeaderProfile();
             const dopaEl = document.getElementById('dopa-count');
@@ -889,13 +889,13 @@ static drawDopagaking(p, isCharged) {
                 }
             }
             if (!playerState.unlockedIcons || !Array.isArray(playerState.unlockedIcons) || playerState.unlockedIcons.length === 0) {
-                playerState.unlockedIcons = ['moenan'];
+                playerState.unlockedIcons = ['dopagaking'];
             }
             if (playerState.unlockedChars.length > 0 && (!playerState.selectedPlayerChar || !playerState.unlockedChars.includes(playerState.selectedPlayerChar))) {
                 playerState.selectedPlayerChar = playerState.unlockedChars[0];
             }
             if (!playerState.selectedIcon || !playerState.unlockedIcons.includes(playerState.selectedIcon)) {
-                playerState.selectedIcon = playerState.unlockedIcons[0] || 'moenan';
+                playerState.selectedIcon = playerState.unlockedIcons[0] || 'dopagaking';
             }
             const el = document.getElementById('dopa-count');
             if (el) el.innerText = playerState.dopa;
@@ -3571,11 +3571,11 @@ case 'dopa_juggler_skill':
             playerState = {
                 dopa: 1000,
                 unlockedChars: [],
-                unlockedIcons: ['moenan'],
+                unlockedIcons: ['dopagaking'],
                 selectedPlayerChar: null,
                 selectedEnemyChar: 'pasha',
                 playerName: '名無しファイター',
-                selectedIcon: 'moenan',
+                selectedIcon: 'dopagaking',
                 isFirstTime: true,
                 totalBattles: 0,
                 wins: 0,
