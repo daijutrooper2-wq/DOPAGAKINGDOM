@@ -1483,10 +1483,11 @@ static drawDopagaking(p, isCharged) {
             audioSystem.playSelect();
             const container = document.getElementById('screen-container');
 
-            const c = CHARACTER_DATA[charId];
+            const c = CHARACTER_DATA[charId] || EXTRA_ICONS[charId];
             if (!c) return;
 
-            const isUnlocked = playerState.unlockedChars.includes(c.id);
+            const isExtra = !!EXTRA_ICONS[charId];
+            const isUnlocked = isExtra ? (playerState.unlockedIcons && playerState.unlockedIcons.includes(c.id)) : playerState.unlockedChars.includes(c.id);
 
             let backAction = "";
             let backLabel = "🔙 戻る";
@@ -1519,11 +1520,14 @@ static drawDopagaking(p, isCharged) {
                         <div class="text-center mt-2">
                             <h2 class="text-xl font-bold text-amber-300 font-pixel mb-1">${c.name}</h2>
                             <p class="text-xs text-amber-200">${c.title}</p>
-                            <p class="text-[11px] text-slate-300 mt-0.5">${c.type}</p>
+                            <p class="text-[11px] text-slate-300 mt-0.5">${isExtra ? 'プロフィールアイコン / チャージアイテム' : c.type}</p>
                         </div>
 
                         <canvas id="zukan-detail-cvs" width="200" height="200" class="pixel-box bg-slate-950 shadow-lg border-2 border-amber-500"></canvas>
+            `;
 
+            if (!isExtra) {
+                html += `
                         <div class="w-full bg-slate-950 p-3 rounded border border-amber-800 space-y-2 text-xs font-mono">
                             <div class="text-amber-300 font-bold mb-1 border-b border-amber-900 pb-1">📊 ステータス</div>
                             <div class="grid grid-cols-2 gap-2">
@@ -1543,21 +1547,29 @@ static drawDopagaking(p, isCharged) {
                         <div class="w-full bg-slate-950 p-3 rounded border border-amber-800 space-y-2 text-xs font-mono">
                             <div class="text-amber-300 font-bold mb-1 border-b border-amber-900 pb-1">⚔ 所持スキル</div>
                             <div class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
-            `;
-
-            c.skills.forEach(s => {
-                const cdStr = s.cooldown > 0 ? ` [CT: ${s.cooldown}T]` : '';
-                html += `
-                    <div class="bg-slate-900 p-2 rounded border border-slate-800">
-                        <div class="font-bold text-amber-200">${s.name}${cdStr}</div>
-                        <div class="text-[10px] text-slate-400">${s.desc}</div>
-                    </div>
                 `;
-            });
+
+                c.skills.forEach(s => {
+                    const cdStr = s.cooldown > 0 ? ` [CT: ${s.cooldown}T]` : '';
+                    html += `
+                        <div class="bg-slate-900 p-2 rounded border border-slate-800">
+                            <div class="font-bold text-amber-200">${s.name}${cdStr}</div>
+                            <div class="text-[10px] text-slate-400">${s.desc}</div>
+                        </div>
+                    `;
+                });
+
+                html += `</div></div>`;
+            } else {
+                html += `
+                        <div class="w-full bg-slate-950 p-3 rounded border border-amber-800 space-y-2 text-xs font-mono">
+                            <div class="text-amber-300 font-bold mb-1 border-b border-amber-900 pb-1">📖 アイテム解説</div>
+                            <p class="text-slate-200 leading-relaxed whitespace-pre-line">ドパガキングダムの特別なチャージアイコン・記念アイテムです。プロフィールアイコンとして設定してアピールできます！</p>
+                        </div>
+                `;
+            }
 
             html += `
-                            </div>
-                        </div>
                     </div>
                 </div>
             `;
