@@ -652,7 +652,7 @@ static drawDopagaking(p, isCharged) {
             await savePlayerState();
             updateHeaderProfile();
             const dopaEl = document.getElementById('dopa-count');
-            if (dopaEl) dopaEl.innerText = playerState.dopa;
+            if (dopaEl) dopaEl.innerText = formatDopa(playerState.dopa);
             closeModal();
             renderHomeScreen();
         }
@@ -815,10 +815,33 @@ static drawDopagaking(p, isCharged) {
             renderScene(1);
         }
 
+        function formatDopa(n) {
+            if (typeof n !== 'number' || isNaN(n)) return n;
+            const abs = Math.abs(n);
+            const sign = n < 0 ? '-' : '';
+            if (abs < 10000) {
+                return sign + abs.toLocaleString();
+            }
+            const units = ['', '万', '億', '兆', '京', '垓'];
+            let unitIdx = 0;
+            let val = abs;
+            while (val >= 10000 && unitIdx < units.length - 1) {
+                val /= 10000;
+                unitIdx++;
+            }
+            let formatted = val.toFixed(1);
+            if (formatted.endsWith('.0')) {
+                formatted = formatted.slice(0, -2);
+            } else if (formatted.includes('.')) {
+                formatted = parseFloat(val.toFixed(2)).toString();
+            }
+            return sign + formatted + units[unitIdx];
+        }
+
         async function addDopa(amount) {
             playerState.dopa += amount;
             const el = document.getElementById('dopa-count');
-            if (el) el.innerText = playerState.dopa;
+            if (el) el.innerText = formatDopa(playerState.dopa);
             await savePlayerState();
         }
 
@@ -903,7 +926,7 @@ static drawDopagaking(p, isCharged) {
                 playerState.selectedIcon = playerState.unlockedIcons[0] || 'dopagaking';
             }
             const el = document.getElementById('dopa-count');
-            if (el) el.innerText = playerState.dopa;
+            if (el) el.innerText = formatDopa(playerState.dopa);
             updateHeaderProfile();
         }
 
@@ -1047,26 +1070,26 @@ static drawDopagaking(p, isCharged) {
                         <div class="text-center space-y-3 py-1">
                             <div class="flex flex-col gap-2.5 w-full">
                                 ${canTenPull ? `
-                                <button onclick="executeGacha(10)" class="pixel-btn pixel-btn-warning w-full py-3.5 font-bold text-sm sm:text-base shadow-lg animate-pulse">
-                                    🌟 10連ガチャ (1000 DOPA)
-                                </button>
-                                ` : `
-                                <button class="pixel-btn pixel-btn-disabled w-full py-3.5 font-bold text-sm sm:text-base cursor-not-allowed opacity-60">
-                                    🌟 10連ガチャ (ストック不足)
-                                </button>
-                                <p class="text-[10px] text-amber-300 font-mono">※残りストックが10未満のため10連不可（1回ガチャのみ可能）</p>
-                                `}
-                                <button onclick="executeGacha(1)" class="pixel-btn pixel-btn-primary w-full py-2.5 font-bold text-xs sm:text-sm">
-                                    1回ガチャ (100 DOPA)
-                                </button>
-                            </div>
-                            <div class="flex justify-between items-center gap-2">
-                                <button onclick="openGachaLineupModal()" class="pixel-btn px-3 py-1 text-xs font-bold bg-slate-800 border-slate-600">
-                                    📋 ラインナップ・確率
-                                </button>
-                                <div class="text-[11px] text-slate-300 bg-slate-950 px-3 py-1.5 rounded border border-slate-800">
-                                    所持: <b class="text-amber-400">${playerState.dopa}</b> DOPA | 残り: <b class="text-amber-300">${totalRemaining}</b>個
-                                </div>
+                                 <button onclick="executeGacha(10)" class="pixel-btn pixel-btn-warning w-full py-3.5 font-bold text-sm sm:text-base shadow-lg animate-pulse">
+                                     🌟 10連ガチャ (${formatDopa(1000)} DOPA)
+                                 </button>
+                                 ` : `
+                                 <button class="pixel-btn pixel-btn-disabled w-full py-3.5 font-bold text-sm sm:text-base cursor-not-allowed opacity-60">
+                                     🌟 10連ガチャ (ストック不足)
+                                 </button>
+                                 <p class="text-[10px] text-amber-300 font-mono">※残りストックが10未満のため10連不可（1回ガチャのみ可能）</p>
+                                 `}
+                                 <button onclick="executeGacha(1)" class="pixel-btn pixel-btn-primary w-full py-2.5 font-bold text-xs sm:text-sm">
+                                     1回ガチャ (${formatDopa(100)} DOPA)
+                                 </button>
+                             </div>
+                             <div class="flex justify-between items-center gap-2">
+                                 <button onclick="openGachaLineupModal()" class="pixel-btn px-3 py-1 text-xs font-bold bg-slate-800 border-slate-600">
+                                     📋 ラインナップ・確率
+                                 </button>
+                                 <div class="text-[11px] text-slate-300 bg-slate-950 px-3 py-1.5 rounded border border-slate-800">
+                                     所持: <b class="text-amber-400">${formatDopa(playerState.dopa)}</b> DOPA | 残り: <b class="text-amber-300">${totalRemaining}</b>個
+                                 </div>
                             </div>
                         </div>
                     `;
@@ -1150,7 +1173,7 @@ static drawDopagaking(p, isCharged) {
             }
             const cost = count * 100;
             if (playerState.dopa < cost) {
-                showModal("DOPA不足", `ガチャを ${count}回 引くには ${cost} DOPA が必要です！（現在: ${playerState.dopa} DOPA）`);
+                showModal("DOPA不足", `ガチャを ${count}回 引くには ${formatDopa(cost)} DOPA が必要です！（現在: ${formatDopa(playerState.dopa)} DOPA）`);
                 return;
             }
 
@@ -1951,10 +1974,10 @@ pasha_dark: {
                     const p2Dopa = (this.myPlayerNum === 2) ? playerState.dopa : (this.latestRoomData?.p2Profile?.dopa ?? 1000);
                     if (p1Dopa > p2Dopa) {
                         firstStrikerNum = 1;
-                        this.log(`💰 所持DOPA比較 (自分:${p1Dopa} vs 相手:${p2Dopa}) により、【${this.p1.charName}】が先攻を獲得！`, 'text-amber-300 font-bold');
+                        this.log(`💰 所持DOPA比較 (自分:${formatDopa(p1Dopa)} vs 相手:${formatDopa(p2Dopa)}) により、【${this.p1.charName}】が先攻を獲得！`, 'text-amber-300 font-bold');
                     } else if (p2Dopa > p1Dopa) {
                         firstStrikerNum = 2;
-                        this.log(`💰 所持DOPA比較 (自分:${p1Dopa} vs 相手:${p2Dopa}) により、【${this.p2.charName}】が先攻を獲得！`, 'text-amber-300 font-bold');
+                        this.log(`💰 所持DOPA比較 (自分:${formatDopa(p1Dopa)} vs 相手:${formatDopa(p2Dopa)}) により、【${this.p2.charName}】が先攻を獲得！`, 'text-amber-300 font-bold');
                     } else {
                         firstStrikerNum = Math.random() < 0.5 ? 1 : 2;
                         this.log(`💰 所持DOPA同額のため、50%のランダム判定により【${firstStrikerNum === 1 ? this.p1.charName : this.p2.charName}】が先攻を獲得！`, 'text-amber-300 font-bold');
@@ -2758,7 +2781,7 @@ case 'dopa_juggler_skill':
                     winnerText = '⚔️ 引き分け！相討ちとなりました！';
                     isEnded = true;
                     this.log(winnerText, 'text-yellow-400 font-bold text-center text-sm');
-                    this.log(`🤝 引き分けのため、賭け金 ${currentBattleBet} DOPA は全額返却されました。`, 'text-yellow-400 font-bold text-center');
+                    this.log(`🤝 引き分けのため、賭け金 ${formatDopa(currentBattleBet)} DOPA は全額返却されました。`, 'text-yellow-400 font-bold text-center');
                 } else if (this.p2.hp <= 0) {
                     winnerText = `🎉 【${this.p1.charName}】の勝利！`;
                     isEnded = true;
@@ -2768,7 +2791,7 @@ case 'dopa_juggler_skill':
                         const odds = getCharacterOdds(this.p1.id);
                         const earnedDopa = Math.floor((currentBattleBet * odds) + currentOpponentBet);
                         await addDopa(earnedDopa);
-                        this.log(`🎁 勝利報酬: (${currentBattleBet} DOPA × ${odds}倍) + 相手賭け金(${currentOpponentBet} DOPA) = +${earnedDopa} DOPA 獲得！`, 'text-amber-300 font-bold text-center');
+                        this.log(`🎁 勝利報酬: (${formatDopa(currentBattleBet)} DOPA × ${odds}倍) + 相手賭け金(${formatDopa(currentOpponentBet)} DOPA) = +${formatDopa(earnedDopa)} DOPA 獲得！`, 'text-amber-300 font-bold text-center');
                     }
                 } else if (this.p1.hp <= 0) {
                     winnerText = `💀 【${this.p2.charName}】の勝利！`;
@@ -2777,13 +2800,13 @@ case 'dopa_juggler_skill':
                     audioSystem.playDefeat();
                     if (!this.isOnline || this.myPlayerNum === 1) {
                         await addDopa(-currentBattleBet);
-                        this.log(`💀 敗北により賭け金 ${currentBattleBet} DOPA を失いました…（※無制限借金システム稼働中：所持金マイナスでもバトル可能）`, 'text-red-400 font-bold text-center');
+                        this.log(`💀 敗北により賭け金 ${formatDopa(currentBattleBet)} DOPA を失いました…（※無制限借金システム稼働中：所持金マイナスでもバトル可能）`, 'text-red-400 font-bold text-center');
                     }
                     if (this.isOnline && this.myPlayerNum === 2) {
                         const odds = getCharacterOdds(this.p2.id);
                         const earnedDopa = Math.floor((currentBattleBet * odds) + currentOpponentBet);
                         await addDopa(earnedDopa);
-                        this.log(`🎁 勝利報酬: (${currentBattleBet} DOPA × ${odds}倍) + 相手賭け金(${currentOpponentBet} DOPA) = +${earnedDopa} DOPA 獲得！`, 'text-amber-300 font-bold text-center');
+                        this.log(`🎁 勝利報酬: (${formatDopa(currentBattleBet)} DOPA × ${odds}倍) + 相手賭け金(${formatDopa(currentOpponentBet)} DOPA) = +${formatDopa(earnedDopa)} DOPA 獲得！`, 'text-amber-300 font-bold text-center');
                     }
                 }
 
@@ -2957,7 +2980,7 @@ case 'dopa_juggler_skill':
 
                     ${isBonusAvailable ? `
                     <button onclick="claimDailyBonus()" class="pixel-btn pixel-btn-warning w-full py-2.5 font-bold text-xs sm:text-sm shadow-lg animate-pulse flex items-center justify-center gap-2">
-                        <span>🎁 デイリーボーナスを受け取る (+150 DOPA)</span>
+                        <span>🎁 デイリーボーナスを受け取る (+${formatDopa(150)} DOPA)</span>
                     </button>
                     ` : `
                     <div class="pixel-box p-2 bg-slate-900 w-full text-xs text-slate-400 font-mono">
@@ -3109,7 +3132,7 @@ case 'dopa_juggler_skill':
             }
             playerState.lastDailyBonusDate = today;
             await addDopa(150);
-            showModal("🎉 デイリーボーナス獲得！", "王国からの定額給付金として **150 DOPA** を獲得しました！\nDOPAを稼ぎ、国を救う力を手に入れよう！");
+            showModal("🎉 デイリーボーナス獲得！", `王国からの定額給付金として **${formatDopa(150)} DOPA** を獲得しました！\nDOPAを稼ぎ、国を救う力を手に入れよう！`);
             renderHomeScreen();
         }
 
@@ -3145,7 +3168,7 @@ case 'dopa_juggler_skill':
                     <div class="pixel-box p-4 bg-slate-900 w-full space-y-3 text-xs font-mono">
                         <div class="flex justify-between items-center bg-slate-950 p-2.5 rounded border border-slate-800">
                             <span class="text-slate-300">所持 DOPA:</span>
-                            <span class="text-amber-400 font-bold text-base font-pixel">${playerState.dopa} DOPA ${playerState.dopa < 0 ? '<span class="text-red-400 text-[10px]">(⚠️ 借金・破産救済中)</span>' : ''}</span>
+                            <span class="text-amber-400 font-bold text-base font-pixel">${formatDopa(playerState.dopa)} DOPA ${playerState.dopa < 0 ? '<span class="text-red-400 text-[10px]">(⚠️ 借金・破産救済中)</span>' : ''}</span>
                         </div>
 
                         <div class="flex justify-between items-center bg-slate-950 p-2.5 rounded border border-slate-800">
@@ -3160,7 +3183,7 @@ case 'dopa_juggler_skill':
 
                         <div class="flex justify-between items-center bg-slate-950 p-2.5 rounded border border-slate-800">
                             <span class="text-slate-300">対戦相手の賭け金 (推定):</span>
-                            <span class="text-cyan-400 font-bold text-sm">${currentOpponentBet} DOPA <span class="text-[10px] text-slate-400">(経済力70%〜130%)</span></span>
+                            <span class="text-cyan-400 font-bold text-sm">${formatDopa(currentOpponentBet)} DOPA <span class="text-[10px] text-slate-400">(経済力70%〜130%)</span></span>
                         </div>
 
                         <div class="space-y-1.5 pt-2">
@@ -3169,7 +3192,7 @@ case 'dopa_juggler_skill':
                                 <input id="bet-amount-input" type="number" min="1" value="${currentBattleBet}" class="pixel-box bg-slate-950 px-3 py-2 text-sm font-bold text-amber-300 w-full outline-none border-amber-600">
                                 <button onclick="setAllInBet()" class="pixel-btn pixel-btn-warning px-3 py-2 font-bold text-xs whitespace-nowrap">全額 (ALL IN)</button>
                             </div>
-                            <p class="text-[10px] text-slate-400">※勝利報酬 = (自分の賭け金 × キャラ倍率 ${odds}倍) + 相手の賭け金 (${currentOpponentBet} DOPA)</p>
+                            <p class="text-[10px] text-slate-400">※勝利報酬 = (自分の賭け金 × キャラ倍率 ${odds}倍) + 相手の賭け金 (${formatDopa(currentOpponentBet)} DOPA)</p>
                             <p class="text-[10px] text-red-400">※敗北時は自分の賭け金没収（マイナス所持金でもバトル可能な無制限借金システム搭載）</p>
                         </div>
                     </div>
@@ -3781,7 +3804,7 @@ case 'dopa_juggler_skill':
                             </div>
                             <div class="text-right font-mono">
                                 <div class="text-xs text-amber-200">所持 DOPA</div>
-                                <div class="text-lg font-bold text-amber-400 font-pixel">${playerState.dopa}</div>
+                                <div class="text-lg font-bold text-amber-400 font-pixel">${formatDopa(playerState.dopa)}</div>
                             </div>
                         </div>
 
