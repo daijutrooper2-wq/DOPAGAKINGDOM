@@ -635,8 +635,11 @@ static drawDopagaking(p, isCharged) {
                 if (name) playerState.playerName = name;
             }
             playerState.isFirstTime = false;
+            playerState.dopa = 1000;
             await savePlayerState();
             updateHeaderProfile();
+            const dopaEl = document.getElementById('dopa-count');
+            if (dopaEl) dopaEl.innerText = playerState.dopa;
             closeModal();
             renderHomeScreen();
         }
@@ -776,7 +779,7 @@ static drawDopagaking(p, isCharged) {
                                     <p class="text-xs sm:text-sm text-amber-100 font-mono mb-6">
                                         王国に真の平和を取り戻せ！<br>最強の王者の座を掴むのは誰だ――？
                                     </p>
-                                    <button onclick="renderHomeScreen()" class="pixel-btn pixel-btn-primary px-8 py-3 text-base font-bold font-pixel shadow-lg">
+                                    <button onclick="finishOpening()" class="pixel-btn pixel-btn-primary px-8 py-3 text-base font-bold font-pixel shadow-lg">
                                         冒険へ出発！ ▶
                                     </button>
                                 </div>
@@ -788,7 +791,7 @@ static drawDopagaking(p, isCharged) {
 
             container.innerHTML = `
                 <div class="relative w-full flex flex-col items-center justify-center min-h-[500px] p-4">
-                    <button onclick="renderHomeScreen()" class="absolute top-2 right-2 pixel-btn pixel-btn-danger text-xs px-3 py-1 font-bold z-50">
+                    <button onclick="handleSkip()" class="absolute top-2 right-2 pixel-btn pixel-btn-danger text-xs px-3 py-1 font-bold z-50">
                         ⏩ スキップ
                     </button>
                     <div id="opening-stage" class="w-full flex flex-col items-center justify-center">
