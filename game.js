@@ -1456,9 +1456,9 @@ static drawDopagaking(p, isCharged) {
             let backLabel = "🔙 戻る";
             if (returnSource === 'gacha_reveal') {
                 const index = typeof arg1 === 'number' ? arg1 : 0;
-                backAction = `showGachaRevealStep(window._currentGachaResults || [], ${index})`;
+                backAction = `document.getElementById('modal-overlay').classList.remove('hidden'); showGachaRevealStep(window._currentGachaResults || [], ${index})`;
             } else if (returnSource === 'gacha_summary') {
-                backAction = `showGachaSummaryModal(window._currentGachaResults || [])`;
+                backAction = `document.getElementById('modal-overlay').classList.remove('hidden'); showGachaSummaryModal(window._currentGachaResults || [])`;
             } else if (returnSource === 'select') {
                 const isOnline = !!arg1;
                 backAction = `renderCharacterSelectScreen(${isOnline})`;
