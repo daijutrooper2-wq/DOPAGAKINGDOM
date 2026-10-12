@@ -559,12 +559,13 @@ static drawDopagaking(p, isCharged) {
 
         let playerState = {
             dopa: 1000,
-            unlockedChars: ['iwaba', 'asaiomizu', 'ndaihyo', 'courtney', 'pasha_dark'], 
-            unlockedIcons: ['iwaba', 'asaiomizu', 'ndaihyo', 'courtney', 'pasha_dark'],
-            selectedPlayerChar: 'courtney',
+            unlockedChars: ['moenan'], 
+            unlockedIcons: ['moenan'],
+            selectedPlayerChar: 'moenan',
             selectedEnemyChar: 'pasha',
             playerName: '名無しファイター',
-            selectedIcon: 'courtney',
+            selectedIcon: 'moenan',
+            isFirstTime: true,
             totalBattles: 0,
             wins: 0,
             losses: 0,
@@ -588,6 +589,58 @@ static drawDopagaking(p, isCharged) {
             }
         }
 
+        function finishOpening() {
+            cleanupOpening();
+            if (playerState.isFirstTime) {
+                promptFirstTimeProfileName();
+            } else {
+                renderHomeScreen();
+            }
+        }
+
+        function promptFirstTimeProfileName() {
+            audioSystem.playSelect();
+            const titleEl = document.getElementById('modal-title');
+            const bodyEl = document.getElementById('modal-body');
+            const overlay = document.getElementById('modal-overlay');
+            const actionsEl = document.getElementById('modal-actions');
+
+            if (titleEl) titleEl.innerText = "🌟 ファイター登録";
+            if (bodyEl) {
+                bodyEl.innerHTML = `
+                    <div class="text-center space-y-3 py-2">
+                        <p class="text-xs text-amber-300 font-bold font-pixel">🎉 新規プレイヤー特典！ 🎉</p>
+                        <p class="text-xs text-slate-200 leading-relaxed font-mono">
+                            ドパガキングダムへようこそ！<br>
+                            新規特典として <b class="text-amber-400">1000 DOPA</b> をプレゼントしました！
+                        </p>
+                        <div class="text-left mt-3">
+                            <label class="text-xs text-slate-300 font-bold block mb-1">あなたのファイター名を入力してください：</label>
+                            <input id="first-name-input" type="text" value="${playerState.playerName || '名無しファイター'}" maxlength="12" class="pixel-box bg-slate-950 px-3 py-2 text-sm font-bold text-amber-300 w-full outline-none border-amber-600">
+                        </div>
+                    </div>
+                `;
+            }
+            if (actionsEl) {
+                actionsEl.innerHTML = `<button onclick="completeFirstTimeSetup()" class="pixel-btn pixel-btn-primary px-8 py-2 font-bold text-sm">冒険へ出発！ ▶</button>`;
+            }
+            if (overlay) overlay.classList.remove('hidden');
+        }
+
+        async function completeFirstTimeSetup() {
+            audioSystem.playSelect();
+            const input = document.getElementById('first-name-input');
+            if (input) {
+                const name = input.value.trim();
+                if (name) playerState.playerName = name;
+            }
+            playerState.isFirstTime = false;
+            await savePlayerState();
+            updateHeaderProfile();
+            closeModal();
+            renderHomeScreen();
+        }
+
         function renderOpeningScreen() {
             if (activeBattle) {
                 activeBattle.destroy();
@@ -599,7 +652,7 @@ static drawDopagaking(p, isCharged) {
             
             const handleSkip = () => {
                 cleanupOpening();
-                renderHomeScreen();
+                finishOpening();
             };
 
             openingKeyHandler = (e) => {
@@ -949,7 +1002,9 @@ static drawDopagaking(p, isCharged) {
             const allCharIds = Object.keys(CHARACTER_DATA);
             const lockedChars = allCharIds.filter(id => !playerState.unlockedChars.includes(id));
             const lockedIcons = allCharIds.filter(id => !(playerState.unlockedIcons || []).includes(id));
-            const isCompleted = lockedChars.length === 0 && lockedIcons.length === 0;
+            const totalRemaining = lockedChars.length + lockedIcons.length;
+            const isCompleted = totalRemaining === 0;
+            const canTenPull = totalRemaining >= 10;
 
             const titleEl = document.getElementById('modal-title');
             const bodyEl = document.getElementById('modal-body');
@@ -972,27 +1027,30 @@ static drawDopagaking(p, isCharged) {
                     bodyEl.innerHTML = `
                         <div class="text-center space-y-3 py-1">
                             <div class="flex flex-col gap-2.5 w-full">
+                                ${canTenPull ? `
                                 <button onclick="executeGacha(10)" class="pixel-btn pixel-btn-warning w-full py-3.5 font-bold text-sm sm:text-base shadow-lg animate-pulse">
                                     🌟 10連ガチャ (1000 DOPA)
                                 </button>
+                                ` : `
+                                <button class="pixel-btn pixel-btn-disabled w-full py-3.5 font-bold text-sm sm:text-base cursor-not-allowed opacity-60">
+                                    🌟 10連ガチャ (ストック不足)
+                                </button>
+                                <p class="text-[10px] text-amber-300 font-mono">※残りストックが10未満のため10連不可（1回ガチャのみ可能）</p>
+                                `}
                                 <button onclick="executeGacha(1)" class="pixel-btn pixel-btn-primary w-full py-2.5 font-bold text-xs sm:text-sm">
                                     1回ガチャ (100 DOPA)
                                 </button>
                             </div>
                             <div class="text-[11px] text-slate-300 flex justify-between items-center bg-slate-950 px-3 py-2 rounded border border-slate-800">
                                 <span>所持: <b class="text-amber-400">${playerState.dopa}</b> DOPA</span>
-                                <span>未獲得キャラ: <b class="text-amber-300">${lockedChars.length}</b>/${allCharIds.length}体</span>
+                                <span>残りストック: <b class="text-amber-300">${totalRemaining}</b>個</span>
                             </div>
                         </div>
                     `;
                 }
             }
             if (actionsEl) {
-                if (isCompleted) {
-                    actionsEl.innerHTML = `<button onclick="closeModal()" class="pixel-btn px-6 py-1.5 font-bold text-xs">もどる</button>`;
-                } else {
-                    actionsEl.innerHTML = `<button onclick="closeModal()" class="pixel-btn px-6 py-1.5 font-bold text-xs">もどる</button>`;
-                }
+                actionsEl.innerHTML = `<button onclick="closeModal()" class="pixel-btn px-6 py-1.5 font-bold text-xs">もどる</button>`;
             }
             if (overlay) overlay.classList.remove('hidden');
         }
@@ -1008,9 +1066,15 @@ static drawDopagaking(p, isCharged) {
             const allCharIds = Object.keys(CHARACTER_DATA);
             let lockedChars = allCharIds.filter(id => !playerState.unlockedChars.includes(id));
             let lockedIcons = allCharIds.filter(id => !(playerState.unlockedIcons || []).includes(id));
+            const totalRemaining = lockedChars.length + lockedIcons.length;
 
-            if (lockedChars.length === 0 && lockedIcons.length === 0) {
+            if (totalRemaining === 0) {
                 showModal("コンプリート", "すべてのキャラクターとプロフィールアイコンをコンプリートしています！\nアイコン画像、新キャラクター追加をお待ちください。");
+                return;
+            }
+
+            if (count === 10 && totalRemaining < 10) {
+                showModal("10連不可", "残りストックが10未満のため、10連ガチャは利用できません。\n「1回ガチャ」をご利用ください。");
                 return;
             }
 
@@ -1018,9 +1082,49 @@ static drawDopagaking(p, isCharged) {
 
             let results = [];
 
-            for (let i = 0; i < count; i++) {
-                if (lockedChars.length === 0 && lockedIcons.length === 0) break;
+            if (count === 10) {
+                const targetCharCount = Math.min(lockedChars.length, Math.floor(Math.random() * 3) + 3);
 
+                for (let i = 0; i < targetCharCount; i++) {
+                    if (lockedChars.length === 0) break;
+                    const idx = Math.floor(Math.random() * lockedChars.length);
+                    const charId = lockedChars.splice(idx, 1)[0];
+                    if (!playerState.unlockedChars.includes(charId)) playerState.unlockedChars.push(charId);
+                    if (!playerState.unlockedIcons.includes(charId)) playerState.unlockedIcons.push(charId);
+                    results.push({
+                        type: 'character',
+                        id: charId,
+                        name: CHARACTER_DATA[charId].name,
+                        title: CHARACTER_DATA[charId].title
+                    });
+                }
+
+                const neededIcons = 10 - results.length;
+                for (let i = 0; i < neededIcons; i++) {
+                    if (lockedIcons.length > 0) {
+                        const idx = Math.floor(Math.random() * lockedIcons.length);
+                        const iconId = lockedIcons.splice(idx, 1)[0];
+                        if (!playerState.unlockedIcons.includes(iconId)) playerState.unlockedIcons.push(iconId);
+                        results.push({
+                            type: 'icon',
+                            id: iconId,
+                            name: CHARACTER_DATA[iconId].name,
+                            title: CHARACTER_DATA[iconId].title
+                        });
+                    } else if (lockedChars.length > 0) {
+                        const idx = Math.floor(Math.random() * lockedChars.length);
+                        const charId = lockedChars.splice(idx, 1)[0];
+                        if (!playerState.unlockedChars.includes(charId)) playerState.unlockedChars.push(charId);
+                        if (!playerState.unlockedIcons.includes(charId)) playerState.unlockedIcons.push(charId);
+                        results.push({
+                            type: 'character',
+                            id: charId,
+                            name: CHARACTER_DATA[charId].name,
+                            title: CHARACTER_DATA[charId].title
+                        });
+                    }
+                }
+            } else {
                 let getChar = false;
                 if (lockedChars.length > 0 && (lockedIcons.length === 0 || Math.random() < 0.45)) {
                     getChar = true;
@@ -1029,14 +1133,8 @@ static drawDopagaking(p, isCharged) {
                 if (getChar && lockedChars.length > 0) {
                     const idx = Math.floor(Math.random() * lockedChars.length);
                     const charId = lockedChars.splice(idx, 1)[0];
-
-                    if (!playerState.unlockedChars.includes(charId)) {
-                        playerState.unlockedChars.push(charId);
-                    }
-                    if (!playerState.unlockedIcons.includes(charId)) {
-                        playerState.unlockedIcons.push(charId);
-                    }
-
+                    if (!playerState.unlockedChars.includes(charId)) playerState.unlockedChars.push(charId);
+                    if (!playerState.unlockedIcons.includes(charId)) playerState.unlockedIcons.push(charId);
                     results.push({
                         type: 'character',
                         id: charId,
@@ -1046,11 +1144,7 @@ static drawDopagaking(p, isCharged) {
                 } else if (lockedIcons.length > 0) {
                     const idx = Math.floor(Math.random() * lockedIcons.length);
                     const iconId = lockedIcons.splice(idx, 1)[0];
-
-                    if (!playerState.unlockedIcons.includes(iconId)) {
-                        playerState.unlockedIcons.push(iconId);
-                    }
-
+                    if (!playerState.unlockedIcons.includes(iconId)) playerState.unlockedIcons.push(iconId);
                     results.push({
                         type: 'icon',
                         id: iconId,
@@ -1060,14 +1154,8 @@ static drawDopagaking(p, isCharged) {
                 } else if (lockedChars.length > 0) {
                     const idx = Math.floor(Math.random() * lockedChars.length);
                     const charId = lockedChars.splice(idx, 1)[0];
-
-                    if (!playerState.unlockedChars.includes(charId)) {
-                        playerState.unlockedChars.push(charId);
-                    }
-                    if (!playerState.unlockedIcons.includes(charId)) {
-                        playerState.unlockedIcons.push(charId);
-                    }
-
+                    if (!playerState.unlockedChars.includes(charId)) playerState.unlockedChars.push(charId);
+                    if (!playerState.unlockedIcons.includes(charId)) playerState.unlockedIcons.push(charId);
                     results.push({
                         type: 'character',
                         id: charId,
