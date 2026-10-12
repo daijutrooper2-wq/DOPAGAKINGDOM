@@ -1041,9 +1041,13 @@ static drawDopagaking(p, isCharged) {
                                     1回ガチャ (100 DOPA)
                                 </button>
                             </div>
-                            <div class="text-[11px] text-slate-300 flex justify-between items-center bg-slate-950 px-3 py-2 rounded border border-slate-800">
-                                <span>所持: <b class="text-amber-400">${playerState.dopa}</b> DOPA</span>
-                                <span>残りストック: <b class="text-amber-300">${totalRemaining}</b>個</span>
+                            <div class="flex justify-between items-center gap-2">
+                                <button onclick="openGachaLineupModal()" class="pixel-btn px-3 py-1 text-xs font-bold bg-slate-800 border-slate-600">
+                                    📋 ラインナップ・確率
+                                </button>
+                                <div class="text-[11px] text-slate-300 bg-slate-950 px-3 py-1.5 rounded border border-slate-800">
+                                    所持: <b class="text-amber-400">${playerState.dopa}</b> DOPA | 残り: <b class="text-amber-300">${totalRemaining}</b>個
+                                </div>
                             </div>
                         </div>
                     `;
@@ -1053,6 +1057,46 @@ static drawDopagaking(p, isCharged) {
                 actionsEl.innerHTML = `<button onclick="closeModal()" class="pixel-btn px-6 py-1.5 font-bold text-xs">もどる</button>`;
             }
             if (overlay) overlay.classList.remove('hidden');
+        }
+
+        function openGachaLineupModal() {
+            audioSystem.playSelect();
+            const allChars = Object.values(CHARACTER_DATA);
+
+            let html = `
+                <div class="text-left space-y-3 max-h-96 overflow-y-auto pr-1 text-xs font-mono">
+                    <div class="bg-slate-950 p-2.5 rounded border border-amber-600/50 space-y-1">
+                        <div class="text-amber-300 font-bold">📊 ガチャ仕様・獲得確率</div>
+                        <p class="text-[11px] text-slate-300">・10連ガチャ: キャラクター3〜5体（ランダム） ＋ 残りプロフィールアイコン</p>
+                        <p class="text-[11px] text-slate-300">・1回ガチャ: キャラクター または プロフィールアイコン</p>
+                        <p class="text-[11px] text-slate-300">・重複なし（コンプリートするとガチャ利用不可）</p>
+                        <p class="text-[11px] text-amber-300">・残りストックが10未満の場合、10連ガチャは利用できません（1回ガチャのみ）。</p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="text-amber-300 font-bold border-b border-slate-800 pb-1">🌟 キャラクター・アイコン ラインナップ (${allChars.length}種)</div>
+                        <div class="grid grid-cols-1 gap-1.5">
+            `;
+
+            allChars.forEach(c => {
+                const hasChar = playerState.unlockedChars.includes(c.id);
+                const hasIcon = (playerState.unlockedIcons || []).includes(c.id);
+                html += `
+                    <div class="bg-slate-950 p-2 rounded border border-slate-800 flex items-center justify-between">
+                        <div>
+                            <b class="text-amber-200">${c.name}</b>
+                            <span class="text-[10px] text-slate-400 ml-1">(${c.title})</span>
+                        </div>
+                        <div class="flex gap-2 text-[10px]">
+                            <span class="${hasChar ? 'text-emerald-400 font-bold' : 'text-slate-500'}">キャラ:${hasChar ? '所持' : '未所持'}</span>
+                            <span class="${hasIcon ? 'text-cyan-400 font-bold' : 'text-slate-500'}">アイコン:${hasIcon ? '所持' : '未所持'}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `</div></div></div>`;
+            showModal("📋 ガチャラインナップ・確率", html);
         }
 
         async function executeGacha(count) {
@@ -3514,9 +3558,50 @@ case 'dopa_juggler_skill':
                         ${historyHtml}
                     </div>
 
-                    <button onclick="renderHomeScreen()" class="pixel-btn px-6 py-2 text-xs font-bold">ホームに戻る</button>
+                    <div class="flex justify-between items-center w-full">
+                        <button onclick="confirmResetPlayerProfile()" class="pixel-btn pixel-btn-danger px-4 py-2 text-xs font-bold">⚠️ データ初期化</button>
+                        <button onclick="renderHomeScreen()" class="pixel-btn px-6 py-2 text-xs font-bold">ホームに戻る</button>
+                    </div>
                 </div>
             `;
+
+        function confirmResetPlayerProfile() {
+            audioSystem.playSelect();
+            showConfirmModal("データ初期化の確認", "【注意】これまでのDOPA、所持キャラクター、アイコン、戦績などのプレイデータがすべて消去され、初期状態に戻ります。\n\n（※この初期化はこの端末・アカウントのデータのみに適用され、他のプレイヤーには一切影響しません）\n\n本当にデータを初期化しますか？", () => {
+                executeResetPlayerProfile();
+            });
+        }
+
+        async function executeResetPlayerProfile() {
+            audioSystem.playSelect();
+            playerState = {
+                dopa: 1000,
+                unlockedChars: ['moenan'],
+                unlockedIcons: ['moenan'],
+                selectedPlayerChar: 'moenan',
+                selectedEnemyChar: 'pasha',
+                playerName: '名無しファイター',
+                selectedIcon: 'moenan',
+                isFirstTime: true,
+                totalBattles: 0,
+                wins: 0,
+                losses: 0,
+                charUsage: {},
+                battleHistory: []
+            };
+
+            try {
+                localStorage.removeItem('dopa_player_state');
+            } catch(e){}
+
+            await savePlayerState();
+            updateHeaderProfile();
+            showModal("初期化完了", "データを初期状態にリセットしました。");
+            setTimeout(() => {
+                closeModal();
+                renderOpeningScreen();
+            }, 1500);
+        }
 
             setTimeout(() => {
                 const mainIconCvs = document.getElementById('profile-main-icon');
@@ -3946,3 +4031,6 @@ case 'dopa_juggler_skill':
         window.renderZukanDetailScreen = renderZukanDetailScreen;
         window.onZukanSortChange = onZukanSortChange;
         window.toggleZukanSortDir = toggleZukanSortDir;
+        window.openGachaLineupModal = openGachaLineupModal;
+        window.confirmResetPlayerProfile = confirmResetPlayerProfile;
+        window.executeResetPlayerProfile = executeResetPlayerProfile;
