@@ -122,7 +122,7 @@
                 let targetCharId = charId;
                 if (isMiniZou && !(CHARACTER_DATA[charId] && CHARACTER_DATA[charId].chargedImage)) targetCharId = 'minizou';
 
-                const charData = CHARACTER_DATA[targetCharId] || CHARACTER_DATA[charId];
+                const charData = CHARACTER_DATA[targetCharId] || CHARACTER_DATA[charId] || EXTRA_ICONS[targetCharId] || EXTRA_ICONS[charId];
                 let imagePath = null;
                 if (charData) {
                     // 特殊状態の専用画像（chargedImage）があり、かつチャージ状態(isMiniZou, isCharged等)の場合のみ優先、それ以外は image を使用
@@ -1010,8 +1010,11 @@ static drawDopagaking(p, isCharged) {
         function openGachaModal() {
             audioSystem.playSelect();
             const allCharIds = Object.keys(CHARACTER_DATA);
+            const allExtraIconIds = Object.keys(EXTRA_ICONS);
+            const allIconIds = [...allCharIds, ...allExtraIconIds];
+
             const lockedChars = allCharIds.filter(id => !playerState.unlockedChars.includes(id));
-            const lockedIcons = allCharIds.filter(id => !(playerState.unlockedIcons || []).includes(id));
+            const lockedIcons = allIconIds.filter(id => !(playerState.unlockedIcons || []).includes(id));
             const totalRemaining = lockedChars.length + lockedIcons.length;
             const isCompleted = totalRemaining === 0;
             const canTenPull = totalRemaining >= 10;
@@ -1072,19 +1075,20 @@ static drawDopagaking(p, isCharged) {
         function openGachaLineupModal() {
             audioSystem.playSelect();
             const allChars = Object.values(CHARACTER_DATA);
+            const allExtras = Object.values(EXTRA_ICONS);
 
             let html = `
                 <div class="text-left space-y-3 max-h-96 overflow-y-auto pr-1 text-xs font-mono">
                     <div class="bg-slate-950 p-2.5 rounded border border-amber-600/50 space-y-1">
                         <div class="text-amber-300 font-bold">📊 ガチャ仕様・獲得確率</div>
-                        <p class="text-[11px] text-slate-300">・10連ガチャ: キャラクター3〜5体（ランダム） ＋ 残りプロフィールアイコン</p>
-                        <p class="text-[11px] text-slate-300">・1回ガチャ: キャラクター または プロフィールアイコン</p>
+                        <p class="text-[11px] text-slate-300">・10連ガチャ: キャラクター3〜5体（ランダム） ＋ 残りプロフィールアイコン・チャージアイコン等</p>
+                        <p class="text-[11px] text-slate-300">・1回ガチャ: キャラクター または プロフィールアイコン・チャージアイコン等</p>
                         <p class="text-[11px] text-slate-300">・重複なし（コンプリートするとガチャ利用不可）</p>
                         <p class="text-[11px] text-amber-300">・残りストックが10未満の場合、10連ガチャは利用できません（1回ガチャのみ）。</p>
                     </div>
 
                     <div class="space-y-2">
-                        <div class="text-amber-300 font-bold border-b border-slate-800 pb-1">🌟 キャラクター・アイコン ラインナップ (${allChars.length}種)</div>
+                        <div class="text-amber-300 font-bold border-b border-slate-800 pb-1">🌟 キャラクター ラインナップ (${allChars.length}種)</div>
                         <div class="grid grid-cols-1 gap-1.5">
             `;
 
@@ -1105,6 +1109,29 @@ static drawDopagaking(p, isCharged) {
                 `;
             });
 
+            html += `</div></div>`;
+
+            html += `
+                <div class="space-y-2 pt-2">
+                    <div class="text-amber-300 font-bold border-b border-slate-800 pb-1">🌟 チャージアイコン・その他 ラインナップ (${allExtras.length}種)</div>
+                    <div class="grid grid-cols-1 gap-1.5">
+            `;
+
+            allExtras.forEach(item => {
+                const hasIcon = (playerState.unlockedIcons || []).includes(item.id);
+                html += `
+                    <div class="bg-slate-950 p-2 rounded border border-slate-800 flex items-center justify-between">
+                        <div>
+                            <b class="text-cyan-200">${item.name}</b>
+                            <span class="text-[10px] text-slate-400 ml-1">(${item.title})</span>
+                        </div>
+                        <div class="text-[10px]">
+                            <span class="${hasIcon ? 'text-cyan-400 font-bold' : 'text-slate-500'}">アイコン:${hasIcon ? '所持' : '未所持'}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
             html += `</div></div></div>`;
             showModal("📋 ガチャラインナップ・確率", html);
         }
@@ -1118,8 +1145,11 @@ static drawDopagaking(p, isCharged) {
             }
 
             const allCharIds = Object.keys(CHARACTER_DATA);
+            const allExtraIconIds = Object.keys(EXTRA_ICONS);
+            const allIconIds = [...allCharIds, ...allExtraIconIds];
+
             let lockedChars = allCharIds.filter(id => !playerState.unlockedChars.includes(id));
-            let lockedIcons = allCharIds.filter(id => !(playerState.unlockedIcons || []).includes(id));
+            let lockedIcons = allIconIds.filter(id => !(playerState.unlockedIcons || []).includes(id));
             const totalRemaining = lockedChars.length + lockedIcons.length;
 
             if (totalRemaining === 0) {
@@ -1144,6 +1174,7 @@ static drawDopagaking(p, isCharged) {
                     const idx = Math.floor(Math.random() * lockedChars.length);
                     const charId = lockedChars.splice(idx, 1)[0];
                     if (!playerState.unlockedChars.includes(charId)) playerState.unlockedChars.push(charId);
+                    if (!playerState.unlockedIcons.includes(charId)) playerState.unlockedIcons.push(charId);
                     results.push({
                         type: 'character',
                         id: charId,
@@ -1158,16 +1189,18 @@ static drawDopagaking(p, isCharged) {
                         const idx = Math.floor(Math.random() * lockedIcons.length);
                         const iconId = lockedIcons.splice(idx, 1)[0];
                         if (!playerState.unlockedIcons.includes(iconId)) playerState.unlockedIcons.push(iconId);
+                        const itemData = CHARACTER_DATA[iconId] || EXTRA_ICONS[iconId];
                         results.push({
                             type: 'icon',
                             id: iconId,
-                            name: CHARACTER_DATA[iconId].name,
-                            title: CHARACTER_DATA[iconId].title
+                            name: itemData.name,
+                            title: itemData.title
                         });
                     } else if (lockedChars.length > 0) {
                         const idx = Math.floor(Math.random() * lockedChars.length);
                         const charId = lockedChars.splice(idx, 1)[0];
                         if (!playerState.unlockedChars.includes(charId)) playerState.unlockedChars.push(charId);
+                        if (!playerState.unlockedIcons.includes(charId)) playerState.unlockedIcons.push(charId);
                         results.push({
                             type: 'character',
                             id: charId,
@@ -1186,6 +1219,7 @@ static drawDopagaking(p, isCharged) {
                     const idx = Math.floor(Math.random() * lockedChars.length);
                     const charId = lockedChars.splice(idx, 1)[0];
                     if (!playerState.unlockedChars.includes(charId)) playerState.unlockedChars.push(charId);
+                    if (!playerState.unlockedIcons.includes(charId)) playerState.unlockedIcons.push(charId);
                     results.push({
                         type: 'character',
                         id: charId,
@@ -1196,16 +1230,18 @@ static drawDopagaking(p, isCharged) {
                     const idx = Math.floor(Math.random() * lockedIcons.length);
                     const iconId = lockedIcons.splice(idx, 1)[0];
                     if (!playerState.unlockedIcons.includes(iconId)) playerState.unlockedIcons.push(iconId);
+                    const itemData = CHARACTER_DATA[iconId] || EXTRA_ICONS[iconId];
                     results.push({
                         type: 'icon',
                         id: iconId,
-                        name: CHARACTER_DATA[iconId].name,
-                        title: CHARACTER_DATA[iconId].title
+                        name: itemData.name,
+                        title: itemData.title
                     });
                 } else if (lockedChars.length > 0) {
                     const idx = Math.floor(Math.random() * lockedChars.length);
                     const charId = lockedChars.splice(idx, 1)[0];
                     if (!playerState.unlockedChars.includes(charId)) playerState.unlockedChars.push(charId);
+                    if (!playerState.unlockedIcons.includes(charId)) playerState.unlockedIcons.push(charId);
                     results.push({
                         type: 'character',
                         id: charId,
@@ -1541,6 +1577,39 @@ static drawDopagaking(p, isCharged) {
         function openCharDetail(id, returnSource = 'zukan', arg1 = 'default', arg2 = 'desc') {
             renderZukanDetailScreen(id, returnSource, arg1, arg2);
         }
+
+        const EXTRA_ICONS = {
+            dopagakingcharge: {
+                id: 'dopagakingcharge',
+                name: 'ドパガキングチャージ',
+                title: '王の覚醒チャージアイコン',
+                image: 'images/dopagakingcharge.webp'
+            },
+            ALT2: {
+                id: 'ALT2',
+                name: 'コートニーチャージ',
+                title: 'メロメロチャージアイコン',
+                image: 'images/ALT2.webp'
+            },
+            chargenasu: {
+                id: 'chargenasu',
+                name: 'ナスチャージ',
+                title: '要塞ナスチャージアイコン',
+                image: 'images/chargenasu.webp'
+            },
+            moenancat: {
+                id: 'moenancat',
+                name: 'もえなんキャット',
+                title: '愛猫アイコン',
+                image: 'images/moenancat.webp'
+            },
+            dopagakingdom: {
+                id: 'dopagakingdom',
+                name: 'ドパガキングダム紋章',
+                title: '王国聖印アイコン',
+                image: 'images/DOPAGAKINGDOM.png'
+            }
+        };
 
         const CHARACTER_DATA = {
 
@@ -3415,18 +3484,9 @@ case 'dopa_juggler_skill':
                 if (c.image) CharacterRenderer.getImage(c.image);
                 if (c.chargedImage) CharacterRenderer.getImage(c.chargedImage);
             });
-            CharacterRenderer.getImage('images/pasha.webp');
-            CharacterRenderer.getImage('images/pasha-dark.webp');
-            CharacterRenderer.getImage('images/moenan.webp');
-            CharacterRenderer.getImage('images/momopin.webp');
-            CharacterRenderer.getImage('images/chargenasu.webp');
-            CharacterRenderer.getImage('images/ndaihyou.webp');
-            CharacterRenderer.getImage('images/ganban.webp');
-            CharacterRenderer.getImage('images/asaiomizu.webp');
-            CharacterRenderer.getImage('images/ALT.webp');
-            CharacterRenderer.getImage('images/ALT2.webp');
-            CharacterRenderer.getImage('images/dopagaking.webp');
-            CharacterRenderer.getImage('images/dopagakingcharge.webp');
+            Object.values(EXTRA_ICONS).forEach(item => {
+                if (item.image) CharacterRenderer.getImage(item.image);
+            });
 
             await loadPlayerState();
             renderOpeningScreen();
@@ -3620,19 +3680,21 @@ case 'dopa_juggler_skill':
             audioSystem.playSelect();
             let html = `
                 <div class="text-center space-y-3">
-                    <p class="text-xs text-slate-300">アイコンに設定するキャラクターを選んでください。</p>
+                    <p class="text-xs text-slate-300">アイコンに設定する画像を選んでください。</p>
                     <div class="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto p-1">
             `;
 
-            Object.values(CHARACTER_DATA).forEach(c => {
-                const isIconUnlocked = playerState.unlockedIcons && playerState.unlockedIcons.includes(c.id);
-                const isSelected = playerState.selectedIcon === c.id;
+            const allItems = { ...CHARACTER_DATA, ...EXTRA_ICONS };
+
+            Object.values(allItems).forEach(item => {
+                const isIconUnlocked = playerState.unlockedIcons && playerState.unlockedIcons.includes(item.id);
+                const isSelected = playerState.selectedIcon === item.id;
                 if (!isIconUnlocked) return;
 
                 html += `
-                    <div onclick="setProfileIcon('${c.id}')" class="pixel-box p-2 bg-slate-950 cursor-pointer flex flex-col items-center justify-center border-2 ${isSelected ? 'border-amber-400 bg-amber-950/40' : 'border-slate-700 hover:border-slate-400'}">
-                        <canvas id="icon-sel-cvs-${c.id}" width="88" height="88" class="pixel-box bg-slate-900 mb-1"></canvas>
-                        <span class="text-[11px] font-bold text-slate-200 truncate max-w-full">${c.name}</span>
+                    <div onclick="setProfileIcon('${item.id}')" class="pixel-box p-2 bg-slate-950 cursor-pointer flex flex-col items-center justify-center border-2 ${isSelected ? 'border-amber-400 bg-amber-950/40' : 'border-slate-700 hover:border-slate-400'}">
+                        <canvas id="icon-sel-cvs-${item.id}" width="88" height="88" class="pixel-box bg-slate-900 mb-1"></canvas>
+                        <span class="text-[11px] font-bold text-slate-200 truncate max-w-full">${item.name}</span>
                     </div>
                 `;
             });
@@ -3641,10 +3703,10 @@ case 'dopa_juggler_skill':
             showModal("アイコン選択", html);
 
             setTimeout(() => {
-                Object.values(CHARACTER_DATA).forEach(c => {
-                    if (playerState.unlockedIcons && playerState.unlockedIcons.includes(c.id)) {
-                        const cvs = document.getElementById(`icon-sel-cvs-${c.id}`);
-                        if (cvs) CharacterRenderer.drawCharacter(cvs, c.id);
+                Object.values(allItems).forEach(item => {
+                    if (playerState.unlockedIcons && playerState.unlockedIcons.includes(item.id)) {
+                        const cvs = document.getElementById(`icon-sel-cvs-${item.id}`);
+                        if (cvs) CharacterRenderer.drawCharacter(cvs, item.id);
                     }
                 });
             }, 50);
