@@ -2994,10 +2994,10 @@ case 'dopa_juggler_skill':
             const container = document.getElementById('screen-container');
             container.innerHTML = `
                 <div class="flex flex-col items-center justify-center w-full max-w-lg space-y-4 py-4 text-center">
-                    <div class="pixel-box-gold p-5 bg-amber-950/90 w-full mb-1 border-amber-400 space-y-2 flex flex-col items-center">
-                        <img src="images/title-1.webp" alt="ドパガキングダム" class="h-16 sm:h-20 w-full max-w-xs sm:max-w-sm object-contain my-2">
-                        <p class="text-xs text-amber-200 font-mono font-bold">「DOPAがすべての世界」</p>
-                        <p class="text-[11px] text-slate-300 font-mono">最終目標：DOPAを稼ぎ、国を救えるほどの力を手に入れろ！</p>
+                    <div class="pixel-box-gold p-5 bg-amber-950/90 w-full mb-1 border-amber-400 space-y-3 flex flex-col items-center">
+                        <img src="images/title-1.webp" alt="ドパガキングダム" class="h-28 sm:h-36 w-full max-w-md sm:max-w-xl object-contain my-3">
+                        <p class="text-sm sm:text-base text-amber-200 font-mono font-bold">「DOPAがすべての世界」</p>
+                        <p class="text-xs sm:text-sm text-slate-300 font-mono">最終目標：DOPAを稼ぎ、国を救えるほどの力を手に入れろ！</p>
                     </div>
 
                     ${isBonusAvailable ? `
