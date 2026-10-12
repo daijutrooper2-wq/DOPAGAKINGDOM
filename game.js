@@ -916,7 +916,8 @@ static drawDopagaking(p, isCharged) {
                 wins: playerState.wins || 0,
                 losses: playerState.losses || 0,
                 winRate: winRate,
-                charUsage: playerState.charUsage || {}
+                charUsage: playerState.charUsage || {},
+                dopa: playerState.dopa
             };
         }
 
@@ -1412,8 +1413,8 @@ static drawDopagaking(p, isCharged) {
                 chars.sort((a, b) => sortDir === 'desc' ? b.hp - a.hp : a.hp - b.hp);
             } else if (sortOrder === 'atk') {
                 chars.sort((a, b) => sortDir === 'desc' ? b.atk - a.atk : a.atk - b.atk);
-            } else if (sortOrder === 'spd') {
-                chars.sort((a, b) => sortDir === 'desc' ? b.spd - a.spd : a.spd - b.spd);
+            } else if (sortOrder === 'critRate') {
+                chars.sort((a, b) => sortDir === 'desc' ? b.critRate - a.critRate : a.critRate - b.critRate);
             }
 
             const unlockedCount = chars.filter(c => playerState.unlockedChars.includes(c.id)).length;
@@ -1435,7 +1436,7 @@ static drawDopagaking(p, isCharged) {
                                 <option value="default" ${sortOrder === 'default' ? 'selected' : ''}>登録順</option>
                                 <option value="hp" ${sortOrder === 'hp' ? 'selected' : ''}>HPが高い順</option>
                                 <option value="atk" ${sortOrder === 'atk' ? 'selected' : ''}>攻撃力が高い順</option>
-                                <option value="spd" ${sortOrder === 'spd' ? 'selected' : ''}>速さが高い順</option>
+                                <option value="critRate" ${sortOrder === 'critRate' ? 'selected' : ''}>クリティカル率が高い順</option>
                             </select>
                             <button onclick="toggleZukanSortDir('${sortOrder}', '${sortDir}')" class="pixel-btn px-2 py-1 text-xs font-bold bg-slate-800 border-slate-600">
                                 ${sortDir === 'desc' ? '🔽 降順(高)' : '🔼 昇順(低)'}
@@ -1544,7 +1545,7 @@ static drawDopagaking(p, isCharged) {
                                 <div class="flex justify-between"><span class="text-slate-400">HP:</span><span class="text-emerald-400 font-bold">${c.hp}</span></div>
                                 <div class="flex justify-between"><span class="text-slate-400">攻撃力:</span><span class="text-red-400 font-bold">${c.atk}</span></div>
                                 <div class="flex justify-between"><span class="text-slate-400">防御力:</span><span class="text-blue-400 font-bold">${c.def}</span></div>
-                                <div class="flex justify-between"><span class="text-slate-400">素早さ:</span><span class="text-yellow-400 font-bold">${c.spd}</span></div>
+                                 <div class="flex justify-between"><span class="text-slate-400">クリティカル率:</span><span class="text-yellow-400 font-bold">${Math.round(c.critRate * 100)}%</span></div>
                                 <div class="flex justify-between col-span-2"><span class="text-slate-400">回避率:</span><span class="text-purple-400 font-bold">${c.eva}%</span></div>
                             </div>
                         </div>
@@ -1642,7 +1643,7 @@ dopagaking: {
     title: 'ドパガキングダムの国王',
     type: '運命属性 / 完全ランダム型',
     hp: 200, // ※バトル開始時にランダム上書きされます
-    atk: 18, def: 12, spd: 25, eva: 15,
+    atk: 18, def: 12, critRate: 0.05, eva: 15,
     dopaChargeCount: 0,
     selectedInheritChar: null,
     maxHpRandom: 200,
@@ -1665,7 +1666,7 @@ dopagaking: {
                 name: 'コートニー',
                 title: 'メロメロ海外ガール',
                 type: '恋属性 / 溜め・爆発型',
-                hp: 190, atk: 18, def: 15, spd: 17, eva: 18,
+                hp: 190, atk: 18, def: 15, critRate: 0.04, eva: 18,
                 courtneyChargeCount: 0,
                 image: 'images/ALT.webp',
                 chargedImage: 'images/ALT2.webp',
@@ -1682,7 +1683,7 @@ dopagaking: {
                 name: 'N高代表',
                 title: 'クリケット部の天才',
                 type: '頭脳・デバフ型',
-                hp: 179, atk: 23, def: 15, spd: 25, eva: 16,
+                hp: 179, atk: 23, def: 15, critRate: 0.05, eva: 16,
                 image: 'images/ndaihyou.webp',
                 desc: 'N高クリケット部代表。高い知性と緻密な戦術で相手の能力を下げつつ優位に立つ。相手が「パシャ僧」の場合は専用パッシブ【パシャ僧キラー】が1試合に1回だけ発動し、現在HPの50%を一気に削る！',
                 skills: [
@@ -1697,10 +1698,10 @@ dopagaking: {
                 name: 'パシャ僧',
                 title: '暗黒スマホ僧侶',
                 type: '闇属性 / バランス',
-                hp: 178, atk: 24, def: 19, spd: 29, eva: 21,
+                hp: 178, atk: 24, def: 19, critRate: 0.06, eva: 21,
                 image: 'images/pasha.webp',
                 desc: 'スマホとカメラを駆使し、高い回避率と素早さで相手を翻弄するテクニカルな闇属性ファイター！\n眩い光で敵の目をくらます『カメラフラッシュ』や、罪深い記憶を呼び起こす『カメラロール参照』で戦線を維持する。\nさらに、過酷な過去から生まれた強烈な執念により、HPが半分以下になると「ダークモード」が自動発動して攻撃力が急上昇！\nピンチから一転して反撃の牙を剥く、危険な二面性を秘めたキャラクター。',
-                zukanDesc: 'かつてはごく普通の少年だったが、ある日偶然見かけた超人気女優「コートニー」を一目見て心を奪われ、思わずスマホで写真を撮ってしまったことから人生が一変。\n過剰な詮索とスキャンダル騒ぎにより逮捕寸前まで追い詰められ、世間の冷たい目に晒された。\nその消せない「過去の過ち」と深い後悔を引きずり続けた結果、心に巣食った闇に引きずり込まれていく。\n\nいつしか彼は、手にしたカメラの「強烈なフラッシュ」で周囲の人間をくらませ、自分と同じように様々な人々を漆黒の闇夜へと道連れにしようと企むようになった。\nその歪んだ執念と深まる闇こそが、のちに恐怖の「半浸闇化状態」を招き、彼を最強のダークモンスターへと変貌させる引き金となったのだ……。',
+                zukanDesc: 'かつてはごく普通の少年だったが、ある日偶然見かけた超人気女優「コートニー」を一目見て心を奪われ、思わずスマホで写真を撮ってしまったことから人生が一変。\n過剰な詮索とスキャンダル騒ぎにより逮捕寸前まで追い詰められ、世間の冷たい目に晒された。\nその消せない<span>「過去の過ち」</span>と深い後悔を引きずり続けた結果、心に巣食った闇に引きずり込まれていく。\n\nいつしか彼は、手にしたカメラの「強烈なフラッシュ」で周囲の人間をくらませ、自分と同じように様々な人々を漆黒の闇夜へと道連れにしようと企むようになった。\nその歪んだ執念と深まる闇こそが、のちに恐怖の「半浸闇化状態」を招き、彼を最強のダークモンスターへと変貌させる引き金となったのだ……。',
                 skills: [
                     { id: 'pasha_attack', name: '通常攻撃', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, desc: '標準的な闇の物理攻撃。' },
                     { id: 'pasha_flash', name: 'カメラフラッシュ', type: 'attack', power: 1.35, isNormalAttack: false, cooldown: 2, desc: '強烈なフラッシュでダメージを与える。' },
@@ -1714,7 +1715,7 @@ pasha_dark: {
                 name: 'パシャ憎・半浸闇化状態',
                 title: '闇に染まりかけし黒き僧侶',
                 type: '闇属性 / 超火力・回避特化',
-                hp: 163, atk: 25, def: 17, spd: 13, eva: 25,
+                hp: 163, atk: 25, def: 17, critRate: 0.07, eva: 25,
                 image: 'images/pasha-dark.webp',
                 desc: '圧倒的な攻撃力と高回避を誇る超攻撃型。回避するたびに攻撃力が跳ね上がるアビリティを持ち、ハマれば一撃で全てを破壊するロマンと脅威を兼ね備えています。',
                 skills: [
@@ -1731,7 +1732,7 @@ pasha_dark: {
                 name: '岩盤星人',
                 title: '不屈のラップラッパー',
                 type: '岩属性 / 耐久強化',
-                hp: 195, atk: 22, def: 18, spd: 22, eva: 8,
+                hp: 195, atk: 22, def: 18, critRate: 0.03, eva: 8,
                 image: 'images/ganban.webp',
                 desc: 'ダンスとラップと岩盤浴を愛する星人。防御が高く「岩盤浴」や「ラップ」でステータスを底上げする粘り強さ。',
                 skills: [
@@ -1746,7 +1747,7 @@ pasha_dark: {
                 name: '桃ピン',
                 title: 'ナスを統べる守護要塞',
                 type: '土属性 / 超耐久一発型',
-                hp: 210, atk: 18, def: 25, spd: 14, eva: 9,
+                hp: 210, atk: 18, def: 25, critRate: 0.03, eva: 9,
                 image: 'images/momopin.webp',
                 chargedImage: 'images/chargenasu.webp',
                 desc: '圧倒的タフさを誇る要塞。「ナス準備中」でミニぞうさんに変身し、次のターン手動で大威力の“超ナス乱舞”を繰り出す！',
@@ -1762,7 +1763,7 @@ pasha_dark: {
                 name: 'もえなん',
                 title: 'トゲ髪のアタッカー',
                 type: '火属性 / 超超攻撃特化',
-                hp: 155, atk: 28, def: 14, spd: 31, eva: 12,
+                hp: 155, atk: 28, def: 14, critRate: 0.08, eva: 12,
                 image: 'images/moenan.webp',
                 desc: 'トゲ髪が目印の超攻撃的ハンター。素早さと威力が圧倒的で「筋トレ」後のハンドボールシュートは一撃必殺。',
                 skills: [
@@ -1776,8 +1777,8 @@ pasha_dark: {
                 id: 'asaiomizu',
                 name: 'ASAIOMIZU',
                 title: 'パーマなナルシスト',
-                type: '水属性 / カウンター',
-                hp: 182, atk: 28, def: 20, spd: 26, eva: 17,
+                type: '水属性 / COUNTER',
+                hp: 182, atk: 28, def: 20, critRate: 0.06, eva: 17,
                 image: 'images/asaiomizu.webp',
                 desc: '特徴的なパーマヘアを持つナルシスト。通常攻撃を受けると自動で反撃！「ディグ」で相手の攻撃技をコピーし「サッカーシュート」で大ダメージを狙う。',
                 skills: [
@@ -1886,7 +1887,7 @@ pasha_dark: {
                 let hp = master.hp;
                 let atk = master.atk;
                 let def = master.def;
-                let spd = master.spd;
+                let critRate = master.critRate || 0.05;
                 let eva = master.eva;
 
                 if (charId === 'dopagaking') {
@@ -1894,7 +1895,7 @@ pasha_dark: {
                     atk = Math.floor(Math.random() * (28 - 7 + 1)) + 7;
                     def = Math.floor(Math.random() * (17 - 7 + 1)) + 7;
                     eva = Math.floor(Math.random() * (22 - 8 + 1)) + 8;
-                    spd = Math.floor(Math.random() * (40 - 14 + 1)) + 14;
+                    critRate = 0.05;
                 }
 
                 return {
@@ -1907,14 +1908,14 @@ pasha_dark: {
                     maxHp: hp,
                     atk: atk,
                     def: def,
-                    spd: spd,
+                    critRate: critRate,
                     eva: eva,
                     skills: master.skills.map(s => ({ ...s })),
                     cooldowns: {},
                     buffAtk: 1.0,
                     buffDef: 1.0,
                     buffAtkTurns: 0,
-                   dopaChargeCount: charId === 'dopagaking' ? 0 : 0,
+                    dopaChargeCount: charId === 'dopagaking' ? 0 : 0,
                     selectedInheritChar: null,
                     maxHpRandom: hp,
                     courtneyChargeCount: master.id === 'courtney' ? 0 : 0,
@@ -1940,6 +1941,27 @@ pasha_dark: {
             startBattle() {
                 this.log(`⚔️ バトル開始！ 【${this.p1.charName}】 VS 【${this.p2.charName}】`, 'text-amber-300 font-bold');
                 
+                // 先攻決定ロジック (所持DOPAが多い方が先攻。同額の場合およびBOT戦では50%のランダム判定)
+                let firstStrikerNum = 1;
+                if (!this.isOnline) {
+                    firstStrikerNum = Math.random() < 0.5 ? 1 : 2;
+                    this.log(`🎲 BOT戦のため、50%のランダム判定により【${firstStrikerNum === 1 ? this.p1.charName : this.p2.charName}】が先攻を獲得！`, 'text-amber-300 font-bold');
+                } else {
+                    const p1Dopa = (this.myPlayerNum === 1) ? playerState.dopa : (this.latestRoomData?.p1Profile?.dopa ?? 1000);
+                    const p2Dopa = (this.myPlayerNum === 2) ? playerState.dopa : (this.latestRoomData?.p2Profile?.dopa ?? 1000);
+                    if (p1Dopa > p2Dopa) {
+                        firstStrikerNum = 1;
+                        this.log(`💰 所持DOPA比較 (自分:${p1Dopa} vs 相手:${p2Dopa}) により、【${this.p1.charName}】が先攻を獲得！`, 'text-amber-300 font-bold');
+                    } else if (p2Dopa > p1Dopa) {
+                        firstStrikerNum = 2;
+                        this.log(`💰 所持DOPA比較 (自分:${p1Dopa} vs 相手:${p2Dopa}) により、【${this.p2.charName}】が先攻を獲得！`, 'text-amber-300 font-bold');
+                    } else {
+                        firstStrikerNum = Math.random() < 0.5 ? 1 : 2;
+                        this.log(`💰 所持DOPA同額のため、50%のランダム判定により【${firstStrikerNum === 1 ? this.p1.charName : this.p2.charName}】が先攻を獲得！`, 'text-amber-300 font-bold');
+                    }
+                }
+                this.firstStrikerPlayerNum = firstStrikerNum;
+
                 const myChar = (this.isOnline && this.myPlayerNum === 2) ? this.p2 : this.p1;
                 if (myChar.id === 'dopagaking') {
                     const statusBody = `【ドパガキングのステータス決定！】\n` +
@@ -1947,7 +1969,7 @@ pasha_dark: {
                         `攻撃力：${myChar.atk}\n` +
                         `防御力：${myChar.def}\n` +
                         `回避率：${myChar.eva}%\n` +
-                        `素早さ：${myChar.spd}`;
+                        `クリティカル率：${Math.round(myChar.critRate * 100)}%`;
                     
                     showModal("👑 ドパガキング参戦", statusBody);
                 }
@@ -2093,7 +2115,7 @@ pasha_dark: {
         maxHp: p.maxHp,
         atk: p.atk,
         def: p.def,
-        spd: p.spd,
+        critRate: p.critRate !== undefined ? p.critRate : 0.05,
         eva: p.eva,
         buffAtk: p.buffAtk,
         buffDef: p.buffDef,
@@ -2125,7 +2147,7 @@ pasha_dark: {
                 p.maxHp = state.maxHp;
                 if (state.atk !== undefined) p.atk = state.atk;
                 if (state.def !== undefined) p.def = state.def;
-                if (state.spd !== undefined) p.spd = state.spd;
+                if (state.critRate !== undefined) p.critRate = state.critRate;
                 if (state.eva !== undefined) p.eva = state.eva;
                 p.buffAtk = state.buffAtk;
                 p.buffDef = state.buffDef;
@@ -2244,11 +2266,11 @@ pasha_dark: {
                     this.log(`--- [ ターン ${this.turn} ] ---`, 'text-slate-400 font-bold text-center');
                 }
 
-                const p1Speed = this.p1.spd + Math.random() * 2;
-                const p2Speed = this.p2.spd + Math.random() * 2;
+                // 2ターン目以降は完全交互ターン制で進行（奇数ターン:先攻が先、偶数ターン:後攻が先）
+                const isP1FirstThisTurn = (this.turn % 2 === 1) ? (this.firstStrikerPlayerNum === 1) : (this.firstStrikerPlayerNum !== 1);
 
                 let first, second, firstAction, secondAction;
-                if (p1Speed >= p2Speed) {
+                if (isP1FirstThisTurn) {
                     first = this.p1; firstAction = this.p1Action;
                     second = this.p2; secondAction = this.p2Action;
                 } else {
@@ -2680,6 +2702,14 @@ case 'dopa_juggler_skill':
                 let baseDmg = (attacker.atk * (skill.power || 1.0) * attacker.buffAtk) - (defender.def * 0.4 * defender.buffDef);
                 let damage = Math.max(8, Math.floor(baseDmg + (Math.random() * 4 - 2)));
 
+                let isCrit = false;
+                if (attacker.critRate && Math.random() < attacker.critRate) {
+                    isCrit = true;
+                    damage = Math.floor(damage * 1.5);
+                    this.log(`🔥 クリティカルヒット！！ (1.5倍ダメージ)`, 'text-amber-300 font-bold');
+                    this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'buff', 'CRITICAL!');
+                }
+
                 if (defender.defendBuffTurns > 0) {
                     damage = Math.max(3, Math.floor(damage * 0.3));
                     this.log(`🛡 ${defender.charName} の鉄壁ガード！ 被ダメージ激減！`, 'text-blue-300');
@@ -2691,7 +2721,7 @@ case 'dopa_juggler_skill':
 
                 defender.hp = Math.max(0, defender.hp - damage);
                 const side = defender === this.p1 ? 'Player' : 'Enemy';
-                this.log(`⚔ ${defender.charName} に ${damage} のダメージ！${this.isSuddenDeath ? ' (🔥サドンデスUP)' : ''}`, 'text-red-400 font-bold');
+                this.log(`⚔ ${defender.charName} に ${damage} のダメージ！${isCrit ? ' (🔥会心)' : ''}${this.isSuddenDeath ? ' (🔥サドンデスUP)' : ''}`, 'text-red-400 font-bold');
                 this.triggerEffect(side, 'damage', `-${damage}`);
                 audioSystem.playHit();
 
@@ -3039,7 +3069,7 @@ case 'dopa_juggler_skill':
                 box.innerHTML = `
                     <div class="flex justify-between items-center mb-1">
                         <span class="font-bold text-amber-300 text-sm">${c.name} (${c.title})</span>
-                        <span class="text-emerald-400 font-mono">HP:${c.hp} / 攻:${c.atk} / 防:${c.def} / 速:${c.spd} / 避:${c.eva}%</span>
+                        <span class="text-emerald-400 font-mono">HP:${c.hp} / 攻:${c.atk} / 防:${c.def} / クリ:${Math.round(c.critRate * 100)}% / 避:${c.eva}%</span>
                     </div>
                     <p class="text-slate-300 mb-1">${c.desc}</p>
                     <div class="text-[11px] text-amber-200 font-mono">
