@@ -2313,16 +2313,16 @@ case 'dopa_juggler_skill':
                     }
                 } else {
                     if (defender.tempEvadeNext) defender.tempEvadeNext = false;
-                    attacker.eva = (attacker.eva || 10) + 2;
-                    this.log(`🖤 ${attacker.charName} の「ステルスオブダーク」！ 相手の回避を完全に無視して命中！ 自身の回避率が 2% アップ（現在: ${attacker.eva}%）`, 'text-purple-300 font-bold');
-                    this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'buff', '回避率+2%');
+                    attacker.eva = Math.min(60, (attacker.eva || 10) + 1);
+                    this.log(`🖤 ${attacker.charName} の「ステルスオブダーク」！ 相手の回避を完全に無視して命中！ 自身の回避率が 1% アップ（現在: ${attacker.eva}%）`, 'text-purple-300 font-bold');
+                    this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'buff', '回避率+1%');
                 }
 
                 if (attacker.id === 'pasha_dark' && skill.isNormalAttack) {
                     if (Math.random() < 0.2) {
-                        attacker.eva = (attacker.eva || 10) + 3;
-                        this.log(`📸 ${attacker.charName} のカメラフラッシュ発動！ 自身の回避率が 3% アップした！（現在: ${attacker.eva}%）`, 'text-purple-300 font-bold');
-                        this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'buff', '回避率+3%');
+                        attacker.eva = Math.min(60, (attacker.eva || 10) + 1);
+                        this.log(`📸 ${attacker.charName} のカメラフラッシュ発動！ 自身の回避率が 1% アップした！（現在: ${attacker.eva}%）`, 'text-purple-300 font-bold');
+                        this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'buff', '回避率+1%');
                     }
                 }
 
