@@ -1376,7 +1376,7 @@ pasha_dark: {
                     { id: 'pasha_dark_attack', name: '通常攻撃', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, desc: 'カメラのフラッシュで攻撃＋20パーセントの確率で自身の回避率3％アップ' },
                     { id: 'pasha_dark_stealth', name: 'ステルスオブダーク', type: 'attack', power: 1.25, isNormalAttack: false, cooldown: 2, desc: '敵はこの攻撃を絶対に回避できない＋自身の回避率を2%アップする。' },
                     { id: 'pasha_dark_crime', name: 'パーフェクトクライム', type: 'pasha_crime_skill', cooldown: 3, desc: 'HPを110回復。だが次の一ターンの間自身の防御力ダウン' },
-                    { id: 'pasha_dark_nightmare', name: 'アブソリュートナイトメア', type: 'pasha_nightmare_skill', cooldown: 4, desc: 'このターンのみ自身の攻撃力1.3倍＋このあとの3ターンは敵の防御力が大幅ダウン。しかしこのターンを終えた後次のターン自分は行動不能となり、相手にターンが回る' }
+                    { id: 'pasha_dark_nightmare', name: 'アブソリュートナイトメア', type: 'pasha_nightmare_skill', cooldown: 4, desc: 'このターンのみ自身の攻撃力1.3倍＋このあとの3ターンは敵の防御力が大幅ダウン。使用するとすぐに相手にターンが渡る！' }
                 ]
             },
 
@@ -1908,9 +1908,13 @@ pasha_dark: {
 
                 this.executePlayerAction(first, second, firstAction);
                 if (!await this.checkWinner()) {
-                    this.executePlayerAction(second, first, secondAction);
-                    if (!await this.checkWinner()) {
+                    if (firstAction === 'pasha_dark_nightmare' && first.id === 'pasha_dark') {
                         this.endTurnPhase();
+                    } else {
+                        this.executePlayerAction(second, first, secondAction);
+                        if (!await this.checkWinner()) {
+                            this.endTurnPhase();
+                        }
                     }
                 }
 
@@ -2261,9 +2265,8 @@ case 'dopa_juggler_skill':
                         attacker.nightmareAtkActive = true;
                         defender.buffDef *= 0.5;
                         defender.nightmareDefTurns = 3;
-                        attacker.isResting = true;
-                        this.log(`🖤💥 ${attacker.charName} の「アブソリュートナイトメア」！ このターン攻撃力1.3倍、3ターンの間相手の防御力が大幅ダウン！ (※次ターン反動で行動不能)`, 'text-purple-400 font-black text-base');
-                        this.triggerCutin('🖤 アブソリュートナイトメア！', '敵の防御大幅ダウン＆次ターン反動行動不能！');
+                        this.log(`🖤💥 ${attacker.charName} の「アブソリュートナイトメア」！ このターン攻撃力1.3倍、3ターンの間相手の防御力が大幅ダウン！ (※即座に相手にターンが渡る)`, 'text-purple-400 font-black text-base');
+                        this.triggerCutin('🖤 アブソリュートナイトメア！', '敵の防御大幅ダウン＆即座にターン交代！');
                         this.applyDamageSkill(attacker, defender, skill);
                         break;
                 }
