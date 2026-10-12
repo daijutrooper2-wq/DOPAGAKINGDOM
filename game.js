@@ -1631,11 +1631,11 @@ dopagaking: {
     name: 'ドパガキング',
     title: 'ドパガキングダムの国王',
     type: '運命属性 / 完全ランダム型',
-    hp: 150, // ※バトル開始時にランダム上書きされます
+    hp: 200, // ※バトル開始時にランダム上書きされます
     atk: 18, def: 12, spd: 25, eva: 15,
     dopaChargeCount: 0,
     selectedInheritChar: null,
-    maxHpRandom: 150,
+    maxHpRandom: 200,
     image: 'images/dopagaking.webp',
     chargedImage: 'images/dopagakingcharge.webp',
     desc: 'すべてを運に任せる完全ランダム型の国王。アイコンタップで「王位継承」をチャージし、他キャラの力の4倍ダメージを叩き込む！',
@@ -1655,7 +1655,7 @@ dopagaking: {
                 name: 'コートニー',
                 title: 'メロメロ海外ガール',
                 type: '恋属性 / 溜め・爆発型',
-                hp: 140, atk: 18, def: 15, spd: 17, eva: 18,
+                hp: 190, atk: 18, def: 15, spd: 17, eva: 18,
                 courtneyChargeCount: 0,
                 image: 'images/ALT.webp',
                 chargedImage: 'images/ALT2.webp',
@@ -1672,7 +1672,7 @@ dopagaking: {
                 name: 'N高代表',
                 title: 'クリケット部の天才',
                 type: '頭脳・デバフ型',
-                hp: 129, atk: 23, def: 15, spd: 25, eva: 16,
+                hp: 179, atk: 23, def: 15, spd: 25, eva: 16,
                 image: 'images/ndaihyou.webp',
                 desc: 'N高クリケット部代表。高い知性と緻密な戦術で相手の能力を下げつつ優位に立つ。相手が「パシャ僧」の場合は専用パッシブ【パシャ僧キラー】が1試合に1回だけ発動し、現在HPの50%を一気に削る！',
                 skills: [
@@ -1687,7 +1687,7 @@ dopagaking: {
                 name: 'パシャ僧',
                 title: '暗黒スマホ僧侶',
                 type: '闇属性 / バランス',
-                hp: 128, atk: 24, def: 19, spd: 29, eva: 21,
+                hp: 178, atk: 24, def: 19, spd: 29, eva: 21,
                 image: 'images/pasha.webp',
                 desc: 'スマホとカメラを駆使し、高い回避率と素早さで相手を翻弄するテクニカルな闇属性ファイター！\n眩い光で敵の目をくらます『カメラフラッシュ』や、罪深い記憶を呼び起こす『カメラロール参照』で戦線を維持する。\nさらに、過酷な過去から生まれた強烈な執念により、HPが半分以下になると「ダークモード」が自動発動して攻撃力が急上昇！\nピンチから一転して反撃の牙を剥く、危険な二面性を秘めたキャラクター。',
                 zukanDesc: 'かつてはごく普通の少年だったが、ある日偶然見かけた超人気女優「コートニー」を一目見て心を奪われ、思わずスマホで写真を撮ってしまったことから人生が一変。\n過剰な詮索とスキャンダル騒ぎにより逮捕寸前まで追い詰められ、世間の冷たい目に晒された。\nその消せない「過去の過ち」と深い後悔を引きずり続けた結果、心に巣食った闇に引きずり込まれていく。\n\nいつしか彼は、手にしたカメラの「強烈なフラッシュ」で周囲の人間をくらませ、自分と同じように様々な人々を漆黒の闇夜へと道連れにしようと企むようになった。\nその歪んだ執念と深まる闇こそが、のちに恐怖の「半浸闇化状態」を招き、彼を最強のダークモンスターへと変貌させる引き金となったのだ……。',
@@ -1704,7 +1704,7 @@ pasha_dark: {
                 name: 'パシャ憎・半浸闇化状態',
                 title: '闇に染まりかけし黒き僧侶',
                 type: '闇属性 / 超火力・回避特化',
-                hp: 113, atk: 25, def: 17, spd: 13, eva: 25,
+                hp: 163, atk: 25, def: 17, spd: 13, eva: 25,
                 image: 'images/pasha-dark.webp',
                 desc: '圧倒的な攻撃力と高回避を誇る超攻撃型。回避するたびに攻撃力が跳ね上がるアビリティを持ち、ハマれば一撃で全てを破壊するロマンと脅威を兼ね備えています。',
                 skills: [
@@ -1721,7 +1721,7 @@ pasha_dark: {
                 name: '岩盤星人',
                 title: '不屈のラップラッパー',
                 type: '岩属性 / 耐久強化',
-                hp: 145, atk: 22, def: 18, spd: 22, eva: 8,
+                hp: 195, atk: 22, def: 18, spd: 22, eva: 8,
                 image: 'images/ganban.webp',
                 desc: 'ダンスとラップと岩盤浴を愛する星人。防御が高く「岩盤浴」や「ラップ」でステータスを底上げする粘り強さ。',
                 skills: [
@@ -1736,13 +1736,13 @@ pasha_dark: {
                 name: '桃ピン',
                 title: 'ナスを統べる守護要塞',
                 type: '土属性 / 超耐久一発型',
-                hp: 160, atk: 18, def: 25, spd: 14, eva: 9,
+                hp: 210, atk: 18, def: 25, spd: 14, eva: 9,
                 image: 'images/momopin.webp',
                 chargedImage: 'images/chargenasu.webp',
                 desc: '圧倒的タフさを誇る要塞。「ナス準備中」でミニぞうさんに変身し、次のターン手動で大威力の“超ナス乱舞”を繰り出す！',
                 skills: [
                     { id: 'momo_attack', name: 'ポカポカ叩く', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, desc: '通常攻撃。' },
-                    { id: 'momo_prep', name: 'ナス準備中', type: 'charge', cooldown: 3, desc: 'ゾウに変身し相手のターンへ！次ターンにコマンド「超ナスちん乱舞」が解禁！' },
+                    { id: 'momo_prep', name: 'ナス準備中', type: 'charge', cooldown: 3, desc: 'ゾウに変身し相手のターンへ！次ターンにコマンド“超ナスちん乱舞”が解禁！' },
                     { id: 'momo_chie', name: 'チエを呼び出す', type: 'sacrifice_buff', hpCostRate: 0.20, cooldown: 4, desc: 'HPを削って攻撃力を2.3倍に跳ね上げる！' },
                     { id: 'momo_gk', name: 'ゴールキーパー', type: 'defend_buff', cooldown: 3, desc: '2ターンの間、被ダメージを70%カットする鉄壁。' }
                 ]
@@ -1752,7 +1752,7 @@ pasha_dark: {
                 name: 'もえなん',
                 title: 'トゲ髪のアタッカー',
                 type: '火属性 / 超超攻撃特化',
-                hp: 105, atk: 28, def: 14, spd: 31, eva: 12,
+                hp: 155, atk: 28, def: 14, spd: 31, eva: 12,
                 image: 'images/moenan.webp',
                 desc: 'トゲ髪が目印の超攻撃的ハンター。素早さと威力が圧倒的で「筋トレ」後のハンドボールシュートは一撃必殺。',
                 skills: [
@@ -1767,7 +1767,7 @@ pasha_dark: {
                 name: 'ASAIOMIZU',
                 title: 'パーマなナルシスト',
                 type: '水属性 / カウンター',
-                hp: 132, atk: 28, def: 20, spd: 26, eva: 17,
+                hp: 182, atk: 28, def: 20, spd: 26, eva: 17,
                 image: 'images/asaiomizu.webp',
                 desc: '特徴的なパーマヘアを持つナルシスト。通常攻撃を受けると自動で反撃！「ディグ」で相手の攻撃技をコピーし「サッカーシュート」で大ダメージを狙う。',
                 skills: [
@@ -1880,7 +1880,7 @@ pasha_dark: {
                 let eva = master.eva;
 
                 if (charId === 'dopagaking') {
-                    hp = Math.floor(Math.random() * (200 - 80 + 1)) + 80;
+                    hp = Math.floor(Math.random() * (250 - 130 + 1)) + 130;
                     atk = Math.floor(Math.random() * (28 - 7 + 1)) + 7;
                     def = Math.floor(Math.random() * (17 - 7 + 1)) + 7;
                     eva = Math.floor(Math.random() * (22 - 8 + 1)) + 8;
@@ -1903,6 +1903,7 @@ pasha_dark: {
                     cooldowns: {},
                     buffAtk: 1.0,
                     buffDef: 1.0,
+                    buffAtkTurns: 0,
                    dopaChargeCount: charId === 'dopagaking' ? 0 : 0,
                     selectedInheritChar: null,
                     maxHpRandom: hp,
@@ -2086,6 +2087,7 @@ pasha_dark: {
         eva: p.eva,
         buffAtk: p.buffAtk,
         buffDef: p.buffDef,
+        buffAtkTurns: p.buffAtkTurns || 0,
         cooldowns: { ...p.cooldowns },
         courtneyChargeCount: p.courtneyChargeCount !== undefined ? p.courtneyChargeCount : 0,
         dopaChargeCount: p.dopaChargeCount !== undefined ? p.dopaChargeCount : 0,
@@ -2117,6 +2119,7 @@ pasha_dark: {
                 if (state.eva !== undefined) p.eva = state.eva;
                 p.buffAtk = state.buffAtk;
                 p.buffDef = state.buffDef;
+                p.buffAtkTurns = state.buffAtkTurns || 0;
                 p.cooldowns = { ...state.cooldowns };
                 p.courtneyChargeCount = state.courtneyChargeCount;
                 p.dopaChargeCount = state.dopaChargeCount !== undefined ? state.dopaChargeCount : 0;
@@ -2553,7 +2556,10 @@ case 'dopa_juggler_skill':
                         audioSystem.playHeal();
                         break;
                     case 'buff':
-                        if (skill.buffType === 'atk') attacker.buffAtk *= skill.amount || 1.4;
+                        if (skill.buffType === 'atk') {
+                            attacker.buffAtk = skill.amount || 1.4;
+                            attacker.buffAtkTurns = 2;
+                        }
                         this.log(`⚡ ${attacker.charName} の攻撃力がアップ！`, 'text-amber-300');
                         this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'buff', '攻撃UP!');
                         audioSystem.playBuff();
@@ -2570,7 +2576,8 @@ case 'dopa_juggler_skill':
                     case 'sacrifice_buff':
                         const cost = Math.floor(attacker.hp * (skill.hpCostRate || 0.2));
                         attacker.hp = Math.max(1, attacker.hp - cost);
-                        attacker.buffAtk *= 2.3;
+                        attacker.buffAtk = 2.3;
+                        attacker.buffAtkTurns = 2;
                         this.log(`🔥 ${attacker.charName} は HPを${cost}消費し、攻撃力を2.3倍に跳ね上げた！`, 'text-red-400 font-bold');
                         this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'buff', '攻撃2.3倍!');
                         audioSystem.playBuff();
@@ -2780,6 +2787,13 @@ case 'dopa_juggler_skill':
                         if (p.cooldowns[key] > 0) p.cooldowns[key]--;
                     });
                     if (p.defendBuffTurns > 0) p.defendBuffTurns--;
+
+                    if (p.buffAtkTurns > 0) {
+                        p.buffAtkTurns--;
+                        if (p.buffAtkTurns === 0) {
+                            p.buffAtk = 1.0;
+                        }
+                    }
 
                     if (p.crimeDefDownTurns > 0) {
                         p.crimeDefDownTurns--;
