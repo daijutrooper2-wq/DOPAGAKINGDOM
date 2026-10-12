@@ -1339,6 +1339,7 @@ dopagaking: {
                 title: 'クリケット部の天才',
                 type: '頭脳・デバフ型',
                 hp: 129, atk: 23, def: 15, spd: 25, eva: 16,
+                image: 'images/ndaihyou.webp',
                 desc: 'N高クリケット部代表。高い知性と緻密な戦術で相手の能力を下げつつ優位に立つ。相手が「パシャ僧」の場合は専用パッシブ【パシャ僧キラー】が1試合に1回だけ発動し、現在HPの50%を一気に削る！',
                 skills: [
                     { id: 'ndaihyo_attack', name: '通常攻撃', type: 'attack', power: 1.05, isNormalAttack: true, cooldown: 0, desc: '正確なバッティング攻撃。「パシャ僧」相手には1試合1回【パシャ僧キラー】発動！' },
@@ -1387,6 +1388,7 @@ pasha_dark: {
                 title: '不屈のラップラッパー',
                 type: '岩属性 / 耐久強化',
                 hp: 145, atk: 22, def: 18, spd: 22, eva: 8,
+                image: 'images/ganban.webp',
                 desc: 'ダンスとラップと岩盤浴を愛する星人。防御が高く「岩盤浴」や「ラップ」でステータスを底上げする粘り強さ。',
                 skills: [
                     { id: 'iwaba_dance', name: 'ブレイクダンス', type: 'attack', power: 1.15, isNormalAttack: true, cooldown: 0, desc: 'リズムに乗った連続アタック。' },
@@ -1432,6 +1434,7 @@ pasha_dark: {
                 title: 'パーマなナルシスト',
                 type: '水属性 / カウンター',
                 hp: 132, atk: 28, def: 20, spd: 26, eva: 17,
+                image: 'images/asaiomizu.webp',
                 desc: '特徴的なパーマヘアを持つナルシスト。通常攻撃を受けると自動で反撃！「ディグ」で相手の攻撃技をコピーし「サッカーシュート」で大ダメージを狙う。',
                 skills: [
                     { id: 'asaiomizu_attack', name: '通常攻撃', type: 'attack', power: 1.15, isNormalAttack: true, cooldown: 0, desc: 'スタイリッシュな通常の攻撃。' },
@@ -3172,6 +3175,9 @@ case 'dopa_juggler_skill':
             CharacterRenderer.getImage('images/moenan.webp');
             CharacterRenderer.getImage('images/momopin.webp');
             CharacterRenderer.getImage('images/chargenasu.webp');
+            CharacterRenderer.getImage('images/ndaihyou.webp');
+            CharacterRenderer.getImage('images/ganban.webp');
+            CharacterRenderer.getImage('images/asaiomizu.webp');
 
             await loadPlayerState();
             renderOpeningScreen();
