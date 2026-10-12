@@ -4372,3 +4372,12 @@ case 'dopa_juggler_skill':
         window.claimDailyBonus = claimDailyBonus;
         window.confirmResetPlayerProfile = confirmResetPlayerProfile;
         window.executeResetPlayerProfile = executeResetPlayerProfile;
+
+        // 背景画像のフレームごとの横方向スクロール処理
+        let bgPosX = 0;
+        function animateBackground() {
+            bgPosX -= 2; // 1フレームごとに2ピクセルずつ横にずらす
+            document.body.style.backgroundPosition = `${bgPosX}px 0px`;
+            requestAnimationFrame(animateBackground);
+        }
+        requestAnimationFrame(animateBackground);
