@@ -2829,6 +2829,11 @@ case 'dopa_juggler_skill':
 
         function renderCharacterSelectScreen(isOnline = false) {
             audioSystem.playSelect();
+            if (!playerState.unlockedChars || playerState.unlockedChars.length === 0) {
+                showModal("キャラクター未所持", "キャラクターを所持していません！\nホーム画面の「🎰 ガチャ」ボタンから配布DOPAを使ってキャラクターを入手してください。");
+                renderHomeScreen();
+                return;
+            }
             const container = document.getElementById('screen-container');
 
             let html = `
@@ -2903,6 +2908,11 @@ case 'dopa_juggler_skill':
 
         function startBotBattle() {
             audioSystem.playSelect();
+            if (!playerState.unlockedChars || playerState.unlockedChars.length === 0 || !playerState.selectedPlayerChar) {
+                showModal("キャラクター未所持", "キャラクターを所持していません！\nガチャでキャラクターを入手してから対戦してください。");
+                renderHomeScreen();
+                return;
+            }
             const ids = Object.keys(CHARACTER_DATA);
             const enemyId = ids[Math.floor(Math.random() * ids.length)];
             playerState.selectedEnemyChar = enemyId;
@@ -2911,6 +2921,11 @@ case 'dopa_juggler_skill':
 
         function openOnlineLobby() {
             audioSystem.playSelect();
+            if (!playerState.unlockedChars || playerState.unlockedChars.length === 0 || !playerState.selectedPlayerChar) {
+                showModal("キャラクター未所持", "キャラクターを所持していません！\nガチャでキャラクターを入手してから対戦してください。");
+                renderHomeScreen();
+                return;
+            }
             renderOnlineLobbyScreen();
         }
 
@@ -3575,12 +3590,12 @@ case 'dopa_juggler_skill':
             audioSystem.playSelect();
             playerState = {
                 dopa: 1000,
-                unlockedChars: ['moenan'],
-                unlockedIcons: ['moenan'],
-                selectedPlayerChar: 'moenan',
+                unlockedChars: [],
+                unlockedIcons: [],
+                selectedPlayerChar: null,
                 selectedEnemyChar: 'pasha',
                 playerName: '名無しファイター',
-                selectedIcon: 'moenan',
+                selectedIcon: null,
                 isFirstTime: true,
                 totalBattles: 0,
                 wins: 0,
