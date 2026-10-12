@@ -791,7 +791,7 @@ static drawDopagaking(p, isCharged) {
 
             container.innerHTML = `
                 <div class="relative w-full flex flex-col items-center justify-center min-h-[500px] p-4">
-                    <button onclick="handleSkip()" class="absolute top-2 right-2 pixel-btn pixel-btn-danger text-xs px-3 py-1 font-bold z-50">
+                    <button onclick="finishOpening()" class="absolute top-2 right-2 pixel-btn pixel-btn-danger text-xs px-3 py-1 font-bold z-50">
                         ⏩ スキップ
                     </button>
                     <div id="opening-stage" class="w-full flex flex-col items-center justify-center">
@@ -4025,6 +4025,7 @@ case 'dopa_juggler_skill':
         // HTML の onclick 属性から参照される関数をグローバル公開
         window.audioSystem = audioSystem;
         window.renderOpeningScreen = renderOpeningScreen;
+        window.finishOpening = finishOpening;
         window.renderHomeScreen = renderHomeScreen;
         window.renderCharacterSelectScreen = renderCharacterSelectScreen;
         window.selectChar = selectChar;
