@@ -581,6 +581,7 @@ static drawDopagaking(p, isCharged) {
         // 経済システム・DOPA・オッズ管理用変数
         let currentBattleBet = 100;
         let currentOpponentBet = 100;
+        let currentBattleMultiplier = 1;
 
         let activeBattle = null;
 
@@ -2788,10 +2789,14 @@ case 'dopa_juggler_skill':
                     this.log(winnerText, 'text-emerald-400 font-bold text-center text-sm');
                     audioSystem.playVictory();
                     if (!this.isOnline || this.myPlayerNum === 1) {
-                        const odds = getCharacterOdds(this.p1.id);
-                        const earnedDopa = Math.floor((currentBattleBet * odds) + currentOpponentBet);
-                        await addDopa(earnedDopa);
-                        this.log(`🎁 勝利報酬: (${formatDopa(currentBattleBet)} DOPA × ${odds}倍) + 相手賭け金(${formatDopa(currentOpponentBet)} DOPA) = +${formatDopa(earnedDopa)} DOPA 獲得！`, 'text-amber-300 font-bold text-center');
+                        if (!this.isOnline && currentBattleMultiplier === 0) {
+                            this.log(`🛡️ 練習モード（×0倍）のため、DOPAの増減はありませんでした。`, 'text-emerald-400 font-bold text-center');
+                        } else {
+                            const mult = this.isOnline ? 1 : currentBattleMultiplier;
+                            const earnedDopa = Math.floor((currentBattleBet * mult) + currentOpponentBet);
+                            await addDopa(earnedDopa);
+                            this.log(`🎁 勝利報酬: (${formatDopa(currentBattleBet)} DOPA × ${mult}倍) + 相手賭け金(${formatDopa(currentOpponentBet)} DOPA) = +${formatDopa(earnedDopa)} DOPA 獲得！`, 'text-amber-300 font-bold text-center');
+                        }
                     }
                 } else if (this.p1.hp <= 0) {
                     winnerText = `💀 【${this.p2.charName}】の勝利！`;
@@ -2799,14 +2804,17 @@ case 'dopa_juggler_skill':
                     this.log(winnerText, 'text-red-400 font-bold text-center text-sm');
                     audioSystem.playDefeat();
                     if (!this.isOnline || this.myPlayerNum === 1) {
-                        await addDopa(-currentBattleBet);
-                        this.log(`💀 敗北により賭け金 ${formatDopa(currentBattleBet)} DOPA を失いました…（※無制限借金システム稼働中：所持金マイナスでもバトル可能）`, 'text-red-400 font-bold text-center');
+                        if (!this.isOnline && currentBattleMultiplier === 0) {
+                            this.log(`🛡️ 練習モード（×0倍）のため、所持金は減りませんでした！`, 'text-emerald-400 font-bold text-center');
+                        } else {
+                            await addDopa(-currentBattleBet);
+                            this.log(`💀 敗北により賭け金 ${formatDopa(currentBattleBet)} DOPA を失いました…（※無制限借金システム稼働中：所持金マイナスでもバトル可能）`, 'text-red-400 font-bold text-center');
+                        }
                     }
                     if (this.isOnline && this.myPlayerNum === 2) {
-                        const odds = getCharacterOdds(this.p2.id);
-                        const earnedDopa = Math.floor((currentBattleBet * odds) + currentOpponentBet);
+                        const earnedDopa = Math.floor((currentBattleBet * 1) + currentOpponentBet);
                         await addDopa(earnedDopa);
-                        this.log(`🎁 勝利報酬: (${formatDopa(currentBattleBet)} DOPA × ${odds}倍) + 相手賭け金(${formatDopa(currentOpponentBet)} DOPA) = +${formatDopa(earnedDopa)} DOPA 獲得！`, 'text-amber-300 font-bold text-center');
+                        this.log(`🎁 勝利報酬: (${formatDopa(currentBattleBet)} DOPA × 1倍) + 相手賭け金(${formatDopa(currentOpponentBet)} DOPA) = +${formatDopa(earnedDopa)} DOPA 獲得！`, 'text-amber-300 font-bold text-center');
                     }
                 }
 
@@ -3147,7 +3155,6 @@ case 'dopa_juggler_skill':
             const container = document.getElementById('screen-container');
             const selectedCharId = playerState.selectedPlayerChar;
             const charData = CHARACTER_DATA[selectedCharId] || CHARACTER_DATA.pasha;
-            const odds = getCharacterOdds(selectedCharId);
 
             const playerDopa = playerState.dopa;
             let defaultBet = Math.max(10, Math.min(Math.abs(playerDopa) || 100, 500));
@@ -3157,11 +3164,14 @@ case 'dopa_juggler_skill':
             const oppBet = Math.floor(baseScale * (0.7 + Math.random() * 0.6));
             currentOpponentBet = oppBet;
             currentBattleBet = defaultBet;
+            if (!isOnline && currentBattleMultiplier === undefined) {
+                currentBattleMultiplier = 1;
+            }
 
             let html = `
                 <div class="w-full flex flex-col items-center max-w-lg mx-auto py-3 px-2 space-y-4">
                     <div class="pixel-box-gold p-4 bg-amber-950/90 w-full text-center space-y-2 border-amber-400">
-                        <h2 class="text-xl font-bold text-amber-300 font-pixel">💰 経済システム：賭け金設定 (DOPA BET)</h2>
+                        <h2 class="text-xl font-bold text-amber-300 font-pixel">💰 ${isOnline ? 'オンライン対戦 賭け金設定' : 'BOT戦 賭け金・倍率設定'}</h2>
                         <p class="text-xs text-amber-200 font-mono">「DOPAがすべての世界」 — 全てを賭けて勝利を掴め！</p>
                     </div>
 
@@ -3175,25 +3185,45 @@ case 'dopa_juggler_skill':
                             <span class="text-slate-300">出陣ファイター:</span>
                             <span class="text-amber-300 font-bold">${charData.name}</span>
                         </div>
+            `;
 
-                        <div class="flex justify-between items-center bg-slate-950 p-2.5 rounded border border-slate-800">
-                            <span class="text-slate-300">動的キャラ倍率 (オッズ):</span>
-                            <span class="text-emerald-400 font-bold text-sm">${odds} 倍 <span class="text-[10px] text-slate-400">(環境勝率連動)</span></span>
+            if (!isOnline) {
+                html += `
+                        <div class="space-y-1.5 pt-1 pb-1 border-y border-slate-800">
+                            <label class="text-amber-300 font-bold block">倍率選択 (オッズ):</label>
+                            <div class="grid grid-cols-4 sm:grid-cols-6 gap-1.5" id="multiplier-btn-container">
+                `;
+                for (let m = 0; m <= 10; m++) {
+                    const isSelected = currentBattleMultiplier === m;
+                    const label = m === 0 ? '×0 (練習)' : `×${m}`;
+                    const btnClass = isSelected 
+                        ? 'bg-amber-500 text-slate-950 border-amber-300 font-black shadow-lg scale-105' 
+                        : 'bg-slate-950 text-slate-200 border-slate-700 hover:border-amber-500';
+                    html += `<button onclick="setBattleMultiplier(${m}, ${isOnline})" class="pixel-box p-1.5 text-center text-xs font-bold transition-all cursor-pointer ${btnClass}">${label}</button>`;
+                }
+                html += `
+                            </div>
+                            <p class="text-[10px] ${currentBattleMultiplier === 0 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
+                                ${currentBattleMultiplier === 0 ? '🛡️ 【×0倍 練習モード】勝敗に関わらず所持DOPAは減りません（報酬も発生しません）。' : `✨ 選択中倍率: ×${currentBattleMultiplier}倍`}
+                            </p>
                         </div>
+                `;
+            }
 
+            html += `
                         <div class="flex justify-between items-center bg-slate-950 p-2.5 rounded border border-slate-800">
                             <span class="text-slate-300">対戦相手の賭け金 (推定):</span>
-                            <span class="text-cyan-400 font-bold text-sm">${formatDopa(currentOpponentBet)} DOPA <span class="text-[10px] text-slate-400">(経済力70%〜130%)</span></span>
+                            <span class="text-cyan-400 font-bold text-sm">${formatDopa(currentOpponentBet)} DOPA</span>
                         </div>
 
-                        <div class="space-y-1.5 pt-2">
-                            <label class="text-amber-300 font-bold block">あなたの賭け金を設定 (全ベット可能):</label>
+                        <div class="space-y-1.5 pt-1">
+                            <label class="text-amber-300 font-bold block">あなたの賭け金を設定:</label>
                             <div class="flex gap-2">
                                 <input id="bet-amount-input" type="number" min="1" value="${currentBattleBet}" class="pixel-box bg-slate-950 px-3 py-2 text-sm font-bold text-amber-300 w-full outline-none border-amber-600">
                                 <button onclick="setAllInBet()" class="pixel-btn pixel-btn-warning px-3 py-2 font-bold text-xs whitespace-nowrap">全額 (ALL IN)</button>
                             </div>
-                            <p class="text-[10px] text-slate-400">※勝利報酬 = (自分の賭け金 × キャラ倍率 ${odds}倍) + 相手の賭け金 (${formatDopa(currentOpponentBet)} DOPA)</p>
-                            <p class="text-[10px] text-red-400">※敗北時は自分の賭け金没収（マイナス所持金でもバトル可能な無制限借金システム搭載）</p>
+                            <p class="text-[10px] text-slate-400">※勝利報酬 = ${!isOnline && currentBattleMultiplier === 0 ? '0 DOPA (練習モード)' : `(自分の賭け金 × ${!isOnline ? currentBattleMultiplier : 1}倍) + 相手の賭け金(${formatDopa(currentOpponentBet)} DOPA)`}</p>
+                            <p class="text-[10px] text-red-400">※敗北時は自分の賭け金没収（※×0倍の練習モード時は減りません）</p>
                         </div>
                     </div>
 
@@ -3204,6 +3234,12 @@ case 'dopa_juggler_skill':
                 </div>
             `;
             container.innerHTML = html;
+        }
+
+        function setBattleMultiplier(m, isOnline) {
+            audioSystem.playSelect();
+            currentBattleMultiplier = m;
+            renderBettingScreen(isOnline);
         }
 
         function setAllInBet() {
@@ -4316,6 +4352,7 @@ case 'dopa_juggler_skill':
         window.toggleZukanSortDir = toggleZukanSortDir;
         window.openGachaLineupModal = openGachaLineupModal;
         window.renderBettingScreen = renderBettingScreen;
+        window.setBattleMultiplier = setBattleMultiplier;
         window.confirmAndStartBattle = confirmAndStartBattle;
         window.setAllInBet = setAllInBet;
         window.claimDailyBonus = claimDailyBonus;
