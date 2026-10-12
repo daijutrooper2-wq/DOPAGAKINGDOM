@@ -794,9 +794,7 @@ static drawDopagaking(p, isCharged) {
                                     <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-amber-500 text-slate-950 font-pixel text-[10px] px-3 py-1 rounded font-bold">
                                         🌟 決定版・神バランス調整版 EX 🌟
                                     </div>
-                                    <h1 class="text-2xl sm:text-4xl font-black text-amber-300 font-pixel tracking-wider drop-shadow-[0_4px_0_rgba(0,0,0,1)] mb-3">
-                                        DOPAGA KINGDOM RPG
-                                    </h1>
+                                    <img src="images/title-1.webp" alt="DOPAGA KINGDOM" class="w-full max-w-xs sm:max-w-sm mx-auto object-contain mb-3">
                                     <p class="text-xs sm:text-sm text-amber-100 font-mono mb-6">
                                         王国に真の平和を取り戻せ！<br>最強の王者の座を掴むのは誰だ――？
                                     </p>
@@ -2996,8 +2994,8 @@ case 'dopa_juggler_skill':
             const container = document.getElementById('screen-container');
             container.innerHTML = `
                 <div class="flex flex-col items-center justify-center w-full max-w-lg space-y-4 py-4 text-center">
-                    <div class="pixel-box-gold p-4 bg-amber-950/90 w-full mb-1 border-amber-400 space-y-1.5">
-                        <h2 class="text-xl sm:text-2xl font-bold text-amber-300 font-pixel">👑 ドパガキングダム RPG</h2>
+                    <div class="pixel-box-gold p-5 bg-amber-950/90 w-full mb-1 border-amber-400 space-y-2 flex flex-col items-center">
+                        <img src="images/title-1.webp" alt="ドパガキングダム" class="h-16 sm:h-20 w-full max-w-xs sm:max-w-sm object-contain my-2">
                         <p class="text-xs text-amber-200 font-mono font-bold">「DOPAがすべての世界」</p>
                         <p class="text-[11px] text-slate-300 font-mono">最終目標：DOPAを稼ぎ、国を救えるほどの力を手に入れろ！</p>
                     </div>
