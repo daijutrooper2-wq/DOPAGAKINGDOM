@@ -25,25 +25,25 @@
     <div id="app" class="w-full max-w-4xl min-h-[720px] flex flex-col justify-between pixel-box-dark relative overflow-hidden p-3 sm:p-5">
         
         <!-- HEADER / TOP STATUS BAR -->
-        <header class="w-full pixel-box p-3 mb-3 flex flex-wrap items-center justify-between gap-2 bg-slate-900">
-            <div class="flex items-center gap-3">
-                <img src="images/title-1.webp" alt="ドパガキングダム" class="h-7 sm:h-9 cursor-pointer object-contain" onclick="renderHomeScreen()">
-                <span class="text-xs bg-slate-800 text-amber-300 px-2 py-0.5 rounded border border-amber-600 font-bold">Ver 2.4 EX</span>
+        <header class="w-full pixel-box p-3 mb-3 flex flex-wrap items-center justify-between gap-3 bg-slate-900">
+            <div class="flex items-center gap-2">
+                <span class="text-xs bg-slate-800 text-amber-300 px-2.5 py-1 rounded border border-amber-600 font-bold">Ver 2.4 EX</span>
+                <button onclick="renderHomeScreen()" class="pixel-btn text-xs px-2.5 py-1 font-bold flex items-center gap-1">🏠 ホーム</button>
             </div>
             <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
                 <button onclick="openProfileScreen()" class="pixel-box-gold px-2.5 py-1 flex items-center gap-2 cursor-pointer hover:opacity-90 transition-opacity">
-                    <canvas id="header-profile-icon" width="44" height="44" class="pixel-box bg-slate-950 rounded"></canvas>
+                    <canvas id="header-profile-icon" width="40" height="40" class="pixel-box bg-slate-950 rounded"></canvas>
                     <span id="header-profile-name" class="text-amber-300 text-xs font-bold truncate max-w-[90px]">名無しファイター</span>
                 </button>
-                    <div class="pixel-box-gold px-3 py-1 flex items-center gap-2">
+                <div class="pixel-box-gold px-3 py-1.5 flex items-center gap-2">
                     <span class="text-amber-300 text-xs font-bold">DOPA:</span>
-                    <span id="dopa-count" class="text-amber-400 font-bold text-lg font-pixel">1,000</span>
+                    <span id="dopa-count" class="text-amber-400 font-bold text-base sm:text-lg font-pixel">1,000</span>
                 </div>
-                <button id="btn-sound-toggle" onclick="audioSystem.toggleSound()" class="pixel-btn text-xs px-2 py-1">
-                    🔊: <span id="sound-status">ON</span>
+                <button id="btn-sound-toggle" onclick="audioSystem.toggleSound()" class="pixel-btn text-xs px-2.5 py-1.5 font-bold">
+                    🔊:<span id="sound-status">ON</span>
                 </button>
-                <button id="btn-bgm-toggle" onclick="audioSystem.toggleBGM()" class="pixel-btn text-xs px-2 py-1">
-                    🎵: <span id="bgm-status">OFF</span>
+                <button id="btn-bgm-toggle" onclick="audioSystem.toggleBGM()" class="pixel-btn text-xs px-2.5 py-1.5 font-bold">
+                    🎵:<span id="bgm-status">OFF</span>
                 </button>
             </div>
         </header>
