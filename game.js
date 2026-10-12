@@ -2698,6 +2698,13 @@ case 'dopa_juggler_skill':
             }
 
             endTurnPhase() {
+                [this.p1, this.p2].forEach(p => {
+                    if (p.tempEvadeNext) {
+                        this.log(`✨ ${p.charName} の完全回避体制は、相手がそのターン中に攻撃してこなかったため効果が切れた。`, 'text-slate-400 text-[11px]');
+                        p.tempEvadeNext = false;
+                    }
+                });
+
                 this.turn++;
 
                 [this.p1, this.p2].forEach(p => {
@@ -3097,10 +3104,15 @@ case 'dopa_juggler_skill':
                         <button onclick="confirmRetireBattle()" class="pixel-btn pixel-btn-danger text-xs px-2 py-1 flex items-center gap-1 font-bold">
                             <span>🏳️ 降参する</span>
                         </button>
-                        <div class="flex items-center justify-center gap-1">
-                            <span class="text-xs font-bold text-slate-400">制限時間:</span>
-                            <span id="turn-timer-display" class="font-pixel text-lg font-bold text-amber-400">15</span>
-                            <span class="text-xs text-slate-400">秒</span>
+                        <div class="flex items-center gap-3">
+                            <div class="pixel-box-gold px-3 py-1 bg-amber-950/80 text-amber-300 font-pixel text-xs font-bold shadow">
+                                🌟 ターン <span id="battle-turn-num">1</span>
+                            </div>
+                            <div class="flex items-center justify-center gap-1">
+                                <span class="text-xs font-bold text-slate-400">制限時間:</span>
+                                <span id="turn-timer-display" class="font-pixel text-lg font-bold text-amber-400">15</span>
+                                <span class="text-xs text-slate-400">秒</span>
+                            </div>
                         </div>
                         <div class="w-16"></div>
                     </div>
@@ -3165,6 +3177,11 @@ case 'dopa_juggler_skill':
 
         function updateBattleUI() {
             if (!activeBattle) return;
+
+            const turnNumEl = document.getElementById('battle-turn-num');
+            if (turnNumEl) {
+                turnNumEl.innerText = activeBattle.turn;
+            }
 
             const p1 = activeBattle.p1;
             const p2 = activeBattle.p2;
