@@ -558,6 +558,13 @@ static drawDopagaking(p, isCharged) {
                 const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
                 notes.forEach((freq, idx) => setTimeout(() => this.playTone(freq, 0.22, 'triangle', 0.18), idx * 120));
             }
+
+            playCrit() {
+                if (!this.enabled) return;
+                this.playTone(440, 0.08, 'square', 0.15);
+                setTimeout(() => this.playTone(880, 0.12, 'square', 0.2), 60);
+                setTimeout(() => this.playTone(1320, 0.2, 'triangle', 0.25), 120);
+            }
         }
         const audioSystem = new SoundSystem();
 
@@ -2730,8 +2737,17 @@ case 'dopa_juggler_skill':
                 if (attacker.critRate && Math.random() < attacker.critRate) {
                     isCrit = true;
                     damage = Math.floor(damage * 1.5);
-                    this.log(`🔥 クリティカルヒット！！ (1.5倍ダメージ)`, 'text-amber-300 font-bold');
-                    this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'buff', 'CRITICAL!');
+                    audioSystem.playCrit();
+                    this.log(`🔥✨【クリティカルヒット発動！！】 1.5倍の会心ダメージ (${damage})！！`, 'text-yellow-300 font-black text-base');
+                    this.triggerCutin('🔥 クリティカルヒット！！', '会心の一撃！ 1.5倍ダメージ炸裂！');
+                    this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'buff', 'CRITICAL! 1.5x');
+
+                    const defCvsId = defender === this.p1 ? 'p1-canvas' : 'p2-canvas';
+                    const defCvs = document.getElementById(defCvsId);
+                    if (defCvs) {
+                        defCvs.classList.add('animate-opening-shake');
+                        setTimeout(() => defCvs.classList.remove('animate-opening-shake'), 350);
+                    }
                 }
 
                 if (defender.defendBuffTurns > 0) {
