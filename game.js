@@ -1744,7 +1744,7 @@ pasha_dark: {
                 skills: [
                     { id: 'momo_attack', name: 'ポカポカ叩く', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, desc: '通常攻撃。' },
                     { id: 'momo_prep', name: 'ナス準備中', type: 'charge', cooldown: 3, desc: 'ゾウに変身し相手のターンへ！次ターンにコマンド“超ナスちん乱舞”が解禁！' },
-                    { id: 'momo_chie', name: 'チエを呼び出す', type: 'sacrifice_buff', hpCostRate: 0.20, cooldown: 4, desc: 'HPを削って攻撃力を2.3倍に跳ね上げる！' },
+                    { id: 'momo_chie', name: 'チエを呼び出す', type: 'sacrifice_buff', hpCostRate: 0.20, cooldown: 4, desc: 'HPを削り、次の2ターンの間攻撃力を2.3倍に跳ね上げる！' },
                     { id: 'momo_gk', name: 'ゴールキーパー', type: 'defend_buff', cooldown: 3, desc: '2ターンの間、被ダメージを70%カットする鉄壁。' }
                 ]
             },
@@ -2578,8 +2578,8 @@ case 'dopa_juggler_skill':
                         const cost = Math.floor(attacker.hp * (skill.hpCostRate || 0.2));
                         attacker.hp = Math.max(1, attacker.hp - cost);
                         attacker.buffAtk = 2.3;
-                        attacker.buffAtkTurns = 2;
-                        this.log(`🔥 ${attacker.charName} は HPを${cost}消費し、攻撃力を2.3倍に跳ね上げた！`, 'text-red-400 font-bold');
+                        attacker.buffAtkTurns = 3;
+                        this.log(`🔥 ${attacker.charName} は HPを${cost}消費し、次の2ターンの間攻撃力を2.3倍に跳ね上げた！`, 'text-red-400 font-bold');
                         this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'buff', '攻撃2.3倍!');
                         audioSystem.playBuff();
                         break;
