@@ -218,3 +218,11 @@
                 max-width: 48% !important;
             }
         }
+
+        @keyframes endless-scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .animate-endless-scroll {
+            animation: endless-scroll 45s linear infinite;
+        }
