@@ -810,14 +810,14 @@ static drawDopagaking(p, isCharged) {
             };
 
             container.innerHTML = `
-                <div class="relative w-full flex flex-col items-center justify-center min-h-[500px] p-4">
+                <div class="relative w-full h-full flex flex-col items-center justify-center p-2 sm:p-4 overflow-y-auto">
                     <button onclick="audioSystem.toggleSound(); updateOpeningSoundBtn();" id="opening-sound-btn" class="absolute top-2 left-2 pixel-btn text-xs px-3 py-1 font-bold z-50">
                         ${audioSystem.enabled ? '🔊 音声:ON' : '🔇 音声:OFF'}
                     </button>
                     <button onclick="finishOpening()" class="absolute top-2 right-2 pixel-btn pixel-btn-danger text-xs px-3 py-1 font-bold z-50">
                         ⏩ スキップ
                     </button>
-                    <div id="opening-stage" class="w-full flex flex-col items-center justify-center">
+                    <div id="opening-stage" class="w-full flex flex-col items-center justify-center my-auto">
                     </div>
                 </div>
             `;
@@ -3009,62 +3009,57 @@ case 'dopa_juggler_skill':
 
             const container = document.getElementById('screen-container');
             container.innerHTML = `
-                <div class="relative w-full h-full flex flex-row items-center justify-between p-4 min-h-[450px]">
-                    <!-- 設定ボタン -->
-                    <button onclick="openSettingsModal()" class="absolute top-2 right-2 pixel-btn px-3 py-1.5 text-xs font-bold z-20 flex items-center gap-1">
+                <div class="relative w-full h-full flex flex-col justify-between p-2 sm:p-4">
+                    <!-- 設定ボタン (画面左角 / top-left) -->
+                    <button onclick="openSettingsModal()" class="absolute top-2 left-2 pixel-btn px-2.5 py-1 text-[11px] font-bold z-20 flex items-center gap-1">
                         ⚙️ 設定
                     </button>
 
-                    <!-- 左側エリア：プロフィール & メニュー (レイアウト反転) -->
-                    <div class="w-full sm:w-1/2 flex flex-col items-start justify-center space-y-4 pl-2">
-                        
-                        <!-- プロフィール & DOPAエリア -->
-                        <div class="flex items-center gap-3 bg-slate-900/90 pixel-box p-3 border-amber-400">
+                    <!-- 上端：DOPA & プロフィール -->
+                    <div class="w-full flex justify-center pt-6 sm:pt-2">
+                        <div class="flex items-center gap-3 bg-slate-900/90 pixel-box p-2.5 border-amber-400">
                             <!-- DOPAの数はプロフィールの左横に表示 -->
-                            <div class="pixel-box-gold px-3 py-2 flex flex-col items-center justify-center">
-                                <span class="text-[10px] text-amber-300 font-bold">DOPA</span>
-                                <span id="home-dopa-count" class="text-amber-400 font-bold text-sm sm:text-base font-pixel">${formatDopa(playerState.dopa)}</span>
+                            <div class="pixel-box-gold px-2.5 py-1.5 flex flex-col items-center justify-center">
+                                <span class="text-[9px] text-amber-300 font-bold">DOPA</span>
+                                <span id="home-dopa-count" class="text-amber-400 font-bold text-xs sm:text-sm font-pixel">${formatDopa(playerState.dopa)}</span>
                             </div>
 
-                            <!-- プロフィール (大きめアイコン + プレイヤー名 -> プレイヤーIDをコンパクトに) -->
-                            <div onclick="openProfileScreen()" class="flex items-center gap-3 cursor-pointer hover:opacity-90 transition-opacity">
-                                <canvas id="home-profile-icon" width="56" height="56" class="pixel-box bg-slate-950 rounded w-14 h-14"></canvas>
+                            <!-- プロフィール -->
+                            <div onclick="openProfileScreen()" class="flex items-center gap-2.5 cursor-pointer hover:opacity-90 transition-opacity">
+                                <canvas id="home-profile-icon" width="48" height="48" class="pixel-box bg-slate-950 rounded w-12 h-12"></canvas>
                                 <div class="flex flex-col text-left">
-                                    <span id="home-profile-name" class="text-amber-300 text-sm font-bold truncate max-w-[120px]">${playerState.playerName || '名無しファイター'}</span>
-                                    <span class="text-[10px] text-slate-400 font-mono">ID: ${playerState.playerId || 'DP-1004'}</span>
+                                    <span id="home-profile-name" class="text-amber-300 text-xs font-bold truncate max-w-[120px]">${playerState.playerName || '名無しファイター'}</span>
+                                    <span class="text-[9px] text-slate-400 font-mono">ID: ${playerState.playerId || 'DP-1004'}</span>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- プロフィールの下側に２つの選択ボタンの配置："ドパガキングダム"、"ガチャ"を上下に配置 -> それぞれの横に正方形の選択ボタンを設置："ストア"、"フレンド" -->
-                        <div class="flex flex-col space-y-3 w-full max-w-sm">
+                    <!-- 下端：ドパガキングダム、ショップ、ガチャ、フレンド等のボタン -->
+                    <div class="w-full flex flex-col items-center pb-2">
+                        <div class="flex flex-col space-y-2.5 w-full max-w-md px-2">
                             <!-- 1行目: ドパガキングダム と ストア (正方形) -->
                             <div class="flex gap-2 w-full">
-                                <button onclick="handleDopagaKingdomClick()" class="pixel-btn pixel-btn-primary flex-1 py-3 px-4 text-sm font-bold font-pixel flex items-center justify-center gap-2 shadow-md">
+                                <button onclick="handleDopagaKingdomClick()" class="pixel-btn pixel-btn-primary flex-1 py-2.5 px-3 text-xs sm:text-sm font-bold font-pixel flex items-center justify-center gap-2 shadow-md">
                                     <span>👑 ドパガキングダム</span>
                                 </button>
-                                <button onclick="openStoreModal()" class="pixel-btn pixel-btn-warning w-14 h-14 flex flex-col items-center justify-center text-xs font-bold shrink-0">
+                                <button onclick="openStoreModal()" class="pixel-btn pixel-btn-warning w-12 h-12 sm:w-14 sm:h-14 flex flex-col items-center justify-center text-xs font-bold shrink-0">
                                     <span>🛒</span>
-                                    <span class="text-[9px]">ストア</span>
+                                    <span class="text-[8px]">ストア</span>
                                 </button>
                             </div>
 
                             <!-- 2行目: ガチャ と フレンド (正方形) -->
                             <div class="flex gap-2 w-full">
-                                <button onclick="openGachaModal()" class="pixel-btn pixel-btn-success flex-1 py-3 px-4 text-sm font-bold font-pixel flex items-center justify-center gap-2 shadow-md">
+                                <button onclick="openGachaModal()" class="pixel-btn pixel-btn-success flex-1 py-2.5 px-3 text-xs sm:text-sm font-bold font-pixel flex items-center justify-center gap-2 shadow-md">
                                     <span>🎰 ガチャ</span>
                                 </button>
-                                <button onclick="openFriendModal()" class="pixel-btn pixel-btn-purple w-14 h-14 flex flex-col items-center justify-center text-xs font-bold shrink-0">
+                                <button onclick="openFriendModal()" class="pixel-btn pixel-btn-purple w-12 h-12 sm:w-14 sm:h-14 flex flex-col items-center justify-center text-xs font-bold shrink-0">
                                     <span>👥</span>
-                                    <span class="text-[9px]">フレンド</span>
+                                    <span class="text-[8px]">フレンド</span>
                                 </button>
                             </div>
                         </div>
-
-                    </div>
-
-                    <!-- 右側エリア（タイトル削除に伴い空き領域） -->
-                    <div class="w-1/2 hidden sm:flex flex-col items-center justify-center p-4">
                     </div>
                 </div>
             `;
