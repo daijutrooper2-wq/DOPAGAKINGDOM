@@ -3007,60 +3007,78 @@ case 'dopa_juggler_skill':
                 activeBattle = null;
             }
 
-            const isBonusAvailable = checkDailyBonusAvailable();
-
             const container = document.getElementById('screen-container');
             container.innerHTML = `
-                <div class="flex flex-col items-center justify-center w-full max-w-lg space-y-4 py-4 text-center overflow-y-auto max-h-full px-2">
-                    <div class="pixel-box-gold p-4 bg-amber-950/90 w-full mb-1 border-amber-400 space-y-1.5 flex flex-col items-center">
-                        <img src="images/title-1.webp" alt="ドパガキングダム" class="h-24 sm:h-32 w-full max-w-sm object-contain my-2">
-                        <p class="text-xs sm:text-sm text-amber-200 font-mono font-bold">「DOPAがすべての世界」</p>
-                        <p class="text-[11px] text-slate-300 font-mono">最終目標：DOPAを稼ぎ、国を救えるほどの力を手に入れろ！</p>
+                <div class="relative w-full h-full flex flex-col justify-between p-3 sm:p-5 select-none overflow-hidden">
+                    
+                    <!-- 画面上端：設定 (左上角)、DOPA、プロフィール -->
+                    <div class="w-full flex justify-between items-start relative z-20 shrink-0">
+                        <!-- 左上角に "設定" -->
+                        <button onclick="openSettingsModal()" class="pixel-btn px-3 py-1.5 text-xs font-bold flex items-center gap-1 shadow-md">
+                            ⚙️ 設定
+                        </button>
+
+                        <!-- 右上周辺：DOPA と プロフィール -->
+                        <div class="flex items-center gap-3">
+                            <!-- DOPAの数はプロフィールの左横に表示 -->
+                            <div class="pixel-box-gold px-3 py-1.5 flex flex-col items-center justify-center">
+                                <span class="text-[9px] text-amber-300 font-bold">DOPA</span>
+                                <span id="home-dopa-count" class="text-amber-400 font-bold text-xs sm:text-sm font-pixel">${formatDopa(playerState.dopa)}</span>
+                            </div>
+
+                            <!-- プロフィール (大きめアイコン + プレイヤー名 -> プレイヤーIDをコンパクトに) -->
+                            <div onclick="openProfileScreen()" class="flex items-center gap-2 bg-slate-900/90 pixel-box p-2 cursor-pointer hover:opacity-90 transition-opacity border-amber-400">
+                                <canvas id="home-profile-icon" width="48" height="48" class="pixel-box bg-slate-950 rounded w-12 h-12 shrink-0"></canvas>
+                                <div class="flex flex-col text-left">
+                                    <span id="home-profile-name" class="text-amber-300 text-xs font-bold truncate max-w-[110px]">${playerState.playerName || '名無しファイター'}</span>
+                                    <span class="text-[9px] text-slate-400 font-mono">ID: ${playerState.playerId || 'DP-1004'}</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    ${isBonusAvailable ? `
-                    <button onclick="claimDailyBonus()" class="pixel-btn pixel-btn-warning w-full py-2.5 font-bold text-xs sm:text-sm shadow-lg animate-pulse flex items-center justify-center gap-2">
-                        <span>🎁 デイリーボーナスを受け取る (+150 DOPA)</span>
-                    </button>
-                    ` : `
-                    <div class="pixel-box p-2 bg-slate-900 w-full text-xs text-slate-400 font-mono">
-                        ✅ 本日のデイリーボーナス受取済み（明日また挑戦！）
-                    </div>
-                    `}
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
-                        <button onclick="renderCharacterSelectScreen(false)" class="pixel-btn pixel-btn-primary p-4 text-base font-bold flex flex-col items-center justify-center gap-1">
-                            <span class="text-2xl">🤖</span>
-                            <span>BOT対戦 (ソロ)</span>
-                        </button>
-                        <button onclick="renderCharacterSelectScreen(true)" class="pixel-btn pixel-btn-warning p-4 text-base font-bold flex flex-col items-center justify-center gap-1">
-                            <span class="text-2xl">🌐</span>
-                            <span>オンライン対戦</span>
-                        </button>
+                    <!-- 画面中央：左側はスペースを空けておく -->
+                    <div class="flex-1 flex flex-row items-center justify-between w-full my-auto pointer-events-none">
+                        <!-- 左側スペース -->
+                        <div class="w-1/2 flex items-center justify-center p-2">
+                        </div>
+                        <div class="w-1/2"></div>
                     </div>
 
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full">
-                        <button onclick="openGachaModal()" class="pixel-btn pixel-btn-success p-3 text-xs font-bold flex items-center justify-center gap-1">
-                            <span>🎰 ガチャ</span>
-                        </button>
-                        <button onclick="openCharacterListModal()" class="pixel-btn p-3 text-xs font-bold flex items-center justify-center gap-1">
-                            <span>📖 図鑑</span>
-                        </button>
-                        <button onclick="renderMetaScreen()" class="pixel-btn pixel-btn-primary p-3 text-xs font-bold flex items-center justify-center gap-1">
-                            <span>📊 環境データ</span>
-                        </button>
-                        <button onclick="renderOpeningScreen()" class="pixel-btn pixel-btn-purple p-3 text-xs font-bold flex items-center justify-center gap-1">
-                            <span>🎬 オープニング</span>
-                        </button>
+                    <!-- 画面下端：ドパガキングダム、ガチャ、ストア、フレンド のボタン群 -->
+                    <div class="w-full flex flex-col items-end pb-2 shrink-0">
+                        <div class="flex flex-col space-y-2 w-full max-w-sm">
+                            <!-- 1行目: ドパガキングダム と ストア (正方形) -->
+                            <div class="flex gap-2 w-full">
+                                <button onclick="handleDopagaKingdomClick()" class="pixel-btn pixel-btn-primary flex-1 py-2.5 px-4 text-xs sm:text-sm font-bold font-pixel flex items-center justify-center gap-2 shadow-md">
+                                    <span>👑 ドパガキングダム</span>
+                                </button>
+                                <button onclick="openStoreModal()" class="pixel-btn pixel-btn-warning w-12 h-12 flex flex-col items-center justify-center text-xs font-bold shrink-0">
+                                    <span>🛒</span>
+                                    <span class="text-[8px]">ストア</span>
+                                </button>
+                            </div>
+
+                            <!-- 2行目: ガチャ と フレンド (正方形) -->
+                            <div class="flex gap-2 w-full">
+                                <button onclick="openGachaModal()" class="pixel-btn pixel-btn-success flex-1 py-2.5 px-4 text-xs sm:text-sm font-bold font-pixel flex items-center justify-center gap-2 shadow-md">
+                                    <span>🎰 ガチャ</span>
+                                </button>
+                                <button onclick="openFriendModal()" class="pixel-btn pixel-btn-purple w-12 h-12 flex flex-col items-center justify-center text-xs font-bold shrink-0">
+                                    <span>👥</span>
+                                    <span class="text-[8px]">フレンド</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="pixel-box p-3 bg-slate-900 text-left w-full text-xs text-slate-300 space-y-1">
-                        <p class="text-amber-400 font-bold">💰 経済システム（DOPA & オッズ）:</p>
-                        <p>・バトル前に賭け金を設定！勝率連動の動的オッズで高額DOPAを稼ぎ出せ。</p>
-                        <p>・破産救済：所持DOPAがマイナスでも借金状態でバトル可能（※ガチャは不可）。</p>
-                    </div>
                 </div>
             `;
+
+            setTimeout(() => {
+                const cvs = document.getElementById('home-profile-icon');
+                if (cvs) CharacterRenderer.drawCharacter(cvs, playerState.selectedIcon || 'dopagaking');
+            }, 50);
         }
 
         function handleDopagaKingdomClick() {
