@@ -811,6 +811,9 @@ static drawDopagaking(p, isCharged) {
 
             container.innerHTML = `
                 <div class="relative w-full flex flex-col items-center justify-center min-h-[500px] p-4">
+                    <button onclick="audioSystem.toggleSound(); updateOpeningSoundBtn();" id="opening-sound-btn" class="absolute top-2 left-2 pixel-btn text-xs px-3 py-1 font-bold z-50">
+                        ${audioSystem.enabled ? '🔊 音声:ON' : '🔇 音声:OFF'}
+                    </button>
                     <button onclick="finishOpening()" class="absolute top-2 right-2 pixel-btn pixel-btn-danger text-xs px-3 py-1 font-bold z-50">
                         ⏩ スキップ
                     </button>
@@ -820,6 +823,13 @@ static drawDopagaking(p, isCharged) {
             `;
 
             renderScene(1);
+        }
+
+        function updateOpeningSoundBtn() {
+            const btn = document.getElementById('opening-sound-btn');
+            if (btn) {
+                btn.innerHTML = audioSystem.enabled ? '🔊 音声:ON' : '🔇 音声:OFF';
+            }
         }
 
         function formatDopa(n) {
@@ -3000,18 +3010,13 @@ case 'dopa_juggler_skill':
             const container = document.getElementById('screen-container');
             container.innerHTML = `
                 <div class="relative w-full h-full flex flex-row items-center justify-between p-4 min-h-[450px]">
-                    <!-- 設定ボタン (プロフィールよりも左上角に配置) -->
-                    <button onclick="openSettingsModal()" class="absolute top-2 left-2 pixel-btn px-3 py-1.5 text-xs font-bold z-20 flex items-center gap-1">
+                    <!-- 設定ボタン -->
+                    <button onclick="openSettingsModal()" class="absolute top-2 right-2 pixel-btn px-3 py-1.5 text-xs font-bold z-20 flex items-center gap-1">
                         ⚙️ 設定
                     </button>
 
-                    <!-- 画面の左側はスペースを空けておく -->
-                    <div class="w-1/2 hidden sm:flex flex-col items-center justify-center p-4">
-                        <img src="images/title-1.webp" alt="ドパガキングダム" class="w-64 object-contain opacity-80 animate-pulse">
-                    </div>
-
-                    <!-- 右側エリア：プロフィール & メニュー -->
-                    <div class="w-full sm:w-1/2 flex flex-col items-end justify-center space-y-4 pr-2">
+                    <!-- 左側エリア：プロフィール & メニュー (レイアウト反転) -->
+                    <div class="w-full sm:w-1/2 flex flex-col items-start justify-center space-y-4 pl-2">
                         
                         <!-- プロフィール & DOPAエリア -->
                         <div class="flex items-center gap-3 bg-slate-900/90 pixel-box p-3 border-amber-400">
@@ -3056,6 +3061,10 @@ case 'dopa_juggler_skill':
                             </div>
                         </div>
 
+                    </div>
+
+                    <!-- 右側エリア（タイトル削除に伴い空き領域） -->
+                    <div class="w-1/2 hidden sm:flex flex-col items-center justify-center p-4">
                     </div>
                 </div>
             `;
