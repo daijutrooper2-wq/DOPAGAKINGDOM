@@ -200,3 +200,22 @@
                 padding-top: 2px !important;
             }
         }
+
+        @media (orientation: landscape) {
+            .landscape-battle-container {
+                display: flex !important;
+                flex-direction: row !important;
+                gap: 16px !important;
+                align-items: flex-start !important;
+                justify-content: center !important;
+                width: 100% !important;
+            }
+            .landscape-battle-left {
+                flex: 1 !important;
+                max-width: 48% !important;
+            }
+            .landscape-battle-right {
+                flex: 1 !important;
+                max-width: 48% !important;
+            }
+        }
