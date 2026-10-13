@@ -5,7 +5,11 @@
             background-repeat: repeat;
             color: #ffffff;
             user-select: none;
-            overflow-x: hidden;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
         }
 
         .font-pixel {

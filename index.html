@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
    
 
     <title>ドパキン</title>
@@ -20,43 +20,19 @@
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=DotGothic16&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center p-1 sm:p-4 bg-slate-950">
+<body class="w-screen h-screen overflow-hidden flex flex-col items-center justify-center p-0 m-0 bg-slate-950">
 
-    <div id="app" class="w-full max-w-4xl min-h-0 sm:min-h-[720px] flex flex-col justify-between pixel-box-dark relative overflow-hidden p-2 sm:p-5">
+    <div id="app" class="w-full h-full flex flex-col justify-between pixel-box-dark relative overflow-hidden p-2 sm:p-4">
         
-        <!-- HEADER / TOP STATUS BAR -->
-        <header class="w-full pixel-box p-2 sm:p-3 mb-2 sm:mb-3 flex flex-wrap items-center justify-between gap-2 sm:gap-3 bg-slate-900">
-            <div class="flex items-center gap-2">
-                <span class="text-[10px] sm:text-xs bg-slate-800 text-amber-300 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded border border-amber-600 font-bold">Ver 2.4 EX</span>
-                <button onclick="renderHomeScreen()" class="pixel-btn text-[11px] sm:text-xs px-2 sm:px-2.5 py-1 font-bold flex items-center gap-1">🏠 ホーム</button>
-            </div>
-            <div class="flex items-center gap-1.5 sm:gap-3 flex-wrap">
-                <button onclick="openProfileScreen()" class="pixel-box-gold px-2 py-0.5 sm:px-2.5 sm:py-1 flex items-center gap-1.5 sm:gap-2 cursor-pointer hover:opacity-90 transition-opacity">
-                    <canvas id="header-profile-icon" width="36" height="36" class="pixel-box bg-slate-950 rounded w-8 h-8 sm:w-[40px] sm:h-[40px]"></canvas>
-                    <span id="header-profile-name" class="text-amber-300 text-[11px] sm:text-xs font-bold truncate max-w-[80px] sm:max-w-[90px]">名無しファイター</span>
-                </button>
-                <div class="pixel-box-gold px-2.5 py-1 sm:px-3 sm:py-1.5 flex items-center gap-1.5 sm:gap-2">
-                    <span class="text-amber-300 text-[11px] sm:text-xs font-bold">DOPA:</span>
-                    <span id="dopa-count" class="text-amber-400 font-bold text-sm sm:text-lg font-pixel">1,000</span>
-                </div>
-                <button id="btn-sound-toggle" onclick="audioSystem.toggleSound()" class="pixel-btn text-[11px] sm:text-xs px-2 py-1 sm:px-2.5 sm:py-1.5 font-bold">
-                    🔊:<span id="sound-status">ON</span>
-                </button>
-                <button id="btn-bgm-toggle" onclick="audioSystem.toggleBGM()" class="pixel-btn text-[11px] sm:text-xs px-2 py-1 sm:px-2.5 sm:py-1.5 font-bold">
-                    🎵:<span id="bgm-status">OFF</span>
-                </button>
-            </div>
-        </header>
-
         <!-- DYNAMIC CONTENT CONTAINER -->
-        <main id="screen-container" class="flex-1 flex flex-col justify-center items-center w-full relative">
+        <main id="screen-container" class="flex-1 flex flex-col justify-center items-center w-full relative overflow-hidden">
             <!-- Screen content injected via JS -->
         </main>
 
         <!-- FOOTER / SYSTEM MESSAGES -->
-        <footer class="w-full mt-2 sm:mt-3 text-center text-[10px] sm:text-xs text-slate-500 border-t border-slate-800 pt-1.5 sm:pt-2 flex justify-between items-center px-1 sm:px-2">
+        <footer class="w-full text-center text-[10px] text-slate-500 border-t border-slate-800 pt-1 flex justify-between items-center px-2 shrink-0">
             <span>© 2026 DOPAGA KINGDOM RPG EX</span>
-            <span class="text-slate-400 text-[10px] sm:text-[11px]">8-Bit Retro Battle Engine Powered</span>
+            <span class="text-slate-400 text-[10px]">Landscape Mode Active</span>
         </footer>
     </div>
 

@@ -85,7 +85,7 @@
                                 CharacterRenderer.drawCharacter(cvs, id.replace('usage-cvs-', ''));
                             } else if (id.startsWith('op-cvs-')) {
                                 CharacterRenderer.drawCharacter(cvs, id.replace('op-cvs-', ''));
-                            } else if (id === 'header-profile-icon' && typeof playerState !== 'undefined') {
+                            } else if ((id === 'header-profile-icon' || id === 'home-profile-icon') && typeof playerState !== 'undefined') {
                                 CharacterRenderer.drawCharacter(cvs, playerState.selectedIcon || 'courtney');
                             } else if (id === 'profile-main-icon' && typeof playerState !== 'undefined') {
                                 CharacterRenderer.drawCharacter(cvs, playerState.selectedIcon || 'courtney');
@@ -575,6 +575,7 @@ static drawDopagaking(p, isCharged) {
             selectedPlayerChar: null,
             selectedEnemyChar: 'pasha',
             playerName: '名無しファイター',
+            playerId: 'DP-' + Math.floor(1000 + Math.random() * 9000),
             selectedIcon: 'dopagaking',
             isFirstTime: true,
             totalBattles: 0,
@@ -852,12 +853,14 @@ static drawDopagaking(p, isCharged) {
         }
 
         function updateHeaderProfile() {
-            const nameEl = document.getElementById('header-profile-name');
-            const iconCvs = document.getElementById('header-profile-icon');
+            const nameEl = document.getElementById('home-profile-name') || document.getElementById('header-profile-name');
+            const iconCvs = document.getElementById('home-profile-icon') || document.getElementById('header-profile-icon');
+            const dopaEl = document.getElementById('home-dopa-count') || document.getElementById('dopa-count');
             if (nameEl) nameEl.innerText = playerState.playerName || '名無しファイター';
             if (iconCvs) {
-                CharacterRenderer.drawCharacter(iconCvs, playerState.selectedIcon || 'courtney');
+                CharacterRenderer.drawCharacter(iconCvs, playerState.selectedIcon || 'dopagaking');
             }
+            if (dopaEl) dopaEl.innerText = formatDopa(playerState.dopa);
         }
 
         async function savePlayerState() {
@@ -869,6 +872,7 @@ static drawDopagaking(p, isCharged) {
                         unlockedChars: playerState.unlockedChars,
                         unlockedIcons: playerState.unlockedIcons,
                         playerName: playerState.playerName,
+                        playerId: playerState.playerId,
                         selectedIcon: playerState.selectedIcon,
                         totalBattles: playerState.totalBattles,
                         wins: playerState.wins,
@@ -909,6 +913,7 @@ static drawDopagaking(p, isCharged) {
                             playerState.unlockedIcons = data.unlockedIcons;
                         }
                         if (data.playerName) playerState.playerName = data.playerName;
+                        if (data.playerId) playerState.playerId = data.playerId;
                         if (data.selectedIcon) playerState.selectedIcon = data.selectedIcon;
                         if (data.totalBattles !== undefined) playerState.totalBattles = data.totalBattles;
                         if (data.wins !== undefined) playerState.wins = data.wins;
@@ -922,6 +927,9 @@ static drawDopagaking(p, isCharged) {
                     console.error("Firestore Load Player State Error:", e);
                 }
             }
+            if (!playerState.playerId) {
+                playerState.playerId = 'DP-' + Math.floor(1000 + Math.random() * 9000);
+            }
             if (!playerState.unlockedIcons || !Array.isArray(playerState.unlockedIcons) || playerState.unlockedIcons.length === 0) {
                 playerState.unlockedIcons = ['dopagaking'];
             }
@@ -931,7 +939,7 @@ static drawDopagaking(p, isCharged) {
             if (!playerState.selectedIcon || !playerState.unlockedIcons.includes(playerState.selectedIcon)) {
                 playerState.selectedIcon = playerState.unlockedIcons[0] || 'dopagaking';
             }
-            const el = document.getElementById('dopa-count');
+            const el = document.getElementById('dopa-count') || document.getElementById('home-dopa-count');
             if (el) el.innerText = formatDopa(playerState.dopa);
             updateHeaderProfile();
         }
@@ -2989,60 +2997,146 @@ case 'dopa_juggler_skill':
                 activeBattle = null;
             }
 
-            const isBonusAvailable = checkDailyBonusAvailable();
-
             const container = document.getElementById('screen-container');
             container.innerHTML = `
-                <div class="flex flex-col items-center justify-center w-full max-w-lg space-y-4 py-4 text-center">
-                    <div class="pixel-box-gold p-5 bg-amber-950/90 w-full mb-1 border-amber-400 space-y-3 flex flex-col items-center">
-                        <img src="images/title-1.webp" alt="ドパガキングダム" class="h-28 sm:h-36 w-full max-w-md sm:max-w-xl object-contain my-3">
-                        <p class="text-sm sm:text-base text-amber-200 font-mono font-bold">「DOPAがすべての世界」</p>
-                        <p class="text-xs sm:text-sm text-slate-300 font-mono">最終目標：DOPAを稼ぎ、国を救えるほどの力を手に入れろ！</p>
-                    </div>
-
-                    ${isBonusAvailable ? `
-                    <button onclick="claimDailyBonus()" class="pixel-btn pixel-btn-warning w-full py-2.5 font-bold text-xs sm:text-sm shadow-lg animate-pulse flex items-center justify-center gap-2">
-                        <span>🎁 デイリーボーナスを受け取る (+${formatDopa(150)} DOPA)</span>
+                <div class="relative w-full h-full flex flex-row items-center justify-between p-4 min-h-[450px]">
+                    <!-- 設定ボタン (プロフィールよりも左上角に配置) -->
+                    <button onclick="openSettingsModal()" class="absolute top-2 left-2 pixel-btn px-3 py-1.5 text-xs font-bold z-20 flex items-center gap-1">
+                        ⚙️ 設定
                     </button>
-                    ` : `
-                    <div class="pixel-box p-2 bg-slate-900 w-full text-xs text-slate-400 font-mono">
-                        ✅ 本日のデイリーボーナス受取済み（明日また挑戦！）
-                    </div>
-                    `}
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
-                        <button onclick="renderCharacterSelectScreen(false)" class="pixel-btn pixel-btn-primary p-4 text-base font-bold flex flex-col items-center justify-center gap-1">
-                            <span class="text-2xl">🤖</span>
-                            <span>BOT対戦 (ソロ)</span>
-                        </button>
-                        <button onclick="renderCharacterSelectScreen(true)" class="pixel-btn pixel-btn-warning p-4 text-base font-bold flex flex-col items-center justify-center gap-1">
-                            <span class="text-2xl">🌐</span>
-                            <span>オンライン対戦</span>
-                        </button>
+                    <!-- 画面の左側はスペースを空けておく -->
+                    <div class="w-1/2 hidden sm:flex flex-col items-center justify-center p-4">
+                        <img src="images/title-1.webp" alt="ドパガキングダム" class="w-64 object-contain opacity-80 animate-pulse">
                     </div>
 
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full">
-                        <button onclick="openGachaModal()" class="pixel-btn pixel-btn-success p-3 text-xs font-bold flex items-center justify-center gap-1">
-                            <span>🎰 ガチャ</span>
-                        </button>
-                        <button onclick="openCharacterListModal()" class="pixel-btn p-3 text-xs font-bold flex items-center justify-center gap-1">
-                            <span>📖 図鑑</span>
-                        </button>
-                        <button onclick="renderMetaScreen()" class="pixel-btn pixel-btn-primary p-3 text-xs font-bold flex items-center justify-center gap-1">
-                            <span>📊 環境データ</span>
-                        </button>
-                        <button onclick="renderOpeningScreen()" class="pixel-btn pixel-btn-purple p-3 text-xs font-bold flex items-center justify-center gap-1">
-                            <span>🎬 オープニング</span>
-                        </button>
-                    </div>
+                    <!-- 右側エリア：プロフィール & メニュー -->
+                    <div class="w-full sm:w-1/2 flex flex-col items-end justify-center space-y-4 pr-2">
+                        
+                        <!-- プロフィール & DOPAエリア -->
+                        <div class="flex items-center gap-3 bg-slate-900/90 pixel-box p-3 border-amber-400">
+                            <!-- DOPAの数はプロフィールの左横に表示 -->
+                            <div class="pixel-box-gold px-3 py-2 flex flex-col items-center justify-center">
+                                <span class="text-[10px] text-amber-300 font-bold">DOPA</span>
+                                <span id="home-dopa-count" class="text-amber-400 font-bold text-sm sm:text-base font-pixel">${formatDopa(playerState.dopa)}</span>
+                            </div>
 
-                    <div class="pixel-box p-3 bg-slate-900 text-left w-full text-xs text-slate-300 space-y-1">
-                        <p class="text-amber-400 font-bold">💰 経済システム（DOPA & オッズ）:</p>
-                        <p>・バトル前に賭け金を設定！勝率連動の動的オッズで高額DOPAを稼ぎ出せ。</p>
-                        <p>・破産救済：所持DOPAがマイナスでも借金状態でバトル可能（※ガチャは不可）。</p>
+                            <!-- プロフィール (大きめアイコン + プレイヤー名 -> プレイヤーIDをコンパクトに) -->
+                            <div onclick="openProfileScreen()" class="flex items-center gap-3 cursor-pointer hover:opacity-90 transition-opacity">
+                                <canvas id="home-profile-icon" width="56" height="56" class="pixel-box bg-slate-950 rounded w-14 h-14"></canvas>
+                                <div class="flex flex-col text-left">
+                                    <span id="home-profile-name" class="text-amber-300 text-sm font-bold truncate max-w-[120px]">${playerState.playerName || '名無しファイター'}</span>
+                                    <span class="text-[10px] text-slate-400 font-mono">ID: ${playerState.playerId || 'DP-1004'}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- プロフィールの下側に２つの選択ボタンの配置："ドパガキングダム"、"ガチャ"を上下に配置 -> それぞれの横に正方形の選択ボタンを設置："ストア"、"フレンド" -->
+                        <div class="flex flex-col space-y-3 w-full max-w-sm">
+                            <!-- 1行目: ドパガキングダム と ストア (正方形) -->
+                            <div class="flex gap-2 w-full">
+                                <button onclick="handleDopagaKingdomClick()" class="pixel-btn pixel-btn-primary flex-1 py-3 px-4 text-sm font-bold font-pixel flex items-center justify-center gap-2 shadow-md">
+                                    <span>👑 ドパガキングダム</span>
+                                </button>
+                                <button onclick="openStoreModal()" class="pixel-btn pixel-btn-warning w-14 h-14 flex flex-col items-center justify-center text-xs font-bold shrink-0">
+                                    <span>🛒</span>
+                                    <span class="text-[9px]">ストア</span>
+                                </button>
+                            </div>
+
+                            <!-- 2行目: ガチャ と フレンド (正方形) -->
+                            <div class="flex gap-2 w-full">
+                                <button onclick="openGachaModal()" class="pixel-btn pixel-btn-success flex-1 py-3 px-4 text-sm font-bold font-pixel flex items-center justify-center gap-2 shadow-md">
+                                    <span>🎰 ガチャ</span>
+                                </button>
+                                <button onclick="openFriendModal()" class="pixel-btn pixel-btn-purple w-14 h-14 flex flex-col items-center justify-center text-xs font-bold shrink-0">
+                                    <span>👥</span>
+                                    <span class="text-[9px]">フレンド</span>
+                                </button>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             `;
+
+            setTimeout(() => {
+                const cvs = document.getElementById('home-profile-icon');
+                if (cvs) CharacterRenderer.drawCharacter(cvs, playerState.selectedIcon || 'dopagaking');
+            }, 50);
+        }
+
+        function handleDopagaKingdomClick() {
+            audioSystem.playSelect();
+            showModal("👑 ドパガキングダム", "ドパガキングダムへようこそ！\nバトル機能や専用ボタンは現在準備中です。\n今後のアップデートをお楽しみに！");
+        }
+
+        function openStoreModal() {
+            audioSystem.playSelect();
+            showModal("🛒 ストア", "DOPAストア機能は現在準備中です。\nガチャや毎日のボーナスでDOPAを集めてお待ちください！");
+        }
+
+        function openFriendModal() {
+            audioSystem.playSelect();
+            showModal("👥 フレンド", "フレンド・ランキング機能は現在準備中です。\n今後のアップデートをお楽しみに！");
+        }
+
+        function openSettingsModal() {
+            audioSystem.playSelect();
+            const titleEl = document.getElementById('modal-title');
+            const bodyEl = document.getElementById('modal-body');
+            const overlay = document.getElementById('modal-overlay');
+            const actionsEl = document.getElementById('modal-actions');
+
+            if (titleEl) titleEl.innerText = "⚙️ 設定 & 環境";
+            if (bodyEl) {
+                bodyEl.innerHTML = `
+                    <div class="space-y-4 text-left py-2">
+                        <div>
+                            <label class="text-xs text-slate-300 font-bold block mb-1">ファイター名変更:</label>
+                            <div class="flex gap-2">
+                                <input id="settings-name-input" type="text" value="${playerState.playerName || '名無しファイター'}" maxlength="12" class="pixel-box bg-slate-950 px-3 py-1.5 text-xs font-bold text-amber-300 w-full outline-none border-amber-600">
+                                <button onclick="updatePlayerNameFromSettings()" class="pixel-btn pixel-btn-primary px-3 py-1.5 text-xs font-bold whitespace-nowrap">変更</button>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center bg-slate-950 p-2 rounded border border-slate-800">
+                            <span class="text-xs text-slate-300">サウンド効果 (SFX):</span>
+                            <button onclick="audioSystem.toggleSound(); openSettingsModal();" class="pixel-btn text-xs px-3 py-1 font-bold">
+                                ${audioSystem.enabled ? '🔊 ON' : '🔇 OFF'}
+                            </button>
+                        </div>
+                        <div class="flex justify-between items-center bg-slate-950 p-2 rounded border border-slate-800">
+                            <span class="text-xs text-slate-300">BGM 音楽:</span>
+                            <button onclick="audioSystem.toggleBGM(); openSettingsModal();" class="pixel-btn text-xs px-3 py-1 font-bold">
+                                ${audioSystem.bgmEnabled ? '🎵 ON' : '🔇 OFF'}
+                            </button>
+                        </div>
+                        <div class="flex justify-between items-center bg-slate-950 p-2 rounded border border-slate-800">
+                            <span class="text-xs text-slate-300">プレイヤー ID:</span>
+                            <span class="text-amber-400 font-mono text-xs">${playerState.playerId || 'DP-1004'}</span>
+                        </div>
+                    </div>
+                `;
+            }
+            if (actionsEl) {
+                actionsEl.innerHTML = `<button onclick="closeModal(); renderHomeScreen();" class="pixel-btn pixel-btn-primary px-6 py-2 font-bold text-xs">閉じる</button>`;
+            }
+            if (overlay) overlay.classList.remove('hidden');
+        }
+
+        async function updatePlayerNameFromSettings() {
+            audioSystem.playSelect();
+            const input = document.getElementById('settings-name-input');
+            if (input) {
+                const name = input.value.trim();
+                if (name) {
+                    playerState.playerName = name;
+                    await savePlayerState();
+                    updateHeaderProfile();
+                    showModal("設定完了", "ファイター名を変更しました！");
+                    setTimeout(() => openSettingsModal(), 1200);
+                }
+            }
         }
 
         function renderCharacterSelectScreen(isOnline = false) {
@@ -4377,6 +4471,11 @@ case 'dopa_juggler_skill':
         window.claimDailyBonus = claimDailyBonus;
         window.confirmResetPlayerProfile = confirmResetPlayerProfile;
         window.executeResetPlayerProfile = executeResetPlayerProfile;
+        window.handleDopagaKingdomClick = handleDopagaKingdomClick;
+        window.openStoreModal = openStoreModal;
+        window.openFriendModal = openFriendModal;
+        window.openSettingsModal = openSettingsModal;
+        window.updatePlayerNameFromSettings = updatePlayerNameFromSettings;
 
         // 背景画像のフレームごとの横方向スクロール処理
         let bgPosX = 0;
