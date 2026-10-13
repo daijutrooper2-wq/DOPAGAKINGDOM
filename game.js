@@ -3007,67 +3007,60 @@ case 'dopa_juggler_skill':
                 activeBattle = null;
             }
 
+            const isBonusAvailable = checkDailyBonusAvailable();
+
             const container = document.getElementById('screen-container');
             container.innerHTML = `
-                <div class="relative w-full h-full flex flex-col justify-between p-2 sm:p-4">
-                    <!-- 設定ボタン (画面左角 / top-left) -->
-                    <button onclick="openSettingsModal()" class="absolute top-2 left-2 pixel-btn px-2.5 py-1 text-[11px] font-bold z-20 flex items-center gap-1">
-                        ⚙️ 設定
-                    </button>
-
-                    <!-- 上端：DOPA & プロフィール -->
-                    <div class="w-full flex justify-center pt-6 sm:pt-2">
-                        <div class="flex items-center gap-3 bg-slate-900/90 pixel-box p-2.5 border-amber-400">
-                            <!-- DOPAの数はプロフィールの左横に表示 -->
-                            <div class="pixel-box-gold px-2.5 py-1.5 flex flex-col items-center justify-center">
-                                <span class="text-[9px] text-amber-300 font-bold">DOPA</span>
-                                <span id="home-dopa-count" class="text-amber-400 font-bold text-xs sm:text-sm font-pixel">${formatDopa(playerState.dopa)}</span>
-                            </div>
-
-                            <!-- プロフィール -->
-                            <div onclick="openProfileScreen()" class="flex items-center gap-2.5 cursor-pointer hover:opacity-90 transition-opacity">
-                                <canvas id="home-profile-icon" width="48" height="48" class="pixel-box bg-slate-950 rounded w-12 h-12"></canvas>
-                                <div class="flex flex-col text-left">
-                                    <span id="home-profile-name" class="text-amber-300 text-xs font-bold truncate max-w-[120px]">${playerState.playerName || '名無しファイター'}</span>
-                                    <span class="text-[9px] text-slate-400 font-mono">ID: ${playerState.playerId || 'DP-1004'}</span>
-                                </div>
-                            </div>
-                        </div>
+                <div class="flex flex-col items-center justify-center w-full max-w-lg space-y-4 py-4 text-center overflow-y-auto max-h-full px-2">
+                    <div class="pixel-box-gold p-4 bg-amber-950/90 w-full mb-1 border-amber-400 space-y-1.5 flex flex-col items-center">
+                        <img src="images/title-1.webp" alt="ドパガキングダム" class="h-24 sm:h-32 w-full max-w-sm object-contain my-2">
+                        <p class="text-xs sm:text-sm text-amber-200 font-mono font-bold">「DOPAがすべての世界」</p>
+                        <p class="text-[11px] text-slate-300 font-mono">最終目標：DOPAを稼ぎ、国を救えるほどの力を手に入れろ！</p>
                     </div>
 
-                    <!-- 下端：ドパガキングダム、ショップ、ガチャ、フレンド等のボタン -->
-                    <div class="w-full flex flex-col items-center pb-2">
-                        <div class="flex flex-col space-y-2.5 w-full max-w-md px-2">
-                            <!-- 1行目: ドパガキングダム と ストア (正方形) -->
-                            <div class="flex gap-2 w-full">
-                                <button onclick="handleDopagaKingdomClick()" class="pixel-btn pixel-btn-primary flex-1 py-2.5 px-3 text-xs sm:text-sm font-bold font-pixel flex items-center justify-center gap-2 shadow-md">
-                                    <span>👑 ドパガキングダム</span>
-                                </button>
-                                <button onclick="openStoreModal()" class="pixel-btn pixel-btn-warning w-12 h-12 sm:w-14 sm:h-14 flex flex-col items-center justify-center text-xs font-bold shrink-0">
-                                    <span>🛒</span>
-                                    <span class="text-[8px]">ストア</span>
-                                </button>
-                            </div>
+                    ${isBonusAvailable ? `
+                    <button onclick="claimDailyBonus()" class="pixel-btn pixel-btn-warning w-full py-2.5 font-bold text-xs sm:text-sm shadow-lg animate-pulse flex items-center justify-center gap-2">
+                        <span>🎁 デイリーボーナスを受け取る (+150 DOPA)</span>
+                    </button>
+                    ` : `
+                    <div class="pixel-box p-2 bg-slate-900 w-full text-xs text-slate-400 font-mono">
+                        ✅ 本日のデイリーボーナス受取済み（明日また挑戦！）
+                    </div>
+                    `}
 
-                            <!-- 2行目: ガチャ と フレンド (正方形) -->
-                            <div class="flex gap-2 w-full">
-                                <button onclick="openGachaModal()" class="pixel-btn pixel-btn-success flex-1 py-2.5 px-3 text-xs sm:text-sm font-bold font-pixel flex items-center justify-center gap-2 shadow-md">
-                                    <span>🎰 ガチャ</span>
-                                </button>
-                                <button onclick="openFriendModal()" class="pixel-btn pixel-btn-purple w-12 h-12 sm:w-14 sm:h-14 flex flex-col items-center justify-center text-xs font-bold shrink-0">
-                                    <span>👥</span>
-                                    <span class="text-[8px]">フレンド</span>
-                                </button>
-                            </div>
-                        </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+                        <button onclick="renderCharacterSelectScreen(false)" class="pixel-btn pixel-btn-primary p-4 text-base font-bold flex flex-col items-center justify-center gap-1">
+                            <span class="text-2xl">🤖</span>
+                            <span>BOT対戦 (ソロ)</span>
+                        </button>
+                        <button onclick="renderCharacterSelectScreen(true)" class="pixel-btn pixel-btn-warning p-4 text-base font-bold flex flex-col items-center justify-center gap-1">
+                            <span class="text-2xl">🌐</span>
+                            <span>オンライン対戦</span>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full">
+                        <button onclick="openGachaModal()" class="pixel-btn pixel-btn-success p-3 text-xs font-bold flex items-center justify-center gap-1">
+                            <span>🎰 ガチャ</span>
+                        </button>
+                        <button onclick="openCharacterListModal()" class="pixel-btn p-3 text-xs font-bold flex items-center justify-center gap-1">
+                            <span>📖 図鑑</span>
+                        </button>
+                        <button onclick="renderMetaScreen()" class="pixel-btn pixel-btn-primary p-3 text-xs font-bold flex items-center justify-center gap-1">
+                            <span>📊 環境データ</span>
+                        </button>
+                        <button onclick="renderOpeningScreen()" class="pixel-btn pixel-btn-purple p-3 text-xs font-bold flex items-center justify-center gap-1">
+                            <span>🎬 オープニング</span>
+                        </button>
+                    </div>
+
+                    <div class="pixel-box p-3 bg-slate-900 text-left w-full text-xs text-slate-300 space-y-1">
+                        <p class="text-amber-400 font-bold">💰 経済システム（DOPA & オッズ）:</p>
+                        <p>・バトル前に賭け金を設定！勝率連動の動的オッズで高額DOPAを稼ぎ出せ。</p>
+                        <p>・破産救済：所持DOPAがマイナスでも借金状態でバトル可能（※ガチャは不可）。</p>
                     </div>
                 </div>
             `;
-
-            setTimeout(() => {
-                const cvs = document.getElementById('home-profile-icon');
-                if (cvs) CharacterRenderer.drawCharacter(cvs, playerState.selectedIcon || 'dopagaking');
-            }, 50);
         }
 
         function handleDopagaKingdomClick() {
@@ -4480,12 +4473,3 @@ case 'dopa_juggler_skill':
         window.openFriendModal = openFriendModal;
         window.openSettingsModal = openSettingsModal;
         window.updatePlayerNameFromSettings = updatePlayerNameFromSettings;
-
-        // 背景画像のフレームごとの横方向スクロール処理
-        let bgPosX = 0;
-        function animateBackground() {
-            bgPosX -= 2; // 1フレームごとに2ピクセルずつ横にずらす
-            document.body.style.backgroundPosition = `${bgPosX}px 0px`;
-            requestAnimationFrame(animateBackground);
-        }
-        requestAnimationFrame(animateBackground);
