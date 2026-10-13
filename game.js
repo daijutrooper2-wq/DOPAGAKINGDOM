@@ -3024,7 +3024,7 @@ case 'dopa_juggler_skill':
                 <div class="relative w-full h-full flex flex-col justify-between p-3 sm:p-5 select-none overflow-hidden">
                     
                     <!-- 画面左上角に小さく表示する「設定」ボタン -->
-                    <button onclick="openSettingsModal()" class="absolute top-2 left-2 pixel-btn text-[10px] px-2 py-0.5 font-bold z-30 shadow-md">
+                    <button onclick="openSettingsPanel()" class="absolute top-2 left-2 pixel-btn text-[10px] px-2 py-0.5 font-bold z-30 shadow-md">
                         ⚙️ 設定
                     </button>
 
@@ -3110,16 +3110,18 @@ case 'dopa_juggler_skill':
         }
 
         function openSettingsModal() {
-            audioSystem.playSelect();
-            const titleEl = document.getElementById('modal-title');
-            const bodyEl = document.getElementById('modal-body');
-            const overlay = document.getElementById('modal-overlay');
-            const actionsEl = document.getElementById('modal-actions');
+            openSettingsPanel();
+        }
 
-            if (titleEl) titleEl.innerText = "⚙️ 設定";
-            if (bodyEl) {
+        function openSettingsPanel() {
+            audioSystem.playSelect();
+            const backdrop = document.getElementById('settings-backdrop');
+            const panel = document.getElementById('settings-slide-panel');
+            const body = document.getElementById('settings-panel-body');
+
+            if (body) {
                 const volVal = Math.round((audioSystem.volume !== undefined ? audioSystem.volume : 0.5) * 100);
-                bodyEl.innerHTML = `
+                body.innerHTML = `
                     <div class="space-y-1.5 text-left py-1 text-xs">
                         <div class="flex items-center justify-between bg-slate-950 p-2 rounded border border-slate-800">
                             <span class="text-slate-300 font-bold">ファイター名:</span>
@@ -3139,14 +3141,14 @@ case 'dopa_juggler_skill':
 
                         <div class="flex justify-between items-center bg-slate-950 p-2 rounded border border-slate-800">
                             <span class="text-slate-300 font-bold">サウンド効果 (SFX):</span>
-                            <button onclick="audioSystem.toggleSound(); openSettingsModal();" class="pixel-btn text-xs px-3 py-1 font-bold">
+                            <button onclick="audioSystem.toggleSound(); openSettingsPanel();" class="pixel-btn text-xs px-3 py-1 font-bold">
                                 ${audioSystem.enabled ? '🔊 ON' : '🔇 OFF'}
                             </button>
                         </div>
 
                         <div class="flex justify-between items-center bg-slate-950 p-2 rounded border border-slate-800">
                             <span class="text-slate-300 font-bold">BGM 音楽:</span>
-                            <button onclick="audioSystem.toggleBGM(); openSettingsModal();" class="pixel-btn text-xs px-3 py-1 font-bold">
+                            <button onclick="audioSystem.toggleBGM(); openSettingsPanel();" class="pixel-btn text-xs px-3 py-1 font-bold">
                                 ${audioSystem.bgmEnabled ? '🎵 ON' : '🔇 OFF'}
                             </button>
                         </div>
@@ -3158,10 +3160,17 @@ case 'dopa_juggler_skill':
                     </div>
                 `;
             }
-            if (actionsEl) {
-                actionsEl.innerHTML = `<button onclick="closeModal(); renderHomeScreen();" class="pixel-btn pixel-btn-primary px-6 py-1.5 font-bold text-xs">閉じる</button>`;
-            }
-            if (overlay) overlay.classList.remove('hidden');
+
+            if (backdrop) backdrop.classList.remove('hidden');
+            if (panel) panel.classList.remove('translate-x-full');
+        }
+
+        function closeSettingsPanel() {
+            audioSystem.playSelect();
+            const backdrop = document.getElementById('settings-backdrop');
+            const panel = document.getElementById('settings-slide-panel');
+            if (panel) panel.classList.add('translate-x-full');
+            if (backdrop) backdrop.classList.add('hidden');
         }
 
         window.onVolumeSliderChange = function(val) {
@@ -3173,20 +3182,23 @@ case 'dopa_juggler_skill':
             savePlayerState();
         };
 
-        async function updatePlayerNameFromSettings() {
-            audioSystem.playSelect();
-            const input = document.getElementById('settings-name-input');
-            if (input) {
-                const name = input.value.trim();
-                if (name) {
-                    playerState.playerName = name;
-                    await savePlayerState();
-                    updateHeaderProfile();
-                    showModal("設定完了", "ファイター名を変更しました！");
-                    setTimeout(() => openSettingsModal(), 1200);
+            async function updatePlayerNameFromSettings() {
+                audioSystem.playSelect();
+                const input = document.getElementById('settings-name-input');
+                if (input) {
+                    const name = input.value.trim();
+                    if (name) {
+                        playerState.playerName = name;
+                        await savePlayerState();
+                        updateHeaderProfile();
+                        showModal("設定完了", "ファイター名を変更しました！");
+                        setTimeout(() => {
+                            closeModal();
+                            openSettingsPanel();
+                        }, 1200);
+                    }
                 }
             }
-        }
 
         function renderCharacterSelectScreen(isOnline = false) {
             audioSystem.playSelect();
