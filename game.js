@@ -368,6 +368,7 @@ static drawDopagaking(p, isCharged) {
                 this.bgmEnabled = false;
                 this.bgmInterval = null;
                 this.bgmStep = 0;
+                this.volume = 0.5;
             }
 
             init() {
@@ -426,7 +427,8 @@ static drawDopagaking(p, isCharged) {
                     const gain = this.ctx.createGain();
                     osc.type = type;
                     osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-                    gain.gain.setValueAtTime(gainValue, this.ctx.currentTime);
+                    const finalGain = gainValue * (this.volume !== undefined ? this.volume : 0.5);
+                    gain.gain.setValueAtTime(finalGain, this.ctx.currentTime);
                     gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
                     osc.connect(gain);
                     gain.connect(this.ctx.destination);
@@ -450,7 +452,8 @@ static drawDopagaking(p, isCharged) {
                     filter.type = 'lowpass';
                     filter.frequency.setValueAtTime(900, this.ctx.currentTime);
                     const gain = this.ctx.createGain();
-                    gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
+                    const hitGain = 0.25 * (this.volume !== undefined ? this.volume : 0.5);
+                    gain.gain.setValueAtTime(hitGain, this.ctx.currentTime);
                     gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
                     whiteNoise.connect(filter); filter.connect(gain); gain.connect(this.ctx.destination);
                     whiteNoise.start();
@@ -583,7 +586,8 @@ static drawDopagaking(p, isCharged) {
             losses: 0,
             charUsage: {},
             battleHistory: [],
-            lastDailyBonusDate: null
+            lastDailyBonusDate: null,
+            volume: 0.5
         };
 
         // 経済システム・DOPA・オッズ管理用変数
@@ -889,6 +893,7 @@ static drawDopagaking(p, isCharged) {
                         losses: playerState.losses,
                         charUsage: playerState.charUsage,
                         battleHistory: playerState.battleHistory,
+                        volume: playerState.volume,
                         updatedAt: Date.now()
                     }, { merge: true });
                 } catch(e){
@@ -906,6 +911,9 @@ static drawDopagaking(p, isCharged) {
                 if (local) {
                     const parsed = JSON.parse(local);
                     Object.assign(playerState, parsed);
+                    if (playerState.volume !== undefined) {
+                        audioSystem.volume = playerState.volume;
+                    }
                 }
             } catch(e){}
 
@@ -930,6 +938,10 @@ static drawDopagaking(p, isCharged) {
                         if (data.losses !== undefined) playerState.losses = data.losses;
                         if (data.charUsage) playerState.charUsage = data.charUsage;
                         if (data.battleHistory) playerState.battleHistory = data.battleHistory;
+                        if (data.volume !== undefined) {
+                            playerState.volume = data.volume;
+                            audioSystem.volume = data.volume;
+                        }
                     } else {
                         await savePlayerState();
                     }
@@ -3011,8 +3023,16 @@ case 'dopa_juggler_skill':
             container.innerHTML = `
                 <div class="relative w-full h-full flex flex-col justify-between p-3 sm:p-5 select-none overflow-hidden">
                     
-                    <!-- 画面上端：DOPA、プロフィール (左上)、設定 (右上) [レイアウト反転] -->
-                    <div class="w-full flex justify-between items-start relative z-20 shrink-0">
+                    <!-- 画面左上角に小さく表示する「設定」ボタン -->
+                    <button onclick="openSettingsModal()" class="absolute top-2 left-2 pixel-btn text-[10px] px-2 py-0.5 font-bold z-30 shadow-md">
+                        ⚙️ 設定
+                    </button>
+
+                    <!-- 画像 "rough" を画面右下に配置 -->
+                    <img src="dopaAI/rough.webp" alt="rough" class="absolute bottom-2 right-2 w-36 sm:w-56 object-contain pointer-events-none z-10 opacity-95">
+
+                    <!-- 画面上端：DOPA、プロフィール (設定ボタンの下/右に配置) -->
+                    <div class="w-full flex justify-between items-start relative z-20 shrink-0 pt-6">
                         <!-- 左上周辺：プロフィール と DOPA -->
                         <div class="flex items-center gap-3">
                             <!-- プロフィール -->
@@ -3031,19 +3051,14 @@ case 'dopa_juggler_skill':
                             </div>
                         </div>
 
-                        <!-- 右上角に "設定" -->
-                        <button onclick="openSettingsModal()" class="pixel-btn px-3 py-1.5 text-xs font-bold flex items-center gap-1 shadow-md">
-                            ⚙️ 設定
-                        </button>
+                        <div></div>
                     </div>
 
-                    <!-- 画面中央：背景画像「rough」を画面右側の下に配置 -->
-                    <div class="flex-1 flex flex-row items-center justify-between w-full my-auto relative pointer-events-none">
-                        <!-- 右側の下に画像 "rough" を配置 -->
-                        <img src="dopaAI/rough.webp" alt="rough" class="absolute bottom-2 right-2 w-36 sm:w-56 object-contain pointer-events-none z-10 opacity-95">
+                    <!-- 画面中央 -->
+                    <div class="flex-1 w-full my-auto relative pointer-events-none">
                     </div>
 
-                    <!-- 画面下端：ドパガキングダム、ガチャ、ストア、フレンド のボタン群 (左側に配置) [レイアウト反転] -->
+                    <!-- 画面下端：ドパガキングダム、ガチャ、ストア、フレンド のボタン群 (左側に配置) -->
                     <div class="w-full flex flex-col items-start pb-2 shrink-0 relative z-20">
                         <div class="flex flex-col space-y-2 w-full max-w-sm">
                             <!-- 1行目: ドパガキングダム と ストア (正方形) -->
@@ -3101,41 +3116,62 @@ case 'dopa_juggler_skill':
             const overlay = document.getElementById('modal-overlay');
             const actionsEl = document.getElementById('modal-actions');
 
-            if (titleEl) titleEl.innerText = "⚙️ 設定 & 環境";
+            if (titleEl) titleEl.innerText = "⚙️ 設定";
             if (bodyEl) {
+                const volVal = Math.round((audioSystem.volume !== undefined ? audioSystem.volume : 0.5) * 100);
                 bodyEl.innerHTML = `
-                    <div class="space-y-4 text-left py-2">
-                        <div>
-                            <label class="text-xs text-slate-300 font-bold block mb-1">ファイター名変更:</label>
-                            <div class="flex gap-2">
-                                <input id="settings-name-input" type="text" value="${playerState.playerName || '名無しファイター'}" maxlength="12" class="pixel-box bg-slate-950 px-3 py-1.5 text-xs font-bold text-amber-300 w-full outline-none border-amber-600">
-                                <button onclick="updatePlayerNameFromSettings()" class="pixel-btn pixel-btn-primary px-3 py-1.5 text-xs font-bold whitespace-nowrap">変更</button>
+                    <div class="space-y-1.5 text-left py-1 text-xs">
+                        <div class="flex items-center justify-between bg-slate-950 p-2 rounded border border-slate-800">
+                            <span class="text-slate-300 font-bold">ファイター名:</span>
+                            <div class="flex gap-1.5 items-center">
+                                <input id="settings-name-input" type="text" value="${playerState.playerName || '名無しファイター'}" maxlength="12" class="pixel-box bg-slate-900 px-2 py-1 text-xs font-bold text-amber-300 w-32 outline-none border-amber-600">
+                                <button onclick="updatePlayerNameFromSettings()" class="pixel-btn pixel-btn-primary px-2 py-1 text-xs font-bold">変更</button>
                             </div>
                         </div>
+
+                        <div class="bg-slate-950 p-2 rounded border border-slate-800 space-y-1">
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-300 font-bold">音量調節 (つまみ):</span>
+                                <span id="volume-val-label" class="text-amber-400 font-mono font-bold">${volVal}%</span>
+                            </div>
+                            <input type="range" min="0" max="100" value="${volVal}" oninput="onVolumeSliderChange(this.value)" class="w-full accent-amber-400 cursor-pointer">
+                        </div>
+
                         <div class="flex justify-between items-center bg-slate-950 p-2 rounded border border-slate-800">
-                            <span class="text-xs text-slate-300">サウンド効果 (SFX):</span>
+                            <span class="text-slate-300 font-bold">サウンド効果 (SFX):</span>
                             <button onclick="audioSystem.toggleSound(); openSettingsModal();" class="pixel-btn text-xs px-3 py-1 font-bold">
                                 ${audioSystem.enabled ? '🔊 ON' : '🔇 OFF'}
                             </button>
                         </div>
+
                         <div class="flex justify-between items-center bg-slate-950 p-2 rounded border border-slate-800">
-                            <span class="text-xs text-slate-300">BGM 音楽:</span>
+                            <span class="text-slate-300 font-bold">BGM 音楽:</span>
                             <button onclick="audioSystem.toggleBGM(); openSettingsModal();" class="pixel-btn text-xs px-3 py-1 font-bold">
                                 ${audioSystem.bgmEnabled ? '🎵 ON' : '🔇 OFF'}
                             </button>
                         </div>
+
                         <div class="flex justify-between items-center bg-slate-950 p-2 rounded border border-slate-800">
-                            <span class="text-xs text-slate-300">プレイヤー ID:</span>
+                            <span class="text-slate-300 font-bold">プレイヤー ID:</span>
                             <span class="text-amber-400 font-mono text-xs">${playerState.playerId || 'DP-1004'}</span>
                         </div>
                     </div>
                 `;
             }
             if (actionsEl) {
-                actionsEl.innerHTML = `<button onclick="closeModal(); renderHomeScreen();" class="pixel-btn pixel-btn-primary px-6 py-2 font-bold text-xs">閉じる</button>`;
+                actionsEl.innerHTML = `<button onclick="closeModal(); renderHomeScreen();" class="pixel-btn pixel-btn-primary px-6 py-1.5 font-bold text-xs">閉じる</button>`;
             }
             if (overlay) overlay.classList.remove('hidden');
         }
+
+        window.onVolumeSliderChange = function(val) {
+            const num = parseInt(val, 10);
+            audioSystem.volume = num / 100;
+            playerState.volume = audioSystem.volume;
+            const label = document.getElementById('volume-val-label');
+            if (label) label.innerText = num + '%';
+            savePlayerState();
+        };
 
         async function updatePlayerNameFromSettings() {
             audioSystem.playSelect();
