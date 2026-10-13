@@ -700,8 +700,8 @@ static drawDopagaking(p, isCharged) {
                     case 1:
                         audioSystem.playAwakeningSound();
                         stage.innerHTML = `
-                            <div class="flex flex-col items-center justify-center space-y-6 animate-cutin w-full">
-                                <div class="pixel-box-gold p-8 bg-black/90 w-full max-w-lg text-center relative overflow-hidden border-amber-400">
+                            <div class="flex flex-col items-center justify-center space-y-6 animate-cutin w-full px-2 sm:px-4">
+                                <div class="pixel-box-gold p-8 bg-black/90 w-full text-center relative overflow-hidden border-amber-400">
                                     <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
                                         <div class="w-32 h-32 bg-amber-500/20 rounded-full animate-opening-pulse blur-xl"></div>
                                     </div>
@@ -3011,22 +3011,11 @@ case 'dopa_juggler_skill':
             container.innerHTML = `
                 <div class="relative w-full h-full flex flex-col justify-between p-3 sm:p-5 select-none overflow-hidden">
                     
-                    <!-- 画面上端：設定 (左上角)、DOPA、プロフィール -->
+                    <!-- 画面上端：DOPA、プロフィール (左上)、設定 (右上) [レイアウト反転] -->
                     <div class="w-full flex justify-between items-start relative z-20 shrink-0">
-                        <!-- 左上角に "設定" -->
-                        <button onclick="openSettingsModal()" class="pixel-btn px-3 py-1.5 text-xs font-bold flex items-center gap-1 shadow-md">
-                            ⚙️ 設定
-                        </button>
-
-                        <!-- 右上周辺：DOPA と プロフィール -->
+                        <!-- 左上周辺：プロフィール と DOPA -->
                         <div class="flex items-center gap-3">
-                            <!-- DOPAの数はプロフィールの左横に表示 -->
-                            <div class="pixel-box-gold px-3 py-1.5 flex flex-col items-center justify-center">
-                                <span class="text-[9px] text-amber-300 font-bold">DOPA</span>
-                                <span id="home-dopa-count" class="text-amber-400 font-bold text-xs sm:text-sm font-pixel">${formatDopa(playerState.dopa)}</span>
-                            </div>
-
-                            <!-- プロフィール (大きめアイコン + プレイヤー名 -> プレイヤーIDをコンパクトに) -->
+                            <!-- プロフィール -->
                             <div onclick="openProfileScreen()" class="flex items-center gap-2 bg-slate-900/90 pixel-box p-2 cursor-pointer hover:opacity-90 transition-opacity border-amber-400">
                                 <canvas id="home-profile-icon" width="48" height="48" class="pixel-box bg-slate-950 rounded w-12 h-12 shrink-0"></canvas>
                                 <div class="flex flex-col text-left">
@@ -3034,19 +3023,28 @@ case 'dopa_juggler_skill':
                                     <span class="text-[9px] text-slate-400 font-mono">ID: ${playerState.playerId || 'DP-1004'}</span>
                                 </div>
                             </div>
+
+                            <!-- DOPAの数 -->
+                            <div class="pixel-box-gold px-3 py-1.5 flex flex-col items-center justify-center">
+                                <span class="text-[9px] text-amber-300 font-bold">DOPA</span>
+                                <span id="home-dopa-count" class="text-amber-400 font-bold text-xs sm:text-sm font-pixel">${formatDopa(playerState.dopa)}</span>
+                            </div>
                         </div>
+
+                        <!-- 右上角に "設定" -->
+                        <button onclick="openSettingsModal()" class="pixel-btn px-3 py-1.5 text-xs font-bold flex items-center gap-1 shadow-md">
+                            ⚙️ 設定
+                        </button>
                     </div>
 
-                    <!-- 画面中央：左側はスペースを空けておく -->
-                    <div class="flex-1 flex flex-row items-center justify-between w-full my-auto pointer-events-none">
-                        <!-- 左側スペース -->
-                        <div class="w-1/2 flex items-center justify-center p-2">
-                        </div>
-                        <div class="w-1/2"></div>
+                    <!-- 画面中央：背景画像「rough」を画面右側の下に配置 -->
+                    <div class="flex-1 flex flex-row items-center justify-between w-full my-auto relative pointer-events-none">
+                        <!-- 右側の下に画像 "rough" を配置 -->
+                        <img src="dopaAI/rough.webp" alt="rough" class="absolute bottom-2 right-2 w-36 sm:w-56 object-contain pointer-events-none z-10 opacity-95">
                     </div>
 
-                    <!-- 画面下端：ドパガキングダム、ガチャ、ストア、フレンド のボタン群 -->
-                    <div class="w-full flex flex-col items-end pb-2 shrink-0">
+                    <!-- 画面下端：ドパガキングダム、ガチャ、ストア、フレンド のボタン群 (左側に配置) [レイアウト反転] -->
+                    <div class="w-full flex flex-col items-start pb-2 shrink-0 relative z-20">
                         <div class="flex flex-col space-y-2 w-full max-w-sm">
                             <!-- 1行目: ドパガキングダム と ストア (正方形) -->
                             <div class="flex gap-2 w-full">
