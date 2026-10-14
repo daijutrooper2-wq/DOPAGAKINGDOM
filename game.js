@@ -4206,12 +4206,12 @@ case 'dopa_juggler_skill':
                 <div class="flex flex-col items-center justify-center w-full max-w-xl space-y-3 py-4 px-2">
                     <h2 class="text-lg font-bold text-amber-300 font-pixel">👑 プレイヤープロフィール</h2>
                     
-                    <div class="pixel-box-gold p-3.5 bg-amber-950/80 w-full space-y-3">
-                        <div class="flex flex-col sm:flex-row items-center sm:items-stretch justify-between gap-4">
+                    <div class="pixel-box-gold p-3.5 bg-amber-950/80 w-full">
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                             <!-- 画面左側：プロフィールアイコン、小さいアイコンの変更ボタンとID、名前をコンパクトに表示 -->
                             <div class="flex items-center gap-3 w-full sm:w-auto">
                                 <div class="flex flex-col items-center gap-1 shrink-0">
-                                    <canvas id="profile-main-icon" width="64" height="64" class="pixel-box bg-slate-950 rounded cursor-pointer border-amber-400 w-16 h-16" onclick="openIconSelectModal()" title="クリックしてアイコン変更"></canvas>
+                                    <canvas id="profile-main-icon" width="60" height="60" class="pixel-box bg-slate-950 rounded cursor-pointer border-amber-400 w-15 h-15" onclick="openIconSelectModal()" title="クリックしてアイコン変更"></canvas>
                                     <button onclick="openIconSelectModal()" class="pixel-btn pixel-btn-primary px-2 py-0.5 text-[9px] font-bold">変更</button>
                                 </div>
                                 <div class="flex flex-col justify-center space-y-1 text-left flex-1 min-w-0">
@@ -4224,34 +4224,29 @@ case 'dopa_juggler_skill':
                             </div>
 
                             <!-- 画面右側：戦歴類、始めた日などを見やすくコンパクトに表示 -->
-                            <div class="flex flex-col justify-center space-y-1.5 text-right w-full sm:w-auto font-mono text-xs border-t sm:border-t-0 sm:border-l border-amber-800/60 pt-2 sm:pt-0 sm:pl-4">
-                                <div class="flex justify-between sm:justify-end gap-2 items-center">
-                                    <span class="text-[11px] text-slate-300">始めた日:</span>
-                                    <span class="text-amber-300 font-bold">${playerState.startDate || '2026/10/14'}</span>
+                            <div class="flex flex-col justify-center space-y-2 w-full sm:w-auto font-mono text-xs border-t sm:border-t-0 sm:border-l border-amber-800/60 pt-2 sm:pt-0 sm:pl-4">
+                                <div class="flex justify-between sm:justify-end gap-3 items-center">
+                                    <span class="text-[11px] text-slate-300">始めた日: <b class="text-amber-300">${playerState.startDate || '2026/10/14'}</b></span>
+                                    <span class="text-[11px] text-amber-200">DOPA: <b class="text-amber-400 font-pixel">${formatDopa(playerState.dopa)}</b></span>
                                 </div>
-                                <div class="flex justify-between sm:justify-end gap-2 items-center">
-                                    <span class="text-[11px] text-amber-200">所持 DOPA:</span>
-                                    <span class="text-sm font-bold text-amber-400 font-pixel">${formatDopa(playerState.dopa)}</span>
+                                <div class="grid grid-cols-4 gap-1.5 text-center text-xs">
+                                    <div class="bg-slate-950 px-2 py-1 rounded border border-amber-800/50">
+                                        <div class="text-slate-400 text-[9px]">総対戦</div>
+                                        <div class="text-amber-300 font-bold">${playerState.totalBattles}</div>
+                                    </div>
+                                    <div class="bg-slate-950 px-2 py-1 rounded border border-amber-800/50">
+                                        <div class="text-slate-400 text-[9px]">勝利</div>
+                                        <div class="text-emerald-400 font-bold">${playerState.wins}</div>
+                                    </div>
+                                    <div class="bg-slate-950 px-2 py-1 rounded border border-amber-800/50">
+                                        <div class="text-slate-400 text-[9px]">敗北</div>
+                                        <div class="text-red-400 font-bold">${playerState.losses}</div>
+                                    </div>
+                                    <div class="bg-slate-950 px-2 py-1 rounded border border-amber-800/50">
+                                        <div class="text-slate-400 text-[9px]">勝率</div>
+                                        <div class="text-cyan-400 font-bold">${winRate}%</div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-4 gap-2 pt-2 border-t border-amber-800 text-center font-mono text-xs">
-                            <div class="bg-slate-950 p-1.5 rounded">
-                                <div class="text-slate-400 text-[10px]">総対戦</div>
-                                <div class="text-amber-300 font-bold">${playerState.totalBattles}</div>
-                            </div>
-                            <div class="bg-slate-950 p-1.5 rounded">
-                                <div class="text-slate-400 text-[10px]">勝利</div>
-                                <div class="text-emerald-400 font-bold">${playerState.wins}</div>
-                            </div>
-                            <div class="bg-slate-950 p-1.5 rounded">
-                                <div class="text-slate-400 text-[10px]">敗北</div>
-                                <div class="text-red-400 font-bold">${playerState.losses}</div>
-                            </div>
-                            <div class="bg-slate-950 p-1.5 rounded">
-                                <div class="text-slate-400 text-[10px]">勝率</div>
-                                <div class="text-cyan-400 font-bold">${winRate}%</div>
                             </div>
                         </div>
                     </div>

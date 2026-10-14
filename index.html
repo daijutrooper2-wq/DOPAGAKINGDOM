@@ -2,10 +2,15 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
    
-
     <title>ドパキン</title>
+
+    <!-- PWA / Standalone & Landscape Support -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
 
     <!-- iPhoneなどのホーム画面に追加したときのアプリ名 -->
     <meta name="apple-mobile-web-app-title" content="ドパキン">
@@ -21,6 +26,13 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="w-screen h-screen overflow-hidden flex flex-col items-center justify-center p-0 m-0 bg-slate-950">
+
+    <!-- 縦画面時の警告オーバーレイ -->
+    <div id="orientation-warning" class="fixed inset-0 bg-slate-950 z-[9999] flex-col items-center justify-center p-6 text-center">
+        <div class="text-4xl mb-4 animate-bounce">📱🔄</div>
+        <h2 class="text-xl font-bold text-amber-400 mb-2 font-pixel">横画面でお楽しみください</h2>
+        <p class="text-sm text-slate-300">このゲームは横画面専用です。<br>デバイスを横向きに回転させてください。</p>
+    </div>
 
     <div id="app" class="w-full h-full flex flex-col justify-between pixel-box-dark relative overflow-hidden p-2 sm:p-4">
         
