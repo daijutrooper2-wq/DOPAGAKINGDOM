@@ -799,7 +799,7 @@ static drawDopagaking(p, isCharged) {
                                     <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-amber-500 text-slate-950 font-pixel text-[10px] px-3 py-1 rounded font-bold">
                                         🌟 決定版・神バランス調整版 EX 🌟
                                     </div>
-                                     <img src="images/title-1.webp" alt="DOPAGA KINGDOM" class="w-full max-w-md sm:max-w-lg mx-auto object-contain mb-3">
+                                     <img src="images/title-1.webp" alt="DOPAGA KINGDOM" class="w-full max-w-lg sm:max-w-xl mx-auto object-contain mb-3">
                                     <p class="text-xs sm:text-sm text-amber-100 font-mono mb-6">
                                         王国に真の平和を取り戻せ！<br>最強の王者の座を掴むのは誰だ――？
                                     </p>
@@ -3037,7 +3037,7 @@ case 'dopa_juggler_skill':
                     </button>
 
                     <!-- 画像 "rough" を画面右下に配置 -->
-                    <img src="dopaAI/rough.webp" alt="rough" class="absolute bottom-2 right-2 w-36 sm:w-56 object-contain pointer-events-none z-10 opacity-95">
+                    <img src="dopaAI/rough.webp" alt="rough" class="absolute bottom-2 right-2 w-24 sm:w-36 object-contain pointer-events-none z-10 opacity-95">
 
                     <!-- 画面上端：DOPA、プロフィール (設定ボタンの下/右に配置) -->
                     <div class="w-full flex justify-between items-start relative z-20 shrink-0 pt-6">
