@@ -579,6 +579,7 @@ static drawDopagaking(p, isCharged) {
             selectedEnemyChar: 'pasha',
             playerName: '名無しファイター',
             playerId: 'DP-' + Math.floor(1000 + Math.random() * 9000),
+            startDate: new Date().toLocaleDateString('ja-JP'),
             selectedIcon: 'dopagaking',
             isFirstTime: true,
             skipOpening: false,
@@ -899,6 +900,7 @@ static drawDopagaking(p, isCharged) {
                         unlockedIcons: playerState.unlockedIcons,
                         playerName: playerState.playerName,
                         playerId: playerState.playerId,
+                        startDate: playerState.startDate,
                         selectedIcon: playerState.selectedIcon,
                         skipOpening: !!playerState.skipOpening,
                         totalBattles: playerState.totalBattles,
@@ -946,6 +948,7 @@ static drawDopagaking(p, isCharged) {
                         }
                         if (data.playerName) playerState.playerName = data.playerName;
                         if (data.playerId) playerState.playerId = data.playerId;
+                        if (data.startDate) playerState.startDate = data.startDate;
                         if (data.selectedIcon) playerState.selectedIcon = data.selectedIcon;
                         if (data.totalBattles !== undefined) playerState.totalBattles = data.totalBattles;
                         if (data.wins !== undefined) playerState.wins = data.wins;
@@ -965,6 +968,9 @@ static drawDopagaking(p, isCharged) {
             }
             if (!playerState.playerId) {
                 playerState.playerId = 'DP-' + Math.floor(1000 + Math.random() * 9000);
+            }
+            if (!playerState.startDate) {
+                playerState.startDate = new Date().toLocaleDateString('ja-JP');
             }
             if (!playerState.unlockedIcons || !Array.isArray(playerState.unlockedIcons) || playerState.unlockedIcons.length === 0) {
                 playerState.unlockedIcons = ['dopagaking'];
@@ -3051,7 +3057,7 @@ case 'dopa_juggler_skill':
                     </button>
 
                     <!-- 画像 "rough" を画面右下に配置 -->
-                    <img src="dopaAI/rough.webp" alt="rough" class="absolute bottom-2 right-2 w-24 sm:w-36 object-contain pointer-events-none z-10 opacity-95">
+                    <img src="dopaAI/rough.webp" alt="rough" class="absolute bottom-[-6px] right-2 w-24 sm:w-36 object-contain pointer-events-none z-10 opacity-95">
 
                     <!-- 画面上端：DOPA、プロフィール (設定ボタンの下/右に配置) -->
                     <div class="w-full flex justify-between items-start relative z-20 shrink-0 pt-6">
@@ -4197,41 +4203,53 @@ case 'dopa_juggler_skill':
             }
 
             container.innerHTML = `
-                <div class="flex flex-col items-center justify-center w-full max-w-xl space-y-4 py-4 px-2">
-                    <h2 class="text-xl font-bold text-amber-300 font-pixel">👑 プレイヤープロフィール</h2>
+                <div class="flex flex-col items-center justify-center w-full max-w-xl space-y-3 py-4 px-2">
+                    <h2 class="text-lg font-bold text-amber-300 font-pixel">👑 プレイヤープロフィール</h2>
                     
-                    <div class="pixel-box-gold p-4 bg-amber-950/80 w-full space-y-3">
-                        <div class="flex items-center justify-between flex-wrap gap-3">
-                            <div class="flex items-center gap-3">
-                                 <canvas id="profile-main-icon" width="105" height="105" class="pixel-box bg-slate-950 rounded cursor-pointer border-amber-400" onclick="openIconSelectModal()" title="クリックしてアイコン変更"></canvas>
-                                <div>
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <input id="profile-name-input" type="text" value="${playerState.playerName || ''}" maxlength="12" class="pixel-box bg-slate-950 px-2 py-1 text-sm font-bold text-amber-300 w-36 outline-none border-amber-600">
-                                        <button onclick="savePlayerName()" class="pixel-btn pixel-btn-primary px-3 py-1 text-xs font-bold">変更</button>
+                    <div class="pixel-box-gold p-3.5 bg-amber-950/80 w-full space-y-3">
+                        <div class="flex flex-col sm:flex-row items-center sm:items-stretch justify-between gap-4">
+                            <!-- 画面左側：プロフィールアイコン、小さいアイコンの変更ボタンとID、名前をコンパクトに表示 -->
+                            <div class="flex items-center gap-3 w-full sm:w-auto">
+                                <div class="flex flex-col items-center gap-1 shrink-0">
+                                    <canvas id="profile-main-icon" width="64" height="64" class="pixel-box bg-slate-950 rounded cursor-pointer border-amber-400 w-16 h-16" onclick="openIconSelectModal()" title="クリックしてアイコン変更"></canvas>
+                                    <button onclick="openIconSelectModal()" class="pixel-btn pixel-btn-primary px-2 py-0.5 text-[9px] font-bold">変更</button>
+                                </div>
+                                <div class="flex flex-col justify-center space-y-1 text-left flex-1 min-w-0">
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        <input id="profile-name-input" type="text" value="${playerState.playerName || ''}" maxlength="12" class="pixel-box bg-slate-950 px-2 py-0.5 text-xs font-bold text-amber-300 w-28 sm:w-32 outline-none border-amber-600">
+                                        <button onclick="savePlayerName()" class="pixel-btn pixel-btn-primary px-2 py-0.5 text-[10px] font-bold shrink-0">保存</button>
                                     </div>
-                                    <span class="text-[10px] text-slate-300">アイコンクリックで変更可能</span>
+                                    <span class="text-[10px] text-slate-300 font-mono">ID: ${playerState.playerId || 'DP-1004'}</span>
                                 </div>
                             </div>
-                            <div class="text-right font-mono">
-                                <div class="text-xs text-amber-200">所持 DOPA</div>
-                                <div class="text-lg font-bold text-amber-400 font-pixel">${formatDopa(playerState.dopa)}</div>
+
+                            <!-- 画面右側：戦歴類、始めた日などを見やすくコンパクトに表示 -->
+                            <div class="flex flex-col justify-center space-y-1.5 text-right w-full sm:w-auto font-mono text-xs border-t sm:border-t-0 sm:border-l border-amber-800/60 pt-2 sm:pt-0 sm:pl-4">
+                                <div class="flex justify-between sm:justify-end gap-2 items-center">
+                                    <span class="text-[11px] text-slate-300">始めた日:</span>
+                                    <span class="text-amber-300 font-bold">${playerState.startDate || '2026/10/14'}</span>
+                                </div>
+                                <div class="flex justify-between sm:justify-end gap-2 items-center">
+                                    <span class="text-[11px] text-amber-200">所持 DOPA:</span>
+                                    <span class="text-sm font-bold text-amber-400 font-pixel">${formatDopa(playerState.dopa)}</span>
+                                </div>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-4 gap-2 pt-2 border-t border-amber-800 text-center font-mono text-xs">
-                            <div class="bg-slate-950 p-2 rounded">
+                            <div class="bg-slate-950 p-1.5 rounded">
                                 <div class="text-slate-400 text-[10px]">総対戦</div>
                                 <div class="text-amber-300 font-bold">${playerState.totalBattles}</div>
                             </div>
-                            <div class="bg-slate-950 p-2 rounded">
+                            <div class="bg-slate-950 p-1.5 rounded">
                                 <div class="text-slate-400 text-[10px]">勝利</div>
                                 <div class="text-emerald-400 font-bold">${playerState.wins}</div>
                             </div>
-                            <div class="bg-slate-950 p-2 rounded">
+                            <div class="bg-slate-950 p-1.5 rounded">
                                 <div class="text-slate-400 text-[10px]">敗北</div>
                                 <div class="text-red-400 font-bold">${playerState.losses}</div>
                             </div>
-                            <div class="bg-slate-950 p-2 rounded">
+                            <div class="bg-slate-950 p-1.5 rounded">
                                 <div class="text-slate-400 text-[10px]">勝率</div>
                                 <div class="text-cyan-400 font-bold">${winRate}%</div>
                             </div>
