@@ -237,8 +237,8 @@
             }
             .landscape-battle-container {
                 display: flex !important;
-                flex-direction: row !important;
-                gap: 12px !important;
+                flex-direction: column !important;
+                gap: 8px !important;
                 align-items: center !important;
                 justify-content: center !important;
                 width: 100% !important;
@@ -246,13 +246,13 @@
                 overflow-y: auto !important;
                 padding: 4px 8px !important;
             }
-            .landscape-battle-left {
-                flex: 1 !important;
-                max-width: 48% !important;
+            .landscape-battle-upper {
+                width: 100% !important;
+                max-width: 600px !important;
             }
-            .landscape-battle-right {
-                flex: 1 !important;
-                max-width: 48% !important;
+            .landscape-battle-lower {
+                width: 100% !important;
+                max-width: 600px !important;
             }
         }
 

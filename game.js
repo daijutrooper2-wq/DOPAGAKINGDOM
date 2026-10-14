@@ -3779,10 +3779,10 @@ case 'dopa_juggler_skill':
 
             const container = document.getElementById('screen-container');
             container.innerHTML = `
-                <div id="battle-stage" class="w-full flex flex-col lg:flex-row gap-2 sm:gap-3 items-center lg:items-start justify-center relative transition-colors duration-200 landscape-battle-container">
+                <div id="battle-stage" class="w-full flex flex-col gap-2 items-center justify-center relative transition-colors duration-200 landscape-battle-container">
                     
-                    <!-- LEFT SIDE: ARENA & STATUS -->
-                    <div class="w-full flex flex-col gap-1.5 sm:gap-2 landscape-battle-left">
+                    <!-- UPPER SIDE: ICONS, HP, STATUS, INFO & LOG -->
+                    <div class="w-full flex flex-col gap-1.5 sm:gap-2 max-w-xl landscape-battle-upper">
                         <div class="w-full grid grid-cols-2 gap-1.5 sm:gap-2">
                             <div id="p1-box-container" class="pixel-box p-1.5 sm:p-2 bg-slate-900/90 relative border-blue-500 ring-2 ring-blue-500/50">
                                 <div class="flex justify-between items-center mb-0.5 sm:mb-1">
@@ -3809,11 +3809,11 @@ case 'dopa_juggler_skill':
                         <div class="w-full grid grid-cols-2 gap-2 relative items-center justify-items-center">
                             <div class="relative flex flex-col items-center w-full">
                                 <div class="absolute -top-2 z-10 bg-blue-600 text-white font-pixel text-[8px] sm:text-[9px] px-1.5 py-0.5 rounded border border-blue-300 shadow">YOU</div>
-                                <canvas id="p1-canvas" width="180" height="180" class="pixel-box bg-slate-950 shadow-lg cursor-pointer border-2 border-blue-500 mt-1 w-20 h-20 sm:w-28 sm:h-28 lg:w-[140px] lg:h-[140px]" title="自分のキャラクター"></canvas>
+                                <canvas id="p1-canvas" width="180" height="180" class="pixel-box bg-slate-950 shadow-lg cursor-pointer border-2 border-blue-500 mt-1 w-16 h-16 sm:w-24 sm:h-24 lg:w-[110px] lg:h-[110px]" title="自分のキャラクター"></canvas>
                             </div>
                             <div class="relative flex flex-col items-center w-full">
                                 <div class="absolute -top-2 z-10 bg-red-600 text-white font-pixel text-[8px] sm:text-[9px] px-1.5 py-0.5 rounded border border-red-300 shadow">OPPONENT</div>
-                                <canvas id="p2-canvas" width="180" height="180" class="pixel-box bg-slate-950 shadow-lg border-2 border-red-500 mt-1 w-20 h-20 sm:w-28 sm:h-28 lg:w-[140px] lg:h-[140px]" title="対戦相手のキャラクター"></canvas>
+                                <canvas id="p2-canvas" width="180" height="180" class="pixel-box bg-slate-950 shadow-lg border-2 border-red-500 mt-1 w-16 h-16 sm:w-24 sm:h-24 lg:w-[110px] lg:h-[110px]" title="対戦相手のキャラクター"></canvas>
                             </div>
                         </div>
 
@@ -3831,16 +3831,16 @@ case 'dopa_juggler_skill':
                                 </div>
                             </div>
                         </div>
+
+                        <div id="battle-log-box" class="pixel-box p-1.5 bg-slate-950 w-full h-14 sm:h-20 overflow-y-auto text-[10px] sm:text-[11px] font-mono space-y-1 border-slate-700">
+                        </div>
                     </div>
 
-                    <!-- RIGHT SIDE: COMMANDS & LOG -->
-                    <div class="w-full flex flex-col gap-1.5 sm:gap-2 landscape-battle-right">
+                    <!-- LOWER SIDE: 4 SKILL BUTTONS -->
+                    <div class="w-full flex flex-col gap-1.5 sm:gap-2 max-w-xl landscape-battle-lower">
                         <div id="command-panel" class="w-full">
                             <div id="skill-buttons-grid" class="grid grid-cols-2 gap-1 sm:gap-1.5">
                             </div>
-                        </div>
-
-                        <div id="battle-log-box" class="pixel-box p-1.5 bg-slate-950 w-full h-16 sm:h-24 lg:h-28 overflow-y-auto text-[10px] sm:text-[11px] font-mono space-y-1 border-slate-700">
                         </div>
 
                         <div id="battle-footer-actions" class="flex justify-center hidden">
