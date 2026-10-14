@@ -3104,7 +3104,63 @@ case 'dopa_juggler_skill':
 
         function handleDopagaKingdomClick() {
             audioSystem.playSelect();
-            showModal("👑 ドパガキングダム", "ドパガキングダムへようこそ！\nバトル機能や専用ボタンは現在準備中です。\n今後のアップデートをお楽しみに！");
+            renderDopagaKingdomScreen();
+        }
+
+        function renderDopagaKingdomScreen() {
+            const container = document.getElementById('screen-container');
+            container.innerHTML = `
+                <div class="relative w-full h-full flex flex-col justify-between p-4 sm:p-6 select-none overflow-hidden bg-slate-950">
+                    <!-- 背景エフェクトや装飾 -->
+                    <div class="absolute inset-0 overflow-hidden pointer-events-none z-0 opacity-20">
+                        <div class="absolute inset-y-0 left-0 flex animate-endless-scroll h-full w-[200%]">
+                            <img src="images/screen.webp" alt="screen" class="w-1/2 h-full object-cover">
+                            <img src="images/screen.webp" alt="screen" class="w-1/2 h-full object-cover">
+                        </div>
+                    </div>
+
+                    <!-- ヘッダー部分：戻るボタンとタイトル -->
+                    <div class="flex items-center justify-between relative z-10 w-full mb-4">
+                        <button onclick="renderHomeScreen()" class="pixel-btn pixel-btn-danger px-3 py-1.5 text-xs font-bold">
+                            ◀ ホームに戻る
+                        </button>
+                        <h2 class="text-amber-400 font-pixel text-base sm:text-xl font-bold tracking-wider drop-shadow-md">👑 ドパガキングダム</h2>
+                        <div class="w-20"></div>
+                    </div>
+
+                    <!-- 中央：2つの大きめの正方形ボタン -->
+                    <div class="flex-1 flex flex-col sm:flex-row items-center justify-center gap-6 relative z-10 my-auto">
+                        <!-- BOTと戦うボタン -->
+                        <button onclick="handleBotBattleClick()" class="pixel-box bg-slate-900 border-amber-400 hover:border-amber-300 w-44 h-44 sm:w-56 sm:h-56 flex flex-col items-center justify-center gap-3 p-4 cursor-pointer transform hover:scale-105 transition-all shadow-xl group">
+                            <span class="text-4xl sm:text-5xl group-hover:scale-110 transition-transform">🤖</span>
+                            <span class="text-amber-300 font-pixel font-bold text-sm sm:text-lg tracking-wide">BOTと戦う</span>
+                            <span class="text-[10px] text-slate-400 text-center">AIファイターと手軽に対戦！</span>
+                        </button>
+
+                        <!-- オンラインで戦うボタン -->
+                        <button onclick="handleOnlineBattleClick()" class="pixel-box bg-slate-900 border-emerald-400 hover:border-emerald-300 w-44 h-44 sm:w-56 sm:h-56 flex flex-col items-center justify-center gap-3 p-4 cursor-pointer transform hover:scale-105 transition-all shadow-xl group">
+                            <span class="text-4xl sm:text-5xl group-hover:scale-110 transition-transform">🌐</span>
+                            <span class="text-emerald-300 font-pixel font-bold text-sm sm:text-lg tracking-wide">オンラインで戦う</span>
+                            <span class="text-[10px] text-slate-400 text-center">全国のライバルとリアルタイム対戦！</span>
+                        </button>
+                    </div>
+
+                    <!-- フッターメッセージ -->
+                    <div class="text-center relative z-10 pb-2">
+                        <p class="text-xs text-slate-400 font-pixel">戦うモードを選択してください</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function handleBotBattleClick() {
+            audioSystem.playSelect();
+            showModal("🤖 BOTと戦う", "BOT対戦モードは現在準備中です。\n今後のアップデートをお楽しみに！");
+        }
+
+        function handleOnlineBattleClick() {
+            audioSystem.playSelect();
+            showModal("🌐 オンラインで戦う", "オンライン対戦モードは現在準備中です。\n今後のアップデートをお楽しみに！");
         }
 
         function openStoreModal() {
