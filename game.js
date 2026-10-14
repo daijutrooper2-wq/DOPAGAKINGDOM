@@ -3153,6 +3153,34 @@ case 'dopa_juggler_skill':
             `;
         }
 
+        function openStaffCodeModal() {
+            audioSystem.playSelect();
+            closeSettingsPanel();
+            showModal("🔐 関係者認証", `
+                <div class="space-y-3 text-center">
+                    <p class="text-xs text-slate-300">関係者コードを入力してください:</p>
+                    <input id="staff-code-input" type="password" maxlength="6" placeholder="4桁のコード" class="pixel-box bg-slate-950 px-3 py-2 text-center text-amber-300 text-sm font-mono tracking-widest outline-none border-amber-600 w-40 mx-auto block">
+                    <div id="staff-code-error" class="text-red-400 text-[11px] h-4"></div>
+                    <button onclick="verifyStaffCode()" class="pixel-btn pixel-btn-primary px-6 py-2 text-xs font-bold font-pixel mx-auto">認証する</button>
+                </div>
+            `, null);
+        }
+
+        function verifyStaffCode() {
+            audioSystem.playSelect();
+            const input = document.getElementById('staff-code-input');
+            const err = document.getElementById('staff-code-error');
+            if (!input) return;
+
+            if (input.value === '1234') {
+                closeModal();
+                renderMetaScreen();
+            } else {
+                if (err) err.innerText = '⚠️ コードが違います (正解: 1234)';
+                input.value = '';
+            }
+        }
+
         function handleBotBattleClick() {
             audioSystem.playSelect();
             showModal("🤖 BOTと戦う", "BOT対戦モードは現在準備中です。\n今後のアップデートをお楽しみに！");
@@ -3220,6 +3248,13 @@ case 'dopa_juggler_skill':
                         <div class="flex justify-between items-center bg-slate-950 p-2 rounded border border-slate-800">
                             <span class="text-slate-300 font-bold">プレイヤー ID:</span>
                             <span class="text-amber-400 font-mono text-xs">${playerState.playerId || 'DP-1004'}</span>
+                        </div>
+
+                        <div class="flex justify-between items-center bg-slate-950 p-2 rounded border border-slate-800">
+                            <span class="text-slate-300 font-bold">関係者ページ:</span>
+                            <button onclick="openStaffCodeModal()" class="pixel-btn pixel-btn-warning text-xs px-3 py-1 font-bold">
+                                🔐 開く
+                            </button>
                         </div>
                     </div>
                 `;
