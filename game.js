@@ -581,6 +581,7 @@ static drawDopagaking(p, isCharged) {
             playerId: 'DP-' + Math.floor(1000 + Math.random() * 9000),
             selectedIcon: 'dopagaking',
             isFirstTime: true,
+            skipOpening: false,
             totalBattles: 0,
             wins: 0,
             losses: 0,
@@ -618,6 +619,17 @@ static drawDopagaking(p, isCharged) {
             } else {
                 renderHomeScreen();
             }
+        }
+
+        function playOpeningAgain() {
+            closeSettingsPanel();
+            renderOpeningScreen();
+        }
+
+        function toggleSkipOpening() {
+            playerState.skipOpening = !playerState.skipOpening;
+            savePlayerState();
+            openSettingsPanel();
         }
 
         function promptFirstTimeProfileName() {
@@ -670,7 +682,7 @@ static drawDopagaking(p, isCharged) {
             renderHomeScreen();
         }
 
-        function renderOpeningScreen() {
+        function renderOpeningScreen(startScene = 1) {
             if (activeBattle) {
                 activeBattle.destroy();
                 activeBattle = null;
@@ -826,7 +838,7 @@ static drawDopagaking(p, isCharged) {
                 </div>
             `;
 
-            renderScene(1);
+            renderScene(startScene);
         }
 
         function updateOpeningSoundBtn() {
@@ -888,6 +900,7 @@ static drawDopagaking(p, isCharged) {
                         playerName: playerState.playerName,
                         playerId: playerState.playerId,
                         selectedIcon: playerState.selectedIcon,
+                        skipOpening: !!playerState.skipOpening,
                         totalBattles: playerState.totalBattles,
                         wins: playerState.wins,
                         losses: playerState.losses,
@@ -924,6 +937,7 @@ static drawDopagaking(p, isCharged) {
                     if (docSnap.exists()) {
                         const data = docSnap.data();
                         if (data.dopa !== undefined) playerState.dopa = data.dopa;
+                        if (data.skipOpening !== undefined) playerState.skipOpening = data.skipOpening;
                         if (data.unlockedChars && Array.isArray(data.unlockedChars)) {
                             playerState.unlockedChars = data.unlockedChars;
                         }
@@ -3251,9 +3265,16 @@ case 'dopa_juggler_skill':
                         </div>
 
                         <div class="flex justify-between items-center bg-slate-950 p-2 rounded border border-slate-800">
-                            <span class="text-slate-300 font-bold">関係者ページ:</span>
-                            <button onclick="openStaffCodeModal()" class="pixel-btn pixel-btn-warning text-xs px-3 py-1 font-bold">
-                                🔐 開く
+                            <span class="text-slate-300 font-bold">オープニング:</span>
+                            <button onclick="playOpeningAgain()" class="pixel-btn pixel-btn-primary text-xs px-3 py-1 font-bold">
+                                🎬 もう一度見る
+                            </button>
+                        </div>
+
+                        <div class="flex justify-between items-center bg-slate-950 p-2 rounded border border-slate-800">
+                            <span class="text-slate-300 font-bold">オープニング再生停止:</span>
+                            <button onclick="toggleSkipOpening()" class="pixel-btn text-xs px-3 py-1 font-bold">
+                                ${playerState.skipOpening ? 'ON' : 'OFF'}
                             </button>
                         </div>
                     </div>
@@ -4035,7 +4056,11 @@ case 'dopa_juggler_skill':
             });
 
             await loadPlayerState();
-            renderOpeningScreen();
+            if (playerState.skipOpening && !playerState.isFirstTime) {
+                renderOpeningScreen(5);
+            } else {
+                renderOpeningScreen(1);
+            }
         });
 
         function openProfileScreen() {
@@ -4636,4 +4661,5 @@ case 'dopa_juggler_skill':
         window.openStoreModal = openStoreModal;
         window.openFriendModal = openFriendModal;
         window.openSettingsModal = openSettingsModal;
-        window.updatePlayerNameFromSettings = updatePlayerNameFromSettings;
+        window.playOpeningAgain = playOpeningAgain;
+        window.toggleSkipOpening = toggleSkipOpening;
