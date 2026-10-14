@@ -3057,7 +3057,7 @@ case 'dopa_juggler_skill':
                     </button>
 
                     <!-- 画像 "rough" を画面右下に配置 -->
-                    <img src="dopaAI/rough.webp" alt="rough" class="absolute bottom-0 right-2 w-24 sm:w-36 object-contain pointer-events-none z-10 opacity-95">
+                    <img src="dopaAI/rough.webp" alt="rough" class="absolute bottom-0 right-2 sm:right-4 w-36 sm:w-52 object-contain pointer-events-none z-10 opacity-95">
 
                     <!-- 画面上端：DOPA、プロフィール (設定ボタンの下/右に配置) -->
                     <div class="w-full flex justify-between items-start relative z-20 shrink-0 pt-6">
@@ -3087,27 +3087,27 @@ case 'dopa_juggler_skill':
                     </div>
 
                     <!-- 画面下端：ドパガキングダム、ガチャ、ストア、フレンド のボタン群 (画像roughと同様に下にずらして配置) -->
-                    <div class="absolute bottom-0 left-3 sm:left-5 flex flex-col items-start z-20">
-                        <div class="flex flex-col space-y-2 w-full max-w-xs">
+                    <div class="absolute bottom-2 sm:bottom-4 left-3 sm:left-6 flex flex-col items-start z-20">
+                        <div class="flex flex-col space-y-2.5 w-full max-w-sm">
                             <!-- 1行目: ドパガキングダム と ストア (正方形) -->
-                            <div class="flex gap-2 w-full">
-                                <button onclick="handleDopagaKingdomClick()" class="pixel-btn pixel-btn-primary flex-1 py-2 px-3 text-xs font-bold font-pixel flex items-center justify-center gap-1.5 shadow-md">
+                            <div class="flex gap-2.5 w-full items-center">
+                                <button onclick="handleDopagaKingdomClick()" class="pixel-btn pixel-btn-primary flex-1 py-3 px-4 text-xs sm:text-sm font-bold font-pixel flex items-center justify-center gap-2 shadow-md">
                                     <span>👑 ドパガキングダム</span>
                                 </button>
-                                <button onclick="openStoreModal()" class="pixel-btn pixel-btn-warning w-10 h-10 sm:w-12 sm:h-12 flex flex-col items-center justify-center text-xs font-bold shrink-0">
-                                    <span>🛒</span>
-                                    <span class="text-[7px]">ストア</span>
+                                <button onclick="openStoreModal()" class="pixel-btn pixel-btn-warning w-12 h-12 sm:w-14 sm:h-14 flex flex-col items-center justify-center text-xs font-bold shrink-0">
+                                    <span class="text-sm sm:text-base">🛒</span>
+                                    <span class="text-[8px] sm:text-[9px]">ストア</span>
                                 </button>
                             </div>
 
                             <!-- 2行目: ガチャ と フレンド (正方形) -->
-                            <div class="flex gap-2 w-full">
-                                <button onclick="openGachaModal()" class="pixel-btn pixel-btn-success flex-1 py-2 px-3 text-xs font-bold font-pixel flex items-center justify-center gap-1.5 shadow-md">
+                            <div class="flex gap-2.5 w-full items-center">
+                                <button onclick="openGachaModal()" class="pixel-btn pixel-btn-success flex-1 py-3 px-4 text-xs sm:text-sm font-bold font-pixel flex items-center justify-center gap-2 shadow-md">
                                     <span>🎰 ガチャ</span>
                                 </button>
-                                <button onclick="openFriendModal()" class="pixel-btn pixel-btn-purple w-10 h-10 sm:w-12 sm:h-12 flex flex-col items-center justify-center text-xs font-bold shrink-0">
-                                    <span>👥</span>
-                                    <span class="text-[7px]">フレンド</span>
+                                <button onclick="openFriendModal()" class="pixel-btn pixel-btn-purple w-12 h-12 sm:w-14 sm:h-14 flex flex-col items-center justify-center text-xs font-bold shrink-0">
+                                    <span class="text-sm sm:text-base">👥</span>
+                                    <span class="text-[8px] sm:text-[9px]">フレンド</span>
                                 </button>
                             </div>
                         </div>
