@@ -3023,6 +3023,14 @@ case 'dopa_juggler_skill':
             container.innerHTML = `
                 <div class="relative w-full h-full flex flex-col justify-between p-3 sm:p-5 select-none overflow-hidden">
                     
+                    <!-- 背景画像 "screen" (エンドレスにゆっくり横へスクロール、ボタンやroughよりも後ろ) -->
+                    <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
+                        <div class="absolute inset-y-0 left-0 flex animate-endless-scroll h-full w-[200%]">
+                            <img src="images/screen.webp" alt="screen" class="w-1/2 h-full object-cover">
+                            <img src="images/screen.webp" alt="screen" class="w-1/2 h-full object-cover">
+                        </div>
+                    </div>
+
                     <!-- 画面左上角に小さく表示する「設定」ボタン -->
                     <button onclick="openSettingsPanel()" class="absolute top-2 left-2 pixel-btn text-[10px] px-2 py-0.5 font-bold z-30 shadow-md">
                         ⚙️ 設定
@@ -3058,28 +3066,28 @@ case 'dopa_juggler_skill':
                     <div class="flex-1 w-full my-auto relative pointer-events-none">
                     </div>
 
-                    <!-- 画面下端：ドパガキングダム、ガチャ、ストア、フレンド のボタン群 (左側に配置) -->
-                    <div class="w-full flex flex-col items-start pb-2 shrink-0 relative z-20">
-                        <div class="flex flex-col space-y-2 w-full max-w-sm">
+                    <!-- 画面下端：ドパガキングダム、ガチャ、ストア、フレンド のボタン群 (画像roughと同様に下にずらして配置) -->
+                    <div class="absolute bottom-2 left-3 sm:left-5 flex flex-col items-start z-20">
+                        <div class="flex flex-col space-y-2 w-full max-w-xs">
                             <!-- 1行目: ドパガキングダム と ストア (正方形) -->
                             <div class="flex gap-2 w-full">
-                                <button onclick="handleDopagaKingdomClick()" class="pixel-btn pixel-btn-primary flex-1 py-2.5 px-4 text-xs sm:text-sm font-bold font-pixel flex items-center justify-center gap-2 shadow-md">
+                                <button onclick="handleDopagaKingdomClick()" class="pixel-btn pixel-btn-primary flex-1 py-2 px-3 text-xs font-bold font-pixel flex items-center justify-center gap-1.5 shadow-md">
                                     <span>👑 ドパガキングダム</span>
                                 </button>
-                                <button onclick="openStoreModal()" class="pixel-btn pixel-btn-warning w-12 h-12 flex flex-col items-center justify-center text-xs font-bold shrink-0">
+                                <button onclick="openStoreModal()" class="pixel-btn pixel-btn-warning w-10 h-10 sm:w-12 sm:h-12 flex flex-col items-center justify-center text-xs font-bold shrink-0">
                                     <span>🛒</span>
-                                    <span class="text-[8px]">ストア</span>
+                                    <span class="text-[7px]">ストア</span>
                                 </button>
                             </div>
 
                             <!-- 2行目: ガチャ と フレンド (正方形) -->
                             <div class="flex gap-2 w-full">
-                                <button onclick="openGachaModal()" class="pixel-btn pixel-btn-success flex-1 py-2.5 px-4 text-xs sm:text-sm font-bold font-pixel flex items-center justify-center gap-2 shadow-md">
+                                <button onclick="openGachaModal()" class="pixel-btn pixel-btn-success flex-1 py-2 px-3 text-xs font-bold font-pixel flex items-center justify-center gap-1.5 shadow-md">
                                     <span>🎰 ガチャ</span>
                                 </button>
-                                <button onclick="openFriendModal()" class="pixel-btn pixel-btn-purple w-12 h-12 flex flex-col items-center justify-center text-xs font-bold shrink-0">
+                                <button onclick="openFriendModal()" class="pixel-btn pixel-btn-purple w-10 h-10 sm:w-12 sm:h-12 flex flex-col items-center justify-center text-xs font-bold shrink-0">
                                     <span>👥</span>
-                                    <span class="text-[8px]">フレンド</span>
+                                    <span class="text-[7px]">フレンド</span>
                                 </button>
                             </div>
                         </div>
