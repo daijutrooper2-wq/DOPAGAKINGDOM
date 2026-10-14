@@ -3041,7 +3041,7 @@ case 'dopa_juggler_skill':
 
             const container = document.getElementById('screen-container');
             container.innerHTML = `
-                <div class="relative w-full h-full flex flex-col justify-between p-3 sm:p-5 select-none overflow-hidden">
+                <div class="relative w-full h-full flex flex-col justify-between p-3 pb-0 sm:p-5 sm:pb-0 select-none overflow-hidden">
                     
                     <!-- 背景画像 "screen" (エンドレスにゆっくり横へスクロール、ボタンやroughよりも後ろ) -->
                     <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
@@ -3057,7 +3057,7 @@ case 'dopa_juggler_skill':
                     </button>
 
                     <!-- 画像 "rough" を画面右下に配置 -->
-                    <img src="dopaAI/rough.webp" alt="rough" class="absolute bottom-[-6px] right-2 w-24 sm:w-36 object-contain pointer-events-none z-10 opacity-95">
+                    <img src="dopaAI/rough.webp" alt="rough" class="absolute bottom-0 right-2 w-24 sm:w-36 object-contain pointer-events-none z-10 opacity-95">
 
                     <!-- 画面上端：DOPA、プロフィール (設定ボタンの下/右に配置) -->
                     <div class="w-full flex justify-between items-start relative z-20 shrink-0 pt-6">
@@ -3087,7 +3087,7 @@ case 'dopa_juggler_skill':
                     </div>
 
                     <!-- 画面下端：ドパガキングダム、ガチャ、ストア、フレンド のボタン群 (画像roughと同様に下にずらして配置) -->
-                    <div class="absolute bottom-2 left-3 sm:left-5 flex flex-col items-start z-20">
+                    <div class="absolute bottom-0 left-3 sm:left-5 flex flex-col items-start z-20">
                         <div class="flex flex-col space-y-2 w-full max-w-xs">
                             <!-- 1行目: ドパガキングダム と ストア (正方形) -->
                             <div class="flex gap-2 w-full">
