@@ -1569,7 +1569,7 @@ static drawDopagaking(p, isCharged) {
             renderZukanScreen(currentOrder, newDir);
         }
 
-        function renderZukanDetailScreen(charId, returnSource = 'zukan', arg1 = 'default', arg2 = 'desc') {
+        function renderZukanDetailScreen(charId, returnSource = 'zukan', arg1 = 'default', arg2 = 'desc', arg3 = 'desc') {
             audioSystem.playSelect();
             const container = document.getElementById('screen-container');
 
@@ -1588,7 +1588,9 @@ static drawDopagaking(p, isCharged) {
                 backAction = `document.getElementById('modal-overlay').classList.remove('hidden'); showGachaSummaryModal(window._currentGachaResults || [])`;
             } else if (returnSource === 'select') {
                 const isOnline = !!arg1;
-                backAction = `renderCharacterSelectScreen(${isOnline})`;
+                const sortOrder = arg2 || 'default';
+                const sortDir = arg3 || 'desc';
+                backAction = `renderCharacterSelectScreen(${isOnline}, '${sortOrder}', '${sortDir}')`;
             } else {
                 const sortOrder = arg1 || 'default';
                 const sortDir = arg2 || 'desc';
@@ -1676,8 +1678,8 @@ static drawDopagaking(p, isCharged) {
             renderZukanScreen();
         }
 
-        function openCharDetail(id, returnSource = 'zukan', arg1 = 'default', arg2 = 'desc') {
-            renderZukanDetailScreen(id, returnSource, arg1, arg2);
+        function openCharDetail(id, returnSource = 'zukan', arg1 = 'default', arg2 = 'desc', arg3 = 'desc') {
+            renderZukanDetailScreen(id, returnSource, arg1, arg2, arg3);
         }
 
         const EXTRA_ICONS = {
@@ -3402,7 +3404,7 @@ case 'dopa_juggler_skill':
                 }
             }
 
-        function renderCharacterSelectScreen(isOnline = false) {
+        function renderCharacterSelectScreen(isOnline = false, sortOrder = 'default', sortDir = 'desc') {
             audioSystem.playSelect();
             if (!playerState.unlockedChars || playerState.unlockedChars.length === 0) {
                 showModal("キャラクター未所持", "キャラクターを所持していません！\nホーム画面の「🎰 ガチャ」ボタンから配布DOPAを使ってキャラクターを入手してください。");
@@ -3412,25 +3414,73 @@ case 'dopa_juggler_skill':
             const container = document.getElementById('screen-container');
             if (container) container.scrollTop = 0;
 
+            let chars = Object.values(CHARACTER_DATA);
+            if (sortOrder === 'hp') {
+                chars.sort((a, b) => sortDir === 'desc' ? b.hp - a.hp : a.hp - b.hp);
+            } else if (sortOrder === 'atk') {
+                chars.sort((a, b) => sortDir === 'desc' ? b.atk - a.atk : a.atk - b.atk);
+            } else if (sortOrder === 'def') {
+                chars.sort((a, b) => sortDir === 'desc' ? b.def - a.def : a.def - b.def);
+            } else if (sortOrder === 'critRate') {
+                chars.sort((a, b) => sortDir === 'desc' ? b.critRate - a.critRate : a.critRate - b.critRate);
+            } else if (sortOrder === 'eva') {
+                chars.sort((a, b) => sortDir === 'desc' ? b.eva - a.eva : a.eva - b.eva);
+            }
+
+            const unlockedCount = playerState.unlockedChars.length;
+            const totalCount = Object.keys(CHARACTER_DATA).length;
+
             let html = `
-                <div class="w-full flex flex-col items-center">
-                    <h2 class="text-lg font-bold text-amber-300 font-pixel mb-3">
-                        ${isOnline ? '🌐 オンライン対戦 - 自キャラ選択' : '🤖 BOT対戦 - キャラ選択'}
-                    </h2>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full mb-4">
+                <div class="w-full flex flex-col items-center max-w-2xl mx-auto py-2">
+                    <div class="pixel-box-gold p-3 bg-amber-950/90 w-full text-center space-y-1 border-amber-400 mb-3">
+                        <h2 class="text-base sm:text-lg font-bold text-amber-300 font-pixel">
+                            ${isOnline ? '🌐 オンライン対戦 - 自キャラ選択' : '⚔ キャラクター選択 (BOT対戦)'}
+                        </h2>
+                        <p class="text-[10px] sm:text-xs text-amber-200 font-mono">出陣するファイターを選んでバトルに備えよ！</p>
+                    </div>
+
+                    <div class="flex items-center justify-between w-full mb-3 px-2 gap-2 flex-wrap">
+                        <div class="flex items-center gap-1.5 text-xs">
+                            <span class="text-slate-400 font-bold">並び替え:</span>
+                            <select id="char-select-sort-order" onchange="onCharSelectSortChange(${isOnline})" class="pixel-box bg-slate-900 text-amber-300 px-2 py-1 text-xs outline-none border-amber-600">
+                                <option value="default" ${sortOrder === 'default' ? 'selected' : ''}>登録順</option>
+                                <option value="hp" ${sortOrder === 'hp' ? 'selected' : ''}>HPが高い順</option>
+                                <option value="atk" ${sortOrder === 'atk' ? 'selected' : ''}>攻撃力が高い順</option>
+                                <option value="def" ${sortOrder === 'def' ? 'selected' : ''}>防御力が高い順</option>
+                                <option value="critRate" ${sortOrder === 'critRate' ? 'selected' : ''}>クリティカル率が高い順</option>
+                                <option value="eva" ${sortOrder === 'eva' ? 'selected' : ''}>回避率が高い順</option>
+                            </select>
+                            <button onclick="toggleCharSelectSortDir(${isOnline}, '${sortOrder}', '${sortDir}')" class="pixel-btn px-2 py-1 text-xs font-bold bg-slate-800 border-slate-600">
+                                ${sortDir === 'desc' ? '🔽 降順(高)' : '🔼 昇順(低)'}
+                            </button>
+                        </div>
+                        <div class="text-xs font-mono text-amber-200 bg-slate-900 px-3 py-1 rounded border border-amber-600/50">
+                            所持: <b class="text-emerald-400">${unlockedCount}</b> / ${totalCount} 体
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full mb-4 px-2 max-h-[420px] overflow-y-auto">
             `;
 
-            Object.values(CHARACTER_DATA).forEach(c => {
+            chars.forEach(c => {
                 const isUnlocked = playerState.unlockedChars.includes(c.id);
                 const isSelected = playerState.selectedPlayerChar === c.id;
 
+                let statDisplay = '';
+                if (sortOrder === 'hp') statDisplay = `<span class="text-[10px] text-emerald-400 font-bold">HP: ${c.hp}</span>`;
+                else if (sortOrder === 'atk') statDisplay = `<span class="text-[10px] text-amber-400 font-bold">攻: ${c.atk}</span>`;
+                else if (sortOrder === 'def') statDisplay = `<span class="text-[10px] text-cyan-400 font-bold">防: ${c.def}</span>`;
+                else if (sortOrder === 'critRate') statDisplay = `<span class="text-[10px] text-purple-400 font-bold">クリ: ${Math.round(c.critRate * 100)}%</span>`;
+                else if (sortOrder === 'eva') statDisplay = `<span class="text-[10px] text-blue-400 font-bold">避: ${c.eva}%</span>`;
+
                 html += `
-                    <div onclick="${isUnlocked ? `selectChar('${c.id}',${isOnline})` : `openCharDetail('${c.id}', 'select', ${isOnline})`}" 
-                         class="pixel-box p-2 bg-slate-900 cursor-pointer flex flex-col items-center justify-between border-2 transition-all ${isSelected ? 'border-amber-400 bg-amber-950/40 scale-105' : 'border-slate-700 hover:border-slate-400'} ${!isUnlocked ? 'opacity-60' : ''}">
+                    <div onclick="${isUnlocked ? `selectChar('${c.id}',${isOnline}, '${sortOrder}', '${sortDir}')` : `openCharDetail('${c.id}', 'select', ${isOnline}, '${sortOrder}', '${sortDir}')`}" 
+                         class="pixel-box p-3 bg-slate-900 cursor-pointer flex flex-col items-center justify-between border-2 transition-all ${isSelected ? 'border-amber-400 bg-amber-950/40 scale-105 shadow-lg' : 'border-slate-700 hover:border-slate-400'} ${!isUnlocked ? 'opacity-60 grayscale' : ''}">
                         <canvas id="select-cvs-${c.id}" width="115" height="115" class="pixel-box bg-slate-950 mb-1"></canvas>
                         <span class="text-xs font-bold ${isSelected ? 'text-amber-300 font-pixel' : 'text-slate-200'}">${c.name}</span>
-                        <span class="text-[10px] text-slate-400">${c.title}</span>
-                        ${!isUnlocked ? '<span class="text-[10px] text-red-400 font-bold mt-1">🔒 未解放</span>' : ''}
+                        <span class="text-[10px] text-slate-400 truncate max-w-full">${c.title}</span>
+                        ${statDisplay}
+                        ${!isUnlocked ? '<span class="text-[10px] text-red-400 font-bold mt-1">🔒 未解放</span>' : (isSelected ? '<span class="text-[10px] text-amber-400 font-bold mt-1">✨ 選択中</span>' : '')}
                     </div>
                 `;
             });
@@ -3438,8 +3488,8 @@ case 'dopa_juggler_skill':
             html += `
                     </div>
                     <div id="char-detail-box" class="pixel-box p-3 bg-slate-900 w-full mb-4 text-xs text-slate-300"></div>
-                    <div class="flex gap-3">
-                        <button onclick="renderHomeScreen()" class="pixel-btn px-4 py-2 text-xs">戻る</button>
+                    <div class="flex gap-3 w-full justify-center">
+                        <button onclick="renderHomeScreen()" class="pixel-btn px-4 py-2 text-xs">ホームに戻る</button>
                         <button onclick="${isOnline ? 'openOnlineLobby()' : 'startBotBattle()'}" class="pixel-btn pixel-btn-primary px-6 py-2 text-sm font-bold">
                             ${isOnline ? 'ロビーへ進む 🚀' : '対戦開始！ ⚔'}
                         </button>
@@ -3458,10 +3508,22 @@ case 'dopa_juggler_skill':
             }, 50);
         }
 
-        function selectChar(id, isOnline) {
+        function selectChar(id, isOnline, sortOrder = 'default', sortDir = 'desc') {
             audioSystem.playSelect();
             playerState.selectedPlayerChar = id;
-            renderCharacterSelectScreen(isOnline);
+            renderCharacterSelectScreen(isOnline, sortOrder, sortDir);
+        }
+
+        function onCharSelectSortChange(isOnline) {
+            const select = document.getElementById('char-select-sort-order');
+            if (select) {
+                renderCharacterSelectScreen(isOnline, select.value, 'desc');
+            }
+        }
+
+        function toggleCharSelectSortDir(isOnline, currentOrder, currentDir) {
+            const newDir = currentDir === 'desc' ? 'asc' : 'desc';
+            renderCharacterSelectScreen(isOnline, currentOrder, newDir);
         }
 
         function updateCharDetailBox() {
@@ -4747,6 +4809,8 @@ case 'dopa_juggler_skill':
         window.renderZukanDetailScreen = renderZukanDetailScreen;
         window.onZukanSortChange = onZukanSortChange;
         window.toggleZukanSortDir = toggleZukanSortDir;
+        window.onCharSelectSortChange = onCharSelectSortChange;
+        window.toggleCharSelectSortDir = toggleCharSelectSortDir;
         window.openGachaLineupModal = openGachaLineupModal;
         window.renderBettingScreen = renderBettingScreen;
         window.setBattleMultiplier = setBattleMultiplier;
