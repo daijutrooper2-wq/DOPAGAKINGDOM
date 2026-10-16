@@ -1500,15 +1500,15 @@ static drawDopagaking(p, isCharged) {
             const totalCount = chars.length;
 
             let html = `
-                <div class="w-full flex flex-col items-center max-w-2xl mx-auto py-2">
-                    <div class="flex justify-between items-center w-full mb-3 px-2 flex-wrap gap-2">
-                        <h2 class="text-lg font-bold text-amber-300 font-pixel">📖 キャラクター図鑑</h2>
-                        <div class="text-xs font-mono text-amber-200 bg-slate-900 px-3 py-1 rounded border border-amber-600/50">
+                <div class="w-full flex flex-col items-center max-w-4xl mx-auto py-2 px-2">
+                    <div class="flex justify-between items-center w-full mb-2 sm:mb-3 px-1 flex-wrap gap-2">
+                        <h2 class="text-sm sm:text-lg font-bold text-amber-300 font-pixel">📖 キャラクター図鑑</h2>
+                        <div class="text-[10px] sm:text-xs font-mono text-amber-200 bg-slate-900 px-2.5 py-1 rounded border border-amber-600/50">
                             獲得済み: <b class="text-emerald-400">${unlockedCount}</b> / ${totalCount} 体
                         </div>
                     </div>
 
-                    <div class="flex items-center justify-between w-full mb-3 px-2 gap-2 flex-wrap">
+                    <div class="flex items-center justify-between w-full mb-2 sm:mb-3 px-1 gap-2 flex-wrap">
                         <div class="flex items-center gap-1.5 text-xs">
                             <span class="text-slate-400 font-bold">並び替え:</span>
                             <select id="zukan-sort-order" onchange="onZukanSortChange()" class="pixel-box bg-slate-900 text-amber-300 px-2 py-1 text-xs outline-none border-amber-600">
@@ -1521,21 +1521,21 @@ static drawDopagaking(p, isCharged) {
                                 ${sortDir === 'desc' ? '🔽 降順(高)' : '🔼 昇順(低)'}
                             </button>
                         </div>
-                        <button onclick="renderHomeScreen()" class="pixel-btn px-3 py-1 text-xs">ホームに戻る</button>
+                        <button onclick="renderHomeScreen()" class="pixel-btn px-3 py-1.5 text-xs">ホームに戻る</button>
                     </div>
 
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full mb-4 px-2 max-h-[500px] overflow-y-auto">
+                    <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3 w-full mb-2 sm:mb-4 px-1 max-h-[220px] sm:max-h-[400px] overflow-y-auto">
             `;
 
             chars.forEach(c => {
                 const isUnlocked = playerState.unlockedChars.includes(c.id);
                 html += `
                     <div onclick="renderZukanDetailScreen('${c.id}', 'zukan', '${sortOrder}', '${sortDir}')" 
-                         class="pixel-box p-3 bg-slate-900 cursor-pointer flex flex-col items-center justify-between border-2 transition-all hover:border-amber-400 ${!isUnlocked ? 'opacity-50 grayscale' : 'border-slate-700'}">
-                        <canvas id="zukan-cvs-${c.id}" width="130" height="130" class="pixel-box bg-slate-950 mb-2"></canvas>
-                        <span class="text-xs font-bold ${isUnlocked ? 'text-amber-300' : 'text-slate-400'}">${c.name}</span>
-                        <span class="text-[10px] text-slate-400 truncate max-w-full">${c.title}</span>
-                        <span class="text-[10px] mt-1 font-bold ${isUnlocked ? 'text-emerald-400' : 'text-red-400'}">
+                         class="pixel-box p-2 sm:p-3 bg-slate-900 cursor-pointer flex flex-col items-center justify-between border-2 transition-all hover:border-amber-400 ${!isUnlocked ? 'opacity-50 grayscale' : 'border-slate-700'}">
+                        <canvas id="zukan-cvs-${c.id}" width="100" height="100" class="pixel-box bg-slate-950 mb-1 w-16 h-16 sm:w-24 sm:h-24"></canvas>
+                        <span class="text-[11px] sm:text-xs font-bold ${isUnlocked ? 'text-amber-300' : 'text-slate-400'} truncate max-w-full">${c.name}</span>
+                        <span class="text-[9px] text-slate-400 truncate max-w-full">${c.title}</span>
+                        <span class="text-[9px] mt-0.5 font-bold ${isUnlocked ? 'text-emerald-400' : 'text-red-400'}">
                             ${isUnlocked ? '✨ 所持済み' : '🔒 未所持'}
                         </span>
                     </div>
@@ -3431,15 +3431,15 @@ case 'dopa_juggler_skill':
             const totalCount = Object.keys(CHARACTER_DATA).length;
 
             let html = `
-                <div class="w-full flex flex-col items-center max-w-2xl mx-auto py-2">
-                    <div class="pixel-box-gold p-3 bg-amber-950/90 w-full text-center space-y-1 border-amber-400 mb-3">
-                        <h2 class="text-base sm:text-lg font-bold text-amber-300 font-pixel">
+                <div class="w-full flex flex-col items-center max-w-4xl mx-auto py-2 px-2">
+                    <div class="pixel-box-gold p-2 sm:p-3 bg-amber-950/90 w-full text-center space-y-0.5 sm:space-y-1 border-amber-400 mb-2 sm:mb-3">
+                        <h2 class="text-sm sm:text-lg font-bold text-amber-300 font-pixel">
                             ${isOnline ? '🌐 オンライン対戦 - 自キャラ選択' : '⚔ キャラクター選択 (BOT対戦)'}
                         </h2>
-                        <p class="text-[10px] sm:text-xs text-amber-200 font-mono">出陣するファイターを選んでバトルに備えよ！</p>
+                        <p class="text-[9px] sm:text-xs text-amber-200 font-mono">出陣するファイターを選んでバトルに備えよ！</p>
                     </div>
 
-                    <div class="flex items-center justify-between w-full mb-3 px-2 gap-2 flex-wrap">
+                    <div class="flex items-center justify-between w-full mb-2 sm:mb-3 px-1 gap-2 flex-wrap">
                         <div class="flex items-center gap-1.5 text-xs">
                             <span class="text-slate-400 font-bold">並び替え:</span>
                             <select id="char-select-sort-order" onchange="onCharSelectSortChange(${isOnline})" class="pixel-box bg-slate-900 text-amber-300 px-2 py-1 text-xs outline-none border-amber-600">
@@ -3454,12 +3454,12 @@ case 'dopa_juggler_skill':
                                 ${sortDir === 'desc' ? '🔽 降順(高)' : '🔼 昇順(低)'}
                             </button>
                         </div>
-                        <div class="text-xs font-mono text-amber-200 bg-slate-900 px-3 py-1 rounded border border-amber-600/50">
+                        <div class="text-[10px] sm:text-xs font-mono text-amber-200 bg-slate-900 px-2.5 py-1 rounded border border-amber-600/50">
                             所持: <b class="text-emerald-400">${unlockedCount}</b> / ${totalCount} 体
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full mb-4 px-2 max-h-[420px] overflow-y-auto">
+                    <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3 w-full mb-2 sm:mb-4 px-1 max-h-[180px] sm:max-h-[320px] overflow-y-auto">
             `;
 
             chars.forEach(c => {
@@ -3467,30 +3467,30 @@ case 'dopa_juggler_skill':
                 const isSelected = playerState.selectedPlayerChar === c.id;
 
                 let statDisplay = '';
-                if (sortOrder === 'hp') statDisplay = `<span class="text-[10px] text-emerald-400 font-bold">HP: ${c.hp}</span>`;
-                else if (sortOrder === 'atk') statDisplay = `<span class="text-[10px] text-amber-400 font-bold">攻: ${c.atk}</span>`;
-                else if (sortOrder === 'def') statDisplay = `<span class="text-[10px] text-cyan-400 font-bold">防: ${c.def}</span>`;
-                else if (sortOrder === 'critRate') statDisplay = `<span class="text-[10px] text-purple-400 font-bold">クリ: ${Math.round(c.critRate * 100)}%</span>`;
-                else if (sortOrder === 'eva') statDisplay = `<span class="text-[10px] text-blue-400 font-bold">避: ${c.eva}%</span>`;
+                if (sortOrder === 'hp') statDisplay = `<span class="text-[9px] sm:text-[10px] text-emerald-400 font-bold">HP: ${c.hp}</span>`;
+                else if (sortOrder === 'atk') statDisplay = `<span class="text-[9px] sm:text-[10px] text-amber-400 font-bold">攻: ${c.atk}</span>`;
+                else if (sortOrder === 'def') statDisplay = `<span class="text-[9px] sm:text-[10px] text-cyan-400 font-bold">防: ${c.def}</span>`;
+                else if (sortOrder === 'critRate') statDisplay = `<span class="text-[9px] sm:text-[10px] text-purple-400 font-bold">クリ: ${Math.round(c.critRate * 100)}%</span>`;
+                else if (sortOrder === 'eva') statDisplay = `<span class="text-[9px] sm:text-[10px] text-blue-400 font-bold">避: ${c.eva}%</span>`;
 
                 html += `
                     <div onclick="${isUnlocked ? `selectChar('${c.id}',${isOnline}, '${sortOrder}', '${sortDir}')` : `openCharDetail('${c.id}', 'select', ${isOnline}, '${sortOrder}', '${sortDir}')`}" 
-                         class="pixel-box p-3 bg-slate-900 cursor-pointer flex flex-col items-center justify-between border-2 transition-all ${isSelected ? 'border-amber-400 bg-amber-950/40 scale-105 shadow-lg' : 'border-slate-700 hover:border-slate-400'} ${!isUnlocked ? 'opacity-60 grayscale' : ''}">
-                        <canvas id="select-cvs-${c.id}" width="115" height="115" class="pixel-box bg-slate-950 mb-1"></canvas>
-                        <span class="text-xs font-bold ${isSelected ? 'text-amber-300 font-pixel' : 'text-slate-200'}">${c.name}</span>
-                        <span class="text-[10px] text-slate-400 truncate max-w-full">${c.title}</span>
+                         class="pixel-box p-2 sm:p-3 bg-slate-900 cursor-pointer flex flex-col items-center justify-between border-2 transition-all ${isSelected ? 'border-amber-400 bg-amber-950/40 scale-105 shadow-lg' : 'border-slate-700 hover:border-slate-400'} ${!isUnlocked ? 'opacity-60 grayscale' : ''}">
+                        <canvas id="select-cvs-${c.id}" width="95" height="95" class="pixel-box bg-slate-950 mb-1 w-16 h-16 sm:w-24 sm:h-24"></canvas>
+                        <span class="text-[11px] sm:text-xs font-bold ${isSelected ? 'text-amber-300 font-pixel' : 'text-slate-200'} truncate max-w-full">${c.name}</span>
+                        <span class="text-[9px] text-slate-400 truncate max-w-full">${c.title}</span>
                         ${statDisplay}
-                        ${!isUnlocked ? '<span class="text-[10px] text-red-400 font-bold mt-1">🔒 未解放</span>' : (isSelected ? '<span class="text-[10px] text-amber-400 font-bold mt-1">✨ 選択中</span>' : '')}
+                        ${!isUnlocked ? '<span class="text-[9px] text-red-400 font-bold mt-0.5">🔒 未解放</span>' : (isSelected ? '<span class="text-[9px] text-amber-400 font-pixel font-bold mt-0.5">✨ 選択中</span>' : '')}
                     </div>
                 `;
             });
 
             html += `
                     </div>
-                    <div id="char-detail-box" class="pixel-box p-3 bg-slate-900 w-full mb-4 text-xs text-slate-300"></div>
-                    <div class="flex gap-3 w-full justify-center">
-                        <button onclick="renderHomeScreen()" class="pixel-btn px-4 py-2 text-xs">ホームに戻る</button>
-                        <button onclick="${isOnline ? 'openOnlineLobby()' : 'startBotBattle()'}" class="pixel-btn pixel-btn-primary px-6 py-2 text-sm font-bold">
+                    <div id="char-detail-box" class="pixel-box p-2.5 sm:p-3 bg-slate-900 w-full mb-2 sm:mb-4 text-xs text-slate-300"></div>
+                    <div class="flex gap-3 w-full justify-center pb-2">
+                        <button onclick="renderHomeScreen()" class="pixel-btn px-4 py-1.5 sm:py-2 text-xs">ホームに戻る</button>
+                        <button onclick="${isOnline ? 'openOnlineLobby()' : 'startBotBattle()'}" class="pixel-btn pixel-btn-primary px-6 py-1.5 sm:py-2 text-xs sm:text-sm font-bold">
                             ${isOnline ? 'ロビーへ進む 🚀' : '対戦開始！ ⚔'}
                         </button>
                     </div>
