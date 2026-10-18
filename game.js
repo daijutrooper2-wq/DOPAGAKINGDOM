@@ -640,13 +640,13 @@ static drawDopagaking(p, isCharged) {
             if (titleEl) titleEl.innerText = "🌟 ファイター登録";
             if (bodyEl) {
                 bodyEl.innerHTML = `
-                    <div class="text-center space-y-3 py-2">
-                        <div class="text-left mb-3">
+                    <div class="text-center space-y-2 py-1">
+                        <div class="text-left mb-2">
                             <label class="text-xs text-amber-300 font-bold block mb-1">あなたのファイター名を入力してください：</label>
-                            <input id="first-name-input" type="text" value="${playerState.playerName || '名無しファイター'}" maxlength="12" class="pixel-box bg-slate-950 px-3 py-2 text-sm font-bold text-amber-300 w-full outline-none border-amber-600">
+                            <input id="first-name-input" type="text" value="${playerState.playerName || '名無しファイター'}" maxlength="12" class="pixel-box bg-slate-950 px-3 py-1.5 text-sm font-bold text-amber-300 w-full outline-none border-amber-600">
                         </div>
-                        <p class="text-xs text-amber-300 font-bold font-pixel">🎉 新規プレイヤー特典！ 🎉</p>
-                        <p class="text-xs text-slate-200 leading-relaxed font-mono">
+                        <p class="text-[11px] text-amber-300 font-bold font-pixel">🎉 新規プレイヤー特典！ 🎉</p>
+                        <p class="text-[11px] text-slate-200 leading-normal font-mono">
                             ドパガキングダムへようこそ！<br>
                             新規特典として <b class="text-amber-400">1000 DOPA</b> をプレゼントしました！
                         </p>
@@ -3866,6 +3866,13 @@ case 'dopa_juggler_skill':
                                 🔄 最新版に更新
                             </button>
                         </div>
+
+                        <div class="flex justify-between items-center bg-slate-950 p-2 rounded border border-slate-800">
+                            <span class="text-slate-300 font-bold">データ初期化:</span>
+                            <button onclick="confirmResetPlayerProfile()" class="pixel-btn pixel-btn-danger text-xs px-3 py-1 font-bold">
+                                🗑️ データを初期化
+                            </button>
+                        </div>
                     </div>
                 `;
             }
@@ -4826,7 +4833,7 @@ case 'dopa_juggler_skill':
 
         function confirmResetPlayerProfile() {
             audioSystem.playSelect();
-            showConfirmModal("データ初期化の確認", "【注意】これまでのDOPA、所持キャラクター、アイコン、戦績などのプレイデータがすべて消去され、初期状態に戻ります。\n\n（※この初期化はこの端末・アカウントのデータのみに適用され、他のプレイヤーには一切影響しません）\n\n本当にデータを初期化しますか？", () => {
+            showConfirmModal("データ初期化の確認", "本当にすべてのデータを初期化しますか？（※元に戻せません）", () => {
                 executeResetPlayerProfile();
             }, "初期化する");
         }
