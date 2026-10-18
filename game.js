@@ -3419,8 +3419,8 @@ case 'dopa_juggler_skill':
                     audioSystem.playDefeat();
                     stage.innerHTML += `
                         <div id="battle-result-overlay" class="fixed inset-0 bg-black z-[9999] flex flex-col items-center justify-center p-6 text-center opacity-0 transition-opacity duration-1000">
-                            <div class="text-3xl sm:text-5xl font-pixel font-black text-red-500 mb-3 animate-pulse">LOSE / 敗北</div>
-                            <p class="text-xs sm:text-sm text-slate-300 font-mono mb-6">力尽きてしまいました……次こそは勝利を掴もう！</p>
+                            <div class="text-4xl sm:text-6xl font-pixel font-black text-red-500 mb-3 animate-pulse">LOSE</div>
+                            <p class="text-xs sm:text-sm text-slate-300 font-mono mb-6">力尽きてしまいました……次こそは勝利を掴ろう！</p>
                             <button onclick="renderNewBattleCharSelectScreen()" class="pixel-btn pixel-btn-primary px-8 py-3 text-sm font-bold font-pixel shadow-xl">
                                 バトル選択画面へ戻る ▶
                             </button>
@@ -3436,7 +3436,7 @@ case 'dopa_juggler_skill':
                     stage.innerHTML += `
                         <div id="battle-result-overlay" class="fixed inset-0 bg-black/90 z-[9999] flex flex-col items-center justify-center p-6 text-center animate-cutin">
                             <div class="pixel-box-gold p-8 bg-amber-950/95 border-amber-400 shadow-2xl max-w-md w-full flex flex-col items-center">
-                                <div class="text-3xl sm:text-5xl font-pixel font-black text-amber-300 mb-2 animate-bounce">WIN / 勝利</div>
+                                <div class="text-4xl sm:text-6xl font-pixel font-black text-amber-300 mb-2 animate-bounce">WIN</div>
                                 <p class="text-xs sm:text-sm text-amber-200 font-mono mb-4">お見事！見事に勝利を収めました！<br><b class="text-amber-400">+150 DOPA</b> を獲得！</p>
                                 <button onclick="renderNewBattleCharSelectScreen()" class="pixel-btn pixel-btn-primary px-8 py-3 text-sm font-bold font-pixel shadow-xl">
                                     バトル選択画面へ戻る ▶
@@ -3448,7 +3448,7 @@ case 'dopa_juggler_skill':
                     stage.innerHTML += `
                         <div id="battle-result-overlay" class="fixed inset-0 bg-black/90 z-[9999] flex flex-col items-center justify-center p-6 text-center animate-cutin">
                             <div class="pixel-box p-8 bg-slate-900 border-yellow-400 shadow-2xl max-w-md w-full flex flex-col items-center">
-                                <div class="text-2xl sm:text-4xl font-pixel font-black text-yellow-300 mb-2">DRAW / 引き分け</div>
+                                <div class="text-2xl sm:text-4xl font-pixel font-black text-yellow-300 mb-2">DRAW</div>
                                 <p class="text-xs sm:text-sm text-slate-300 font-mono mb-4">相討ちとなりました！</p>
                                 <button onclick="renderNewBattleCharSelectScreen()" class="pixel-btn pixel-btn-primary px-8 py-3 text-sm font-bold font-pixel shadow-xl">
                                     バトル選択画面へ戻る ▶
@@ -3545,44 +3545,44 @@ case 'dopa_juggler_skill':
                 `;
             } else {
                 leftAreaContent = `
-                    <!-- 2. 敵キャラクター（相手） + 敵のHPゲージ (サイズ大きめ) -->
-                    <div class="flex flex-col items-center mt-4">
-                        <div class="flex items-center gap-4 p-2">
-                            <div class="w-24 h-24 sm:w-32 sm:h-32 flex items-center justify-center overflow-hidden">
+                    <!-- 2. 敵キャラクター（相手） + 敵のHPゲージ (少し上へ配置してログスペース確保) -->
+                    <div class="flex flex-col items-center mt-1">
+                        <div class="flex items-center gap-4 px-2 py-1">
+                            <div class="w-20 h-20 sm:w-28 sm:h-28 flex items-center justify-center overflow-hidden">
                                 <img id="new-enemy-img" src="${eImg}" alt="Enemy" class="w-full h-full object-contain">
                             </div>
-                            <div class="flex flex-col gap-1 w-40 sm:w-48">
+                            <div class="flex flex-col gap-1 w-36 sm:w-44">
                                 <div class="flex justify-between text-[10px] sm:text-xs text-slate-300 font-bold">
                                     <span id="new-enemy-name">${p2.charName}</span>
                                     <span><span id="new-enemy-hp">${p2.hp}</span> / <span id="new-enemy-maxhp">${p2.maxHp}</span></span>
                                 </div>
-                                <div class="w-full bg-slate-950 h-3 border border-slate-700 rounded overflow-hidden">
+                                <div class="w-full bg-slate-950 h-2.5 border border-slate-700 rounded overflow-hidden">
                                     <div id="new-enemy-hp-bar" class="bg-red-500 h-full hp-bar-fill" style="width: ${ePercent}%;"></div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 3. プレイヤーキャラクター（自分） + 自分のHP (サイズ大きめ) -->
-                    <div class="flex flex-col items-center mb-2">
-                        <div class="flex items-center gap-4 p-2">
-                            <div class="flex flex-col gap-1 w-40 sm:w-48">
+                    <!-- 3. プレイヤーキャラクター（自分） + 自分のHP (少し上へ配置してログスペース確保) -->
+                    <div class="flex flex-col items-center mb-1">
+                        <div class="flex items-center gap-4 px-2 py-1">
+                            <div class="flex flex-col gap-1 w-36 sm:w-44">
                                 <div class="flex justify-between text-[10px] sm:text-xs text-slate-300 font-bold">
                                     <span id="new-player-name">${p1.charName}</span>
                                     <span><span id="new-player-hp">${p1.hp}</span> / <span id="new-player-maxhp">${p1.maxHp}</span></span>
                                 </div>
-                                <div class="w-full bg-slate-950 h-3 border border-slate-700 rounded overflow-hidden">
+                                <div class="w-full bg-slate-950 h-2.5 border border-slate-700 rounded overflow-hidden">
                                     <div id="new-player-hp-bar" class="bg-emerald-500 h-full hp-bar-fill" style="width: ${pPercent}%;"></div>
                                 </div>
                             </div>
-                            <div onclick="if(activeNewBattle && activeNewBattle.p1.id === 'courtney') { executeNewBattleCourtneyCharge(); }" class="w-32 h-32 sm:w-40 sm:h-40 flex items-center justify-center overflow-hidden ${p1.id === 'courtney' ? 'cursor-pointer hover:scale-105 transition-transform' : ''}" title="${p1.id === 'courtney' ? 'タップしてチャージ！' : ''}">
+                            <div onclick="if(activeNewBattle && activeNewBattle.p1.id === 'courtney') { executeNewBattleCourtneyCharge(); }" class="w-28 h-28 sm:w-36 sm:h-36 flex items-center justify-center overflow-hidden ${p1.id === 'courtney' ? 'cursor-pointer hover:scale-105 transition-transform' : ''}" title="${p1.id === 'courtney' ? 'タップしてチャージ！' : ''}">
                                 <img id="new-player-img" src="${pImg}" alt="Player" class="w-full h-full object-contain">
                             </div>
                         </div>
                     </div>
 
-                    <!-- 4. バトルログ -->
-                    <div class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs font-mono text-slate-200 h-16 overflow-y-auto" id="new-battle-log">
+                    <!-- 4. バトルログ (高さを確保してしっかりスクロール・視認可能に) -->
+                    <div class="w-full bg-slate-900 border border-slate-700 rounded p-2.5 text-xs font-mono text-slate-200 h-24 sm:h-32 overflow-y-auto shadow-inner flex-shrink-0" id="new-battle-log">
                         ${(activeNewBattle.currentTurnLogs && activeNewBattle.currentTurnLogs.length > 0) ? activeNewBattle.currentTurnLogs.map(l => l.msg).join('<br>') : "新規バトルモードが開始しました！コマンドを選択してください。"}
                     </div>
                 `;
@@ -4329,6 +4329,56 @@ case 'dopa_juggler_skill':
                 const footer = document.getElementById('battle-footer-actions');
                 if (footer) footer.classList.remove('hidden');
                 updateBattleUI();
+
+                setTimeout(() => {
+                    const stage = document.getElementById('screen-container');
+                    if (!stage) return;
+
+                    const p1 = activeBattle.p1;
+                    const p2 = activeBattle.p2;
+                    const isP1Win = (activeBattle.isOnline && activeBattle.myPlayerNum === 2) ? (p2.hp <= 0 && p1.hp > 0 || p2.hp < p1.hp) : (p2.hp <= 0 && p1.hp > 0);
+                    const isP1Lose = (activeBattle.isOnline && activeBattle.myPlayerNum === 2) ? (p1.hp <= 0 && p2.hp > 0 || p1.hp < p2.hp) : (p1.hp <= 0 && p2.hp > 0);
+
+                    if (isP1Lose && !isP1Win) {
+                        stage.innerHTML += `
+                            <div id="battle-result-overlay" class="fixed inset-0 bg-black z-[9999] flex flex-col items-center justify-center p-6 text-center opacity-0 transition-opacity duration-1000">
+                                <div class="text-4xl sm:text-6xl font-pixel font-black text-red-500 mb-3 animate-pulse">LOSE</div>
+                                <p class="text-xs sm:text-sm text-slate-300 font-mono mb-6">力尽きてしまいました……次こそは勝利を掴ろう！</p>
+                                <button onclick="renderBotModesScreen()" class="pixel-btn pixel-btn-primary px-8 py-3 text-sm font-bold font-pixel shadow-xl">
+                                    バトル選択画面へ戻る ▶
+                                </button>
+                            </div>
+                        `;
+                        setTimeout(() => {
+                            const overlay = document.getElementById('battle-result-overlay');
+                            if (overlay) overlay.classList.remove('opacity-0');
+                        }, 50);
+                    } else if (isP1Win) {
+                        stage.innerHTML += `
+                            <div id="battle-result-overlay" class="fixed inset-0 bg-black/90 z-[9999] flex flex-col items-center justify-center p-6 text-center animate-cutin">
+                                <div class="pixel-box-gold p-8 bg-amber-950/95 border-amber-400 shadow-2xl max-w-md w-full flex flex-col items-center">
+                                    <div class="text-4xl sm:text-6xl font-pixel font-black text-amber-300 mb-2 animate-bounce">WIN</div>
+                                    <p class="text-xs sm:text-sm text-amber-200 font-mono mb-4">お見事！見事に勝利を収めました！<br><b class="text-amber-400">+100 DOPA</b> を獲得！</p>
+                                    <button onclick="renderBotModesScreen()" class="pixel-btn pixel-btn-primary px-8 py-3 text-sm font-bold font-pixel shadow-xl">
+                                        バトル選択画面へ戻る ▶
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        stage.innerHTML += `
+                            <div id="battle-result-overlay" class="fixed inset-0 bg-black/90 z-[9999] flex flex-col items-center justify-center p-6 text-center animate-cutin">
+                                <div class="pixel-box p-8 bg-slate-900 border-yellow-400 shadow-2xl max-w-md w-full flex flex-col items-center">
+                                    <div class="text-2xl sm:text-4xl font-pixel font-black text-yellow-300 mb-2">DRAW</div>
+                                    <p class="text-xs sm:text-sm text-slate-300 font-mono mb-4">相討ちとなりました！</p>
+                                    <button onclick="renderBotModesScreen()" class="pixel-btn pixel-btn-primary px-8 py-3 text-sm font-bold font-pixel shadow-xl">
+                                        バトル選択画面へ戻る ▶
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }, 1000);
             };
 
             activeBattle.startBattle();
