@@ -1596,22 +1596,27 @@ static drawDopagaking(p, isCharged) {
             }
 
             let html = `
-                <div id="zukan-detail-wrapper" class="w-full flex flex-col items-center max-w-5xl mx-auto py-2 px-3">
-                    <div class="flex justify-between items-center w-full mb-3">
+                <div id="zukan-detail-wrapper" class="w-full flex flex-col items-center max-w-5xl mx-auto py-2 px-3 h-full max-h-[88vh]">
+                    <div class="flex justify-between items-center w-full mb-2 flex-shrink-0">
                         <button onclick="${backAction}" class="pixel-btn px-3 py-1 text-xs">${backLabel}</button>
                         <span class="text-xs font-bold text-amber-300 font-pixel">📖 キャラクター詳細図鑑</span>
                         <div></div>
                     </div>
 
-                    <div class="pixel-box-gold p-4 sm:p-6 bg-amber-950/90 w-full relative">
-                        <div class="absolute top-3 right-3 text-xs font-mono font-bold px-2.5 py-1 rounded border ${isUnlocked ? 'bg-emerald-950 text-emerald-300 border-emerald-600' : 'bg-red-950 text-red-300 border-red-600'}">
-                            ${isUnlocked ? '✨ 所持済み' : '🔒 未所持'}
-                        </div>
+                    <div class="pixel-box-gold p-4 sm:p-6 bg-amber-950/90 w-full flex-1 flex flex-col md:flex-row gap-6 relative min-h-0 overflow-hidden">
+                        <!-- Left Column: Icon, Basic Info & Select Button (Fixed Display Area) -->
+                        <div class="w-full md:w-[320px] lg:w-[360px] flex flex-col items-center flex-shrink-0 relative">
+                            <div class="absolute top-0 right-0 text-xs font-mono font-bold px-2.5 py-1 rounded border ${isUnlocked ? 'bg-emerald-950 text-emerald-300 border-emerald-600' : 'bg-red-950 text-red-300 border-red-600'}">
+                                ${isUnlocked ? '✨ 所持済み' : '🔒 未所持'}
+                            </div>
 
-                        <div class="flex flex-col md:flex-row gap-6 w-full items-start mt-2">
-                            <!-- Left Column: Icon & Select Button -->
-                            <div class="w-full md:w-1/3 flex flex-col items-center gap-4 flex-shrink-0">
-                                <canvas id="zukan-detail-cvs" width="180" height="180" class="pixel-box bg-slate-950 shadow-xl border-2 border-amber-500 w-36 h-36 sm:w-44 sm:h-44"></canvas>
+                            <canvas id="zukan-detail-cvs" width="180" height="180" class="pixel-box bg-slate-950 shadow-xl border-2 border-amber-500 w-32 h-32 sm:w-40 sm:h-40 mb-3 mt-1"></canvas>
+                            
+                            <div class="text-center w-full mb-4">
+                                <h2 class="text-lg sm:text-xl font-bold text-amber-300 font-pixel mb-1">${c.name}</h2>
+                                <p class="text-xs sm:text-sm text-amber-200 mb-1">${c.title}</p>
+                                <p class="text-[11px] text-slate-300">${isExtra ? 'プロフィールアイコン / チャージアイテム' : c.type}</p>
+                            </div>
             `;
 
             if (returnSource === 'select' && !isExtra) {
@@ -1622,13 +1627,13 @@ static drawDopagaking(p, isCharged) {
                 if (isUnlocked) {
                     const isSelected = playerState.selectedPlayerChar === c.id;
                     html += `
-                        <button onclick="playerState.selectedPlayerChar = '${c.id}'; savePlayerState(); renderCharacterSelectScreen(${isOnline}, '${sortOrder}', '${sortDir}', ${onlyOwned});" class="pixel-btn ${isSelected ? 'pixel-btn-success' : 'pixel-btn-primary'} w-full py-3 font-bold text-xs sm:text-sm shadow-lg">
+                        <button onclick="playerState.selectedPlayerChar = '${c.id}'; savePlayerState(); renderCharacterSelectScreen(${isOnline}, '${sortOrder}', '${sortDir}', ${onlyOwned});" class="pixel-btn ${isSelected ? 'pixel-btn-success' : 'pixel-btn-primary'} w-full py-2.5 font-bold text-xs sm:text-sm shadow-lg mt-auto">
                             ${isSelected ? '✨ 選択中 (戻る)' : '⚔ このキャラで出陣'}
                         </button>
                     `;
                 } else {
                     html += `
-                        <div class="w-full text-center py-2.5 text-xs text-red-400 font-bold bg-slate-950 rounded border border-red-900">
+                        <div class="w-full text-center py-2 text-xs text-red-400 font-bold bg-slate-950 rounded border border-red-900 mt-auto">
                             🔒 未所持 (ガチャで入手)
                         </div>
                     `;
@@ -1636,38 +1641,33 @@ static drawDopagaking(p, isCharged) {
             }
 
             html += `
-                            </div>
+                        </div>
 
-                            <!-- Right Column: Details, Stats, Description, Skills -->
-                            <div class="w-full md:flex-1 flex flex-col gap-4 min-w-0">
-                                <div>
-                                    <h2 class="text-xl sm:text-2xl font-bold text-amber-300 font-pixel mb-1">${c.name}</h2>
-                                    <p class="text-xs sm:text-sm text-amber-200">${c.title}</p>
-                                    <p class="text-[11px] text-slate-300 mt-0.5">${isExtra ? 'プロフィールアイコン / チャージアイテム' : c.type}</p>
-                                </div>
+                        <!-- Right Column: Details, Stats, Description, Skills (Vertical Scrolling Area) -->
+                        <div class="w-full md:flex-1 flex flex-col gap-3 min-w-0 overflow-y-auto pr-2 h-full">
             `;
 
             if (!isExtra) {
                 html += `
-                                <div class="w-full bg-slate-950 p-3.5 rounded border border-amber-800 space-y-2 text-xs font-mono">
-                                    <div class="text-amber-300 font-bold mb-1.5 border-b border-amber-900 pb-1">📊 ステータス</div>
-                                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                                        <div class="flex justify-between bg-slate-900 p-1.5 rounded"><span class="text-slate-400">HP:</span><span class="text-emerald-400 font-bold">${c.hp}</span></div>
-                                        <div class="flex justify-between bg-slate-900 p-1.5 rounded"><span class="text-slate-400">攻撃力:</span><span class="text-red-400 font-bold">${c.atk}</span></div>
-                                        <div class="flex justify-between bg-slate-900 p-1.5 rounded"><span class="text-slate-400">防御力:</span><span class="text-blue-400 font-bold">${c.def}</span></div>
-                                        <div class="flex justify-between bg-slate-900 p-1.5 rounded"><span class="text-slate-400">クリ率:</span><span class="text-yellow-400 font-bold">${Math.round(c.critRate * 100)}%</span></div>
-                                        <div class="flex justify-between bg-slate-900 p-1.5 rounded col-span-2 sm:col-span-2"><span class="text-slate-400">回避率:</span><span class="text-purple-400 font-bold">${c.eva}%</span></div>
-                                    </div>
+                            <div class="w-full bg-slate-950 p-3.5 rounded border border-amber-800 space-y-2 text-xs font-mono flex-shrink-0">
+                                <div class="text-amber-300 font-bold mb-1.5 border-b border-amber-900 pb-1">📊 ステータス</div>
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                                    <div class="flex justify-between bg-slate-900 p-1.5 rounded"><span class="text-slate-400">HP:</span><span class="text-emerald-400 font-bold">${c.hp}</span></div>
+                                    <div class="flex justify-between bg-slate-900 p-1.5 rounded"><span class="text-slate-400">攻撃力:</span><span class="text-red-400 font-bold">${c.atk}</span></div>
+                                    <div class="flex justify-between bg-slate-900 p-1.5 rounded"><span class="text-slate-400">防御力:</span><span class="text-blue-400 font-bold">${c.def}</span></div>
+                                    <div class="flex justify-between bg-slate-900 p-1.5 rounded"><span class="text-slate-400">クリ率:</span><span class="text-yellow-400 font-bold">${Math.round(c.critRate * 100)}%</span></div>
+                                    <div class="flex justify-between bg-slate-900 p-1.5 rounded col-span-2 sm:col-span-2"><span class="text-slate-400">回避率:</span><span class="text-purple-400 font-bold">${c.eva}%</span></div>
                                 </div>
+                            </div>
 
-                                <div class="w-full bg-slate-950 p-3.5 rounded border border-amber-800 space-y-2 text-xs font-mono">
-                                    <div class="text-amber-300 font-bold mb-1.5 border-b border-amber-900 pb-1">📖 キャラクター解説</div>
-                                    <p class="text-slate-200 leading-relaxed whitespace-pre-line">${c.zukanDesc || c.desc}</p>
-                                </div>
+                            <div class="w-full bg-slate-950 p-3.5 rounded border border-amber-800 space-y-2 text-xs font-mono flex-shrink-0">
+                                <div class="text-amber-300 font-bold mb-1.5 border-b border-amber-900 pb-1">📖 キャラクター解説</div>
+                                <p class="text-slate-200 leading-relaxed whitespace-pre-line">${c.zukanDesc || c.desc}</p>
+                            </div>
 
-                                <div class="w-full bg-slate-950 p-3.5 rounded border border-amber-800 space-y-2 text-xs font-mono">
-                                    <div class="text-amber-300 font-bold mb-1.5 border-b border-amber-900 pb-1">⚔ 所持スキル</div>
-                                    <div class="space-y-2 max-h-44 overflow-y-auto pr-1">
+                            <div class="w-full bg-slate-950 p-3.5 rounded border border-amber-800 space-y-2 text-xs font-mono flex-shrink-0">
+                                <div class="text-amber-300 font-bold mb-1.5 border-b border-amber-900 pb-1">⚔ 所持スキル</div>
+                                <div class="space-y-2">
                 `;
 
                 c.skills.forEach(s => {
@@ -1683,15 +1683,14 @@ static drawDopagaking(p, isCharged) {
                 html += `</div></div>`;
             } else {
                 html += `
-                                <div class="w-full bg-slate-950 p-3.5 rounded border border-amber-800 space-y-2 text-xs font-mono">
-                                    <div class="text-amber-300 font-bold mb-1.5 border-b border-amber-900 pb-1">📖 アイテム解説</div>
-                                    <p class="text-slate-200 leading-relaxed whitespace-pre-line">ドパガキングダムの特別なチャージアイコン・記念アイテムです。プロフィールアイコンとして設定してアピールできます！</p>
-                                </div>
+                            <div class="w-full bg-slate-950 p-3.5 rounded border border-amber-800 space-y-2 text-xs font-mono flex-shrink-0">
+                                <div class="text-amber-300 font-bold mb-1.5 border-b border-amber-900 pb-1">📖 アイテム解説</div>
+                                <p class="text-slate-200 leading-relaxed whitespace-pre-line">ドパガキングダムの特別なチャージアイコン・記念アイテムです。プロフィールアイコンとして設定してアピールできます！</p>
+                            </div>
                 `;
             }
 
             html += `
-                            </div>
                         </div>
                     </div>
                 </div>
