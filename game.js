@@ -4594,22 +4594,27 @@ case 'dopa_juggler_skill':
             let usageHtml = '';
             const totalChoices = Object.values(playerState.charUsage).reduce((a, b) => a + b, 0);
             if (totalChoices === 0) {
-                usageHtml = `<p class="text-slate-400 text-xs">使用記録なし</p>`;
+                usageHtml = `<p class="text-slate-400 text-xs text-center py-6">使用記録はありません</p>`;
             } else {
-                usageHtml = `<div class="grid grid-cols-1 gap-1.5 w-full">`;
-                Object.entries(playerState.charUsage).forEach(([cId, count]) => {
+                usageHtml = `<div class="space-y-2 pr-1">`;
+                Object.entries(playerState.charUsage).sort((a, b) => b[1] - a[1]).forEach(([cId, count]) => {
                     const cData = CHARACTER_DATA[cId] || { name: cId };
                     const rate = ((count / totalChoices) * 100).toFixed(1);
                     usageHtml += `
-                        <div class="pixel-box p-2 bg-slate-900 flex items-center justify-between text-xs">
-                            <div class="flex items-center gap-2">
-                                 <canvas id="usage-cvs-${cId}" width="36" height="36" class="pixel-box bg-slate-950 rounded"></canvas>
+                        <div class="pixel-box p-3 bg-slate-950 flex items-center justify-between text-xs">
+                            <div class="flex items-center gap-3">
+                                <canvas id="usage-cvs-${cId}" width="48" height="48" class="pixel-box bg-slate-900 rounded shrink-0"></canvas>
                                 <div>
-                                    <b class="text-amber-300">${cData.name}</b>
-                                    <div class="text-[10px] text-slate-400">回数: ${count}回</div>
+                                    <b class="text-amber-300 text-sm font-bold">${cData.name}</b>
+                                    <div class="text-[11px] text-slate-400 font-mono">使用回数: ${count}回</div>
                                 </div>
                             </div>
-                            <span class="text-emerald-400 font-bold font-mono">${rate}%</span>
+                            <div class="text-right font-mono">
+                                <div class="text-emerald-400 font-bold text-sm">${rate}%</div>
+                                <div class="w-20 bg-slate-950 rounded-full h-1.5 mt-1 border border-slate-800 overflow-hidden">
+                                    <div class="bg-emerald-500 h-full rounded-full" style="width: ${rate}%"></div>
+                                </div>
+                            </div>
                         </div>
                     `;
                 });
@@ -4652,60 +4657,57 @@ case 'dopa_juggler_skill':
                     </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 w-full flex-1 min-h-0 items-stretch">
-                        <!-- 左側エリア：プロフィール・勝利数等 ＆ キャラクター使用率切替 -->
+                        <!-- 左側エリア：プロフィール・勝利数等 ＆ 切り替えボタン -->
                         <div class="flex flex-col space-y-2.5 overflow-y-auto max-h-full pr-1">
-                            <div class="pixel-box-gold p-3 bg-amber-950/80 w-full space-y-2.5">
-                                <div class="flex items-center gap-3 w-full">
-                                    <div class="flex flex-col items-center gap-1 shrink-0">
-                                        <canvas id="profile-main-icon" width="56" height="56" class="pixel-box bg-slate-950 rounded cursor-pointer border-amber-400 w-14 h-14" onclick="openIconSelectModal()" title="クリックしてアイコン変更"></canvas>
-                                        <button onclick="openIconSelectModal()" class="pixel-btn pixel-btn-primary px-2 py-0.5 text-[9px] font-bold">変更</button>
+                            <div class="pixel-box-gold p-4 bg-amber-950/80 w-full space-y-3">
+                                <div class="flex items-center gap-4 w-full">
+                                    <div class="flex flex-col items-center gap-1.5 shrink-0">
+                                        <canvas id="profile-main-icon" width="80" height="80" class="pixel-box bg-slate-950 rounded cursor-pointer border-2 border-amber-400 w-20 h-20 shadow-lg" onclick="openIconSelectModal()" title="クリックしてアイコン変更"></canvas>
+                                        <button onclick="openIconSelectModal()" class="pixel-btn pixel-btn-primary px-3 py-1 text-[10px] font-bold">変更</button>
                                     </div>
-                                    <div class="flex flex-col justify-center space-y-1 text-left flex-1 min-w-0">
+                                    <div class="flex flex-col justify-center space-y-1.5 text-left flex-1 min-w-0">
                                         <div class="flex items-center gap-1.5 flex-wrap">
-                                            <input id="profile-name-input" type="text" value="${playerState.playerName || ''}" maxlength="12" class="pixel-box bg-slate-950 px-2 py-0.5 text-xs font-bold text-amber-300 w-28 sm:w-32 outline-none border-amber-600">
-                                            <button onclick="savePlayerName()" class="pixel-btn pixel-btn-primary px-2 py-0.5 text-[10px] font-bold shrink-0">保存</button>
+                                            <input id="profile-name-input" type="text" value="${playerState.playerName || ''}" maxlength="12" class="pixel-box bg-slate-950 px-2.5 py-1 text-sm font-bold text-amber-300 w-32 sm:w-40 outline-none border-amber-600">
+                                            <button onclick="savePlayerName()" class="pixel-btn pixel-btn-primary px-2.5 py-1 text-xs font-bold shrink-0">保存</button>
                                         </div>
-                                        <span class="text-[10px] text-slate-300 font-mono">ID: ${playerState.playerId || 'DP-1004'}</span>
+                                        <span class="text-xs text-slate-300 font-mono">ID: ${playerState.playerId || 'DP-1004'}</span>
                                     </div>
                                 </div>
 
-                                <div class="flex flex-col justify-center space-y-1.5 w-full font-mono text-xs border-t border-amber-800/60 pt-2">
+                                <div class="flex flex-col justify-center space-y-2 w-full font-mono text-xs border-t border-amber-800/60 pt-3">
                                     <div class="flex justify-between items-center">
-                                        <span class="text-[10px] text-slate-300">始めた日: <b class="text-amber-300">${playerState.startDate || '2026/10/14'}</b></span>
-                                        <span class="text-[10px] text-amber-200">DOPA: <b class="text-amber-400 font-pixel">${formatDopa(playerState.dopa)}</b></span>
+                                        <span class="text-xs text-slate-300">始めた日: <b class="text-amber-300">${playerState.startDate || '2026/10/14'}</b></span>
+                                        <span class="text-xs text-amber-200">DOPA: <b class="text-amber-400 font-pixel">${formatDopa(playerState.dopa)}</b></span>
                                     </div>
-                                    <div class="grid grid-cols-4 gap-1.5 text-center text-xs">
-                                        <div class="bg-slate-950 px-1 py-1 rounded border border-amber-800/50">
-                                            <div class="text-slate-400 text-[9px]">総対戦</div>
-                                            <div class="text-amber-300 font-bold">${playerState.totalBattles}</div>
+                                    <div class="grid grid-cols-4 gap-2 text-center text-xs">
+                                        <div class="bg-slate-950 px-1 py-1.5 rounded border border-amber-800/50">
+                                            <div class="text-slate-400 text-[10px]">総対戦</div>
+                                            <div class="text-amber-300 font-bold text-sm">${playerState.totalBattles}</div>
                                         </div>
-                                        <div class="bg-slate-950 px-1 py-1 rounded border border-amber-800/50">
-                                            <div class="text-slate-400 text-[9px]">勝利</div>
-                                            <div class="text-emerald-400 font-bold">${playerState.wins}</div>
+                                        <div class="bg-slate-950 px-1 py-1.5 rounded border border-amber-800/50">
+                                            <div class="text-slate-400 text-[10px]">勝利</div>
+                                            <div class="text-emerald-400 font-bold text-sm">${playerState.wins}</div>
                                         </div>
-                                        <div class="bg-slate-950 px-1 py-1 rounded border border-amber-800/50">
-                                            <div class="text-slate-400 text-[9px]">敗北</div>
-                                            <div class="text-red-400 font-bold">${playerState.losses}</div>
+                                        <div class="bg-slate-950 px-1 py-1.5 rounded border border-amber-800/50">
+                                            <div class="text-slate-400 text-[10px]">敗北</div>
+                                            <div class="text-red-400 font-bold text-sm">${playerState.losses}</div>
                                         </div>
-                                        <div class="bg-slate-950 px-1 py-1 rounded border border-amber-800/50">
-                                            <div class="text-slate-400 text-[9px]">勝率</div>
-                                            <div class="text-cyan-400 font-bold">${winRate}%</div>
+                                        <div class="bg-slate-950 px-1 py-1.5 rounded border border-amber-800/50">
+                                            <div class="text-slate-400 text-[10px]">勝率</div>
+                                            <div class="text-cyan-400 font-bold text-sm">${winRate}%</div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- キャラクター使用率ボタン＆表示エリア -->
-                            <div class="w-full">
-                                <button onclick="toggleProfileUsage()" class="pixel-btn pixel-btn-warning w-full py-2 text-xs font-bold flex items-center justify-between px-3">
-                                    <span>📊 キャラクター使用率表示</span>
-                                    <span class="bg-slate-950 px-2 py-0.5 rounded text-[10px]">${showUsage ? '▲ 閉じる' : '▼ 表示する'}</span>
+                            <!-- キャラクター使用率 / 過去の戦績 切り替えボタン -->
+                            <div class="w-full grid grid-cols-2 gap-2">
+                                <button onclick="setProfileTab('history')" class="pixel-btn ${!showUsage ? 'pixel-btn-primary border-amber-400' : 'bg-slate-800 text-slate-300 border-slate-700'} py-2 text-xs font-bold flex items-center justify-center gap-1.5">
+                                    <span>📜 過去の戦績</span>
                                 </button>
-                                ${showUsage ? `
-                                    <div class="pixel-box p-2.5 bg-slate-900 w-full space-y-1.5 mt-2 animate-cutin max-h-48 overflow-y-auto">
-                                        ${usageHtml}
-                                    </div>
-                                ` : ''}
+                                <button onclick="setProfileTab('usage')" class="pixel-btn ${showUsage ? 'pixel-btn-warning border-amber-400' : 'bg-slate-800 text-slate-300 border-slate-700'} py-2 text-xs font-bold flex items-center justify-center gap-1.5">
+                                    <span>📊 キャラ使用率</span>
+                                </button>
                             </div>
 
                             <div class="pt-2">
@@ -4713,11 +4715,11 @@ case 'dopa_juggler_skill':
                             </div>
                         </div>
 
-                        <!-- 右側エリア：上下スクロール可能な対戦履歴 -->
+                        <!-- 右側エリア：切り替え表示 (戦績 ⇔ キャラクター使用率) とスクロール対応 -->
                         <div class="pixel-box p-3 bg-slate-900 w-full flex flex-col h-full max-h-[calc(100vh-100px)] md:max-h-full">
-                            <h3 class="text-xs font-bold text-amber-300 font-pixel mb-2 flex-shrink-0">📜 過去の戦歴 (最大50件)</h3>
+                            <h3 class="text-xs font-bold text-amber-300 font-pixel mb-2 flex-shrink-0">${showUsage ? '📊 キャラクター使用率' : '📜 過去の戦歴 (最大50件)'}</h3>
                             <div class="flex-1 min-h-0 overflow-y-auto pr-1">
-                                ${historyHtml}
+                                ${showUsage ? usageHtml : historyHtml}
                             </div>
                         </div>
                     </div>
@@ -4740,6 +4742,12 @@ case 'dopa_juggler_skill':
         window.toggleProfileUsage = function() {
             audioSystem.playSelect();
             window._profileShowUsage = !window._profileShowUsage;
+            openProfileScreen();
+        };
+
+        window.setProfileTab = function(tabName) {
+            audioSystem.playSelect();
+            window._profileShowUsage = (tabName === 'usage');
             openProfileScreen();
         };
 
