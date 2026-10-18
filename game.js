@@ -3611,22 +3611,20 @@ case 'dopa_juggler_skill':
             container.innerHTML = `
                 <div class="w-full h-full flex flex-row overflow-hidden bg-slate-950 text-white relative select-none">
                     <!-- 画面左側：バトル環境描画エリア -->
-                    <div class="flex-1 flex flex-col justify-between p-3 pt-12 relative border-r-4 border-slate-700">
-                        <!-- 1. 左上の固定表示: ターン数 -->
-                        <div class="absolute top-2 left-2 z-10 text-xs font-mono bg-slate-900/90 px-3 py-1.5 rounded border border-slate-700 shadow-md flex items-center gap-1.5">
-                            <span>ターン:</span>
-                            <strong id="new-battle-turn" class="text-amber-400 font-pixel">${activeNewBattle.turn}</strong>
-                        </div>
-
-                        <!-- 2. 右上の固定表示: 制限時間 -->
-                        <div class="absolute top-2 right-2 z-10 text-xs font-mono bg-slate-900/90 px-3 py-1.5 rounded border border-slate-700 shadow-md flex items-center gap-1.5">
-                            <span>制限時間:</span>
-                            <strong id="new-battle-timer" class="text-emerald-400 font-pixel">${activeNewBattle.turnTimer}</strong>s
-                        </div>
-
-                        <!-- 3. 左下の固定表示: 「自分のターン」判別表示（仕様2・四隅の目立たない場所、画像やHPゲージへの直接装飾なし） -->
-                        <div class="absolute bottom-2 left-2 z-10 px-3 py-1.5 rounded text-xs font-mono font-bold shadow-md ${isMyTurn ? 'bg-emerald-950 text-emerald-300 border border-emerald-500 animate-pulse' : 'bg-slate-900 text-slate-400 border border-slate-700'}">
-                            ${isMyTurn ? '🟢 YOUR TURN (自分のターン)' : '⏳ 相手のターン / 待機中'}
+                    <div class="flex-1 flex flex-col justify-between p-3 pt-14 relative border-r-4 border-slate-700">
+                        <!-- 上部情報ヘッダーエリア（ターン数・自分の/相手のターン・制限時間） -->
+                        <div class="absolute top-2 left-2 right-2 z-10 flex items-center justify-between gap-2 text-xs font-mono bg-slate-900/95 px-3 py-1.5 rounded border border-slate-700 shadow-md">
+                            <div class="flex items-center gap-1.5">
+                                <span>ターン:</span>
+                                <strong id="new-battle-turn" class="text-amber-400 font-pixel">${activeNewBattle.turn}</strong>
+                            </div>
+                            <div class="px-2 py-0.5 rounded text-[11px] font-bold ${isMyTurn ? 'bg-emerald-950 text-emerald-300 border border-emerald-500 animate-pulse' : 'bg-slate-800 text-slate-400 border border-slate-600'}">
+                                ${isMyTurn ? '🟢 自分のターン' : '⏳ 相手のターン'}
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <span>制限:</span>
+                                <strong id="new-battle-timer" class="text-emerald-400 font-pixel">${activeNewBattle.turnTimer}</strong>s
+                            </div>
                         </div>
 
                         ${leftAreaContent}
@@ -3649,15 +3647,10 @@ case 'dopa_juggler_skill':
                                 <span>🏃 逃げる</span>
                                 <span class="text-[10px] text-red-200">撤退</span>
                             </button>
-                            <div class="flex gap-2 w-full items-center">
-                                <button onclick="executeNewBattleAction('setting')" class="flex-1 pixel-btn pixel-btn-warning py-2 px-3 text-xs font-bold text-left flex items-center justify-between">
-                                    <span>⚙️ セッティング</span>
-                                    <span class="text-[10px] text-amber-200">設定</span>
-                                </button>
-                                <button onclick="forceReloadApp()" class="pixel-btn pixel-btn-warning py-2 px-2 text-xs font-bold shrink-0 flex items-center justify-center shadow-md" title="最新状態に更新">
-                                    🔄
-                                </button>
-                            </div>
+                            <button onclick="executeNewBattleAction('setting')" class="w-full pixel-btn pixel-btn-warning py-2 px-3 text-xs font-bold text-left flex items-center justify-between">
+                                <span>⚙️ セッティング</span>
+                                <span class="text-[10px] text-amber-200">設定</span>
+                            </button>
                         </div>
 
                         <!-- 下部：プレイヤー情報パネル（大型化・バランス調整：仕様4） -->
@@ -4327,10 +4320,6 @@ case 'dopa_juggler_skill':
                             <div id="skill-buttons-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                             </div>
                         </div>
-
-                        <div id="battle-footer-actions" class="flex justify-center hidden">
-                            <button onclick="renderHomeScreen()" class="pixel-btn pixel-btn-primary px-8 py-2 font-pixel text-xs">ホームに戻る</button>
-                        </div>
                     </div>
 
                 </div>
@@ -4371,8 +4360,6 @@ case 'dopa_juggler_skill':
             };
 
             activeBattle.onBattleEnd = (winner) => {
-                const footer = document.getElementById('battle-footer-actions');
-                if (footer) footer.classList.remove('hidden');
                 updateBattleUI();
 
                 setTimeout(() => {
