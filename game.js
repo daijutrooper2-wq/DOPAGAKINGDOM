@@ -1736,7 +1736,7 @@ static drawDopagaking(p, isCharged) {
                 id: 'ALT2',
                 name: 'コートニーチャージ',
                 title: 'メロメロチャージアイコン',
-                image: 'courtney/ALT2.webp'
+                image: 'courtney/ALTchange1.webp'
             },
             chargenasu: {
                 id: 'chargenasu',
@@ -1793,7 +1793,7 @@ dopagaking: {
                 hp: 190, atk: 18, def: 15, critRate: 0.04, eva: 18,
                 courtneyChargeCount: 0,
                 image: 'courtney/ALT.webp',
-                chargedImage: 'courtney/ALT2.webp',
+                chargedImage: 'courtney/ALTchange1.webp',
                 desc: '相手をメロメロにして戦う海外ガール。王国初となる「溜め技」を駆使し、最大8回までチャージして一撃の爆発力を高める！',
                 skills: [
                     { id: 'courtney_attack', name: 'ミツメル', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, desc: '相手をじっと見つめて攻撃する通常攻撃。' },
@@ -3408,7 +3408,7 @@ case 'dopa_juggler_skill':
             };
 
             activeNewBattle.onStateChange = (engine) => {
-                updateNewBattleUIValues();
+                renderNewBattleScreen();
             };
 
             activeNewBattle.onCutin = (title, subtitle) => {
