@@ -1566,7 +1566,7 @@ static drawDopagaking(p, isCharged) {
             renderZukanScreen(currentOrder, newDir);
         }
 
-        function renderZukanDetailScreen(charId, returnSource = 'zukan', arg1 = 'default', arg2 = 'desc', arg3 = 'desc') {
+        function renderZukanDetailScreen(charId, returnSource = 'zukan', arg1 = 'default', arg2 = 'desc', arg3 = 'desc', arg4 = false) {
             audioSystem.playSelect();
             const container = document.getElementById('screen-container');
 
@@ -1587,7 +1587,8 @@ static drawDopagaking(p, isCharged) {
                 const isOnline = !!arg1;
                 const sortOrder = arg2 || 'default';
                 const sortDir = arg3 || 'desc';
-                backAction = `renderCharacterSelectScreen(${isOnline}, '${sortOrder}', '${sortDir}')`;
+                const onlyOwned = !!arg4;
+                backAction = `renderCharacterSelectScreen(${isOnline}, '${sortOrder}', '${sortDir}', ${onlyOwned})`;
             } else {
                 const sortOrder = arg1 || 'default';
                 const sortDir = arg2 || 'desc';
@@ -1617,10 +1618,11 @@ static drawDopagaking(p, isCharged) {
                 const isOnline = !!arg1;
                 const sortOrder = arg2 || 'default';
                 const sortDir = arg3 || 'desc';
+                const onlyOwned = !!arg4;
                 if (isUnlocked) {
                     const isSelected = playerState.selectedPlayerChar === c.id;
                     html += `
-                        <button onclick="playerState.selectedPlayerChar = '${c.id}'; savePlayerState(); renderCharacterSelectScreen(${isOnline}, '${sortOrder}', '${sortDir}');" class="pixel-btn ${isSelected ? 'pixel-btn-success' : 'pixel-btn-primary'} w-full py-3 font-bold text-xs sm:text-sm shadow-lg">
+                        <button onclick="playerState.selectedPlayerChar = '${c.id}'; savePlayerState(); renderCharacterSelectScreen(${isOnline}, '${sortOrder}', '${sortDir}', ${onlyOwned});" class="pixel-btn ${isSelected ? 'pixel-btn-success' : 'pixel-btn-primary'} w-full py-3 font-bold text-xs sm:text-sm shadow-lg">
                             ${isSelected ? '✨ 選択中 (戻る)' : '⚔ このキャラで出陣'}
                         </button>
                     `;
@@ -1707,8 +1709,8 @@ static drawDopagaking(p, isCharged) {
             renderZukanScreen();
         }
 
-        function openCharDetail(id, returnSource = 'zukan', arg1 = 'default', arg2 = 'desc', arg3 = 'desc') {
-            renderZukanDetailScreen(id, returnSource, arg1, arg2, arg3);
+        function openCharDetail(id, returnSource = 'zukan', arg1 = 'default', arg2 = 'desc', arg3 = 'desc', arg4 = false) {
+            renderZukanDetailScreen(id, returnSource, arg1, arg2, arg3, arg4);
         }
 
         const EXTRA_ICONS = {
@@ -3692,7 +3694,7 @@ case 'dopa_juggler_skill':
             savePlayerState();
         };
 
-        function renderCharacterSelectScreen(isOnline = false, sortOrder = 'default', sortDir = 'desc') {
+        function renderCharacterSelectScreen(isOnline = false, sortOrder = 'default', sortDir = 'desc', onlyOwned = false) {
             audioSystem.playSelect();
             if (!playerState.unlockedChars || playerState.unlockedChars.length === 0) {
                 showModal("キャラクター未所持", "キャラクターを所持していません！\nホーム画面の「🎰 ガチャ」ボタンから配布DOPAを使ってキャラクターを入手してください。");
@@ -3703,17 +3705,43 @@ case 'dopa_juggler_skill':
             if (container) container.scrollTop = 0;
 
             let chars = Object.values(CHARACTER_DATA);
-            if (sortOrder === 'hp') {
-                chars.sort((a, b) => sortDir === 'desc' ? b.hp - a.hp : a.hp - b.hp);
-            } else if (sortOrder === 'atk') {
-                chars.sort((a, b) => sortDir === 'desc' ? b.atk - a.atk : a.atk - b.atk);
-            } else if (sortOrder === 'def') {
-                chars.sort((a, b) => sortDir === 'desc' ? b.def - a.def : a.def - b.def);
-            } else if (sortOrder === 'critRate') {
-                chars.sort((a, b) => sortDir === 'desc' ? b.critRate - a.critRate : a.critRate - b.critRate);
-            } else if (sortOrder === 'eva') {
-                chars.sort((a, b) => sortDir === 'desc' ? b.eva - a.eva : a.eva - b.eva);
-            }
+            chars.sort((a, b) => {
+                const aUnlocked = playerState.unlockedChars.includes(a.id);
+                const bUnlocked = playerState.unlockedChars.includes(b.id);
+
+                if (onlyOwned) {
+                    if (aUnlocked && !bUnlocked) return -1;
+                    if (!aUnlocked && bUnlocked) return 1;
+                }
+
+                let valA = 0;
+                let valB = 0;
+                if (sortOrder === 'hp') {
+                    valA = a.hp;
+                    valB = b.hp;
+                } else if (sortOrder === 'atk') {
+                    valA = a.atk;
+                    valB = b.atk;
+                } else if (sortOrder === 'def') {
+                    valA = a.def;
+                    valB = b.def;
+                } else if (sortOrder === 'critRate') {
+                    valA = a.critRate;
+                    valB = b.critRate;
+                } else if (sortOrder === 'eva') {
+                    valA = a.eva;
+                    valB = b.eva;
+                } else {
+                    const keys = Object.keys(CHARACTER_DATA);
+                    return keys.indexOf(a.id) - keys.indexOf(b.id);
+                }
+
+                if (sortDir === 'desc') {
+                    return valB - valA;
+                } else {
+                    return valA - valB;
+                }
+            });
 
             const unlockedCount = playerState.unlockedChars.length;
             const totalCount = Object.keys(CHARACTER_DATA).length;
@@ -3730,7 +3758,7 @@ case 'dopa_juggler_skill':
                     <div class="flex items-center justify-between w-full mb-2 px-1 gap-2 flex-wrap flex-shrink-0">
                         <div class="flex items-center gap-1.5 text-xs">
                             <span class="text-slate-400 font-bold">並び替え:</span>
-                            <select id="char-select-sort-order" onchange="onCharSelectSortChange(${isOnline})" class="pixel-box bg-slate-900 text-amber-300 px-2 py-1 text-xs outline-none border-amber-600">
+                            <select id="char-select-sort-order" onchange="onCharSelectSortChange(${isOnline}, '${sortDir}', ${onlyOwned})" class="pixel-box bg-slate-900 text-amber-300 px-2 py-1 text-xs outline-none border-amber-600">
                                 <option value="default" ${sortOrder === 'default' ? 'selected' : ''}>登録順</option>
                                 <option value="hp" ${sortOrder === 'hp' ? 'selected' : ''}>HPが高い順</option>
                                 <option value="atk" ${sortOrder === 'atk' ? 'selected' : ''}>攻撃力が高い順</option>
@@ -3738,8 +3766,11 @@ case 'dopa_juggler_skill':
                                 <option value="critRate" ${sortOrder === 'critRate' ? 'selected' : ''}>クリティカル率が高い順</option>
                                 <option value="eva" ${sortOrder === 'eva' ? 'selected' : ''}>回避率が高い順</option>
                             </select>
-                            <button onclick="toggleCharSelectSortDir(${isOnline}, '${sortOrder}', '${sortDir}')" class="pixel-btn px-2 py-1 text-xs font-bold bg-slate-800 border-slate-600">
+                            <button onclick="toggleCharSelectSortDir(${isOnline}, '${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-1 text-xs font-bold bg-slate-800 border-slate-600">
                                 ${sortDir === 'desc' ? '🔽 降順(高)' : '🔼 昇順(低)'}
+                            </button>
+                            <button onclick="toggleCharSelectOwnedFilter(${isOnline}, '${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-1 text-xs font-bold ${onlyOwned ? 'pixel-btn-success border-emerald-400 text-emerald-200' : 'bg-slate-800 border-slate-600 text-slate-300'}">
+                                ${onlyOwned ? '✨ 入手済みのみ: ON' : '📦 入手済みのみ: OFF'}
                             </button>
                         </div>
                         <div class="text-[10px] sm:text-xs font-mono text-amber-200 bg-slate-900 px-2.5 py-1 rounded border border-amber-600/50">
@@ -3762,7 +3793,7 @@ case 'dopa_juggler_skill':
                 else if (sortOrder === 'eva') statDisplay = `<span class="text-[9px] sm:text-[10px] text-blue-400 font-bold">避: ${c.eva}%</span>`;
 
                 html += `
-                    <div onclick="openCharDetail('${c.id}', 'select', ${isOnline}, '${sortOrder}', '${sortDir}')" 
+                    <div onclick="openCharDetail('${c.id}', 'select', ${isOnline}, '${sortOrder}', '${sortDir}', ${onlyOwned})" 
                          class="pixel-box p-2 sm:p-3 bg-slate-900 cursor-pointer flex flex-col items-center justify-between border-2 transition-all ${isSelected ? 'border-amber-400 bg-amber-950/40 scale-105 shadow-lg' : 'border-slate-700 hover:border-slate-400'} ${!isUnlocked ? 'opacity-60 grayscale' : ''}">
                         <canvas id="select-cvs-${c.id}" width="95" height="95" class="pixel-box bg-slate-950 mb-1 w-16 h-16 sm:w-24 sm:h-24"></canvas>
                         <span class="text-[11px] sm:text-xs font-bold ${isSelected ? 'text-amber-300 font-pixel' : 'text-slate-200'} truncate max-w-full">${c.name}</span>
@@ -3794,16 +3825,21 @@ case 'dopa_juggler_skill':
             }, 50);
         }
 
-        function onCharSelectSortChange(isOnline) {
+        function onCharSelectSortChange(isOnline, currentDir, onlyOwned) {
             const select = document.getElementById('char-select-sort-order');
             if (select) {
-                renderCharacterSelectScreen(isOnline, select.value, 'desc');
+                renderCharacterSelectScreen(isOnline, select.value, currentDir, onlyOwned);
             }
         }
 
-        function toggleCharSelectSortDir(isOnline, currentOrder, currentDir) {
+        function toggleCharSelectSortDir(isOnline, currentOrder, currentDir, onlyOwned) {
             const newDir = currentDir === 'desc' ? 'asc' : 'desc';
-            renderCharacterSelectScreen(isOnline, currentOrder, newDir);
+            renderCharacterSelectScreen(isOnline, currentOrder, newDir, onlyOwned);
+        }
+
+        function toggleCharSelectOwnedFilter(isOnline, currentOrder, currentDir, onlyOwned) {
+            const newOnlyOwned = !onlyOwned;
+            renderCharacterSelectScreen(isOnline, currentOrder, currentDir, newOnlyOwned);
         }
 
         function updateCharDetailBox() {
@@ -4994,6 +5030,7 @@ case 'dopa_juggler_skill':
         window.toggleZukanSortDir = toggleZukanSortDir;
         window.onCharSelectSortChange = onCharSelectSortChange;
         window.toggleCharSelectSortDir = toggleCharSelectSortDir;
+        window.toggleCharSelectOwnedFilter = toggleCharSelectOwnedFilter;
         window.openGachaLineupModal = openGachaLineupModal;
 
         window.claimDailyBonus = claimDailyBonus;
