@@ -3420,13 +3420,9 @@ case 'dopa_juggler_skill':
             if (newBattleViewMode === 'attack_select') {
                 const normalSkill = p1.skills.find(s => s.isNormalAttack) || p1.skills[0];
                 leftAreaContent = `
-                    <div class="flex flex-col h-full justify-between p-2">
-                        <div class="flex items-center justify-between border-b border-slate-700 pb-2 mb-2">
-                            <span class="text-xs font-pixel text-amber-400 font-bold">⚔️ 通常攻撃選択</span>
-                            <button onclick="executeNewBattleAction('back_to_main')" class="pixel-btn pixel-btn-danger text-[10px] px-2 py-0.5">◀ 戻る</button>
-                        </div>
-                        <div class="flex-1 flex flex-col justify-center items-center gap-3">
-                            <button onclick="executeNewBattleAction('${normalSkill.id}')" class="pixel-box bg-slate-900 border-2 border-amber-400 hover:border-amber-300 p-4 w-full max-w-md flex flex-col items-center text-center cursor-pointer shadow-lg group">
+                    <div class="flex flex-col h-full justify-center items-center p-3">
+                        <div class="w-full max-w-md flex flex-col justify-center items-center gap-3">
+                            <button onclick="executeNewBattleAction('${normalSkill.id}')" class="pixel-box bg-slate-900 border-2 border-amber-400 hover:border-amber-300 p-4 w-full flex flex-col items-center text-center cursor-pointer shadow-lg group">
                                 <span class="font-pixel text-sm text-amber-300 font-bold mb-1">${normalSkill.name}</span>
                                 <div class="w-full bg-slate-950 border border-slate-800 rounded p-2 text-xs text-slate-300 font-mono mt-1">
                                     ${normalSkill.desc}
@@ -3455,12 +3451,8 @@ case 'dopa_juggler_skill':
                 }).join('');
 
                 leftAreaContent = `
-                    <div class="flex flex-col h-full justify-between p-2">
-                        <div class="flex items-center justify-between border-b border-slate-700 pb-2 mb-2">
-                            <span class="text-xs font-pixel text-emerald-400 font-bold">✨ スキル選択</span>
-                            <button onclick="executeNewBattleAction('back_to_main')" class="pixel-btn pixel-btn-danger text-[10px] px-2 py-0.5">◀ 戻る</button>
-                        </div>
-                        <div class="flex-1 overflow-y-auto space-y-2 pr-1">
+                    <div class="flex flex-col h-full justify-start p-3 overflow-y-auto">
+                        <div class="w-full max-w-md mx-auto space-y-2">
                             ${skillsHtml}
                         </div>
                     </div>
@@ -3513,7 +3505,7 @@ case 'dopa_juggler_skill':
             container.innerHTML = `
                 <div class="w-full h-full flex flex-row overflow-hidden bg-slate-950 text-white relative select-none">
                     <!-- 画面左側：バトル環境描画エリア -->
-                    <div class="flex-1 flex flex-col justify-between p-3 relative border-r-4 border-slate-700">
+                    <div class="flex-1 flex flex-col justify-between p-3 pt-12 relative border-r-4 border-slate-700">
                         <!-- 1. 左上の固定表示: ターン数 と 制限時間 -->
                         <div class="absolute top-2 left-2 z-10 flex gap-2 text-xs font-mono bg-slate-900/90 px-2.5 py-1 rounded border border-slate-700 shadow-md">
                             <span>ターン: <strong id="new-battle-turn" class="text-amber-400">${activeNewBattle.turn}</strong></span>
@@ -3549,26 +3541,21 @@ case 'dopa_juggler_skill':
                         <!-- 下部：プレイヤー情報パネル -->
                         <div class="border-t-2 border-amber-500/60 pt-2.5 flex flex-col gap-2 bg-slate-950 p-2.5 rounded border border-slate-800">
                             <div class="flex items-center gap-2">
-                                <div class="w-10 h-10 overflow-hidden flex-shrink-0 flex items-center justify-center">
-                                    <img src="asaiomizu/asaiomizu2.webp" alt="icon" class="w-full h-full object-contain">
-                                </div>
+                                <canvas id="new-panel-profile-icon" width="40" height="40" class="pixel-box bg-slate-900 rounded w-10 h-10 shrink-0"></canvas>
                                 <div class="flex flex-col overflow-hidden">
                                     <span id="new-panel-player-name" class="text-xs font-bold text-amber-300 truncate">${playerState.playerName || '名無しファイター'}</span>
-                                    <span class="text-[10px] text-emerald-400 font-mono">所持ドパ: <strong id="new-panel-dopa">${formatDopa(playerState.dopa)}</strong> Dopa</span>
+                                    <span class="text-[10px] text-amber-200 font-mono">DOPA: <strong id="new-panel-dopa" class="text-amber-400 font-pixel">${formatDopa(playerState.dopa)}</strong></span>
                                 </div>
-                            </div>
-                            <div class="flex gap-2">
-                                <button onclick="if(activeNewBattle) activeNewBattle.stopTimer(); renderBotModesScreen();" class="flex-1 pixel-btn pixel-btn-danger py-1 text-[10px] font-bold">
-                                    ◀ BOT選択
-                                </button>
-                                <button onclick="if(activeNewBattle) activeNewBattle.stopTimer(); renderHomeScreen();" class="flex-1 pixel-btn pixel-btn-primary py-1 text-[10px] font-bold">
-                                    🏠 ホーム
-                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
             `;
+
+            setTimeout(() => {
+                const cvs = document.getElementById('new-panel-profile-icon');
+                if (cvs) CharacterRenderer.drawCharacter(cvs, playerState.selectedIcon || 'dopagaking');
+            }, 50);
         }
 
         function appendNewBattleLog(text, colorClass = 'text-slate-200') {
@@ -3603,9 +3590,14 @@ case 'dopa_juggler_skill':
                 return;
             }
             if (actionType === 'run') {
-                appendNewBattleLog("バトルから逃走しました！", 'text-red-400 font-bold');
-                activeNewBattle.stopTimer();
-                setTimeout(() => renderBotModesScreen(), 500);
+                audioSystem.playSelect();
+                showConfirmModal("バトル終了の確認", "本当にこのゲームを終了しますか？", () => {
+                    if (activeNewBattle) {
+                        activeNewBattle.stopTimer();
+                        activeNewBattle = null;
+                    }
+                    renderBotModesScreen();
+                }, "はい（確定）");
                 return;
             }
             if (actionType === 'setting') {
@@ -3662,7 +3654,14 @@ case 'dopa_juggler_skill':
                         </div>
 
                         <div class="flex justify-between items-center bg-slate-950 p-2.5 rounded border border-slate-800">
-                            <span class="text-slate-300 font-bold">サウンドの変更 (SFX):</span>
+                            <span class="text-slate-300 font-bold">BGM:</span>
+                            <button onclick="audioSystem.toggleBGM(); openNewBattleSettingsPanel();" class="pixel-btn text-xs px-3 py-1 font-bold">
+                                ${audioSystem.bgmEnabled ? '🎵 ON' : '🔇 OFF'}
+                            </button>
+                        </div>
+
+                        <div class="flex justify-between items-center bg-slate-950 p-2.5 rounded border border-slate-800">
+                            <span class="text-slate-300 font-bold">効果音（SE）:</span>
                             <button onclick="audioSystem.toggleSound(); openNewBattleSettingsPanel();" class="pixel-btn text-xs px-3 py-1 font-bold">
                                 ${audioSystem.enabled ? '🔊 ON' : '🔇 OFF'}
                             </button>
@@ -3713,16 +3712,16 @@ case 'dopa_juggler_skill':
                         </div>
 
                         <div class="flex justify-between items-center bg-slate-950 p-2 rounded border border-slate-800">
-                            <span class="text-slate-300 font-bold">サウンド効果 (SFX):</span>
-                            <button onclick="audioSystem.toggleSound(); openSettingsPanel();" class="pixel-btn text-xs px-3 py-1 font-bold">
-                                ${audioSystem.enabled ? '🔊 ON' : '🔇 OFF'}
+                            <span class="text-slate-300 font-bold">BGM:</span>
+                            <button onclick="audioSystem.toggleBGM(); openSettingsPanel();" class="pixel-btn text-xs px-3 py-1 font-bold">
+                                ${audioSystem.bgmEnabled ? '🎵 ON' : '🔇 OFF'}
                             </button>
                         </div>
 
                         <div class="flex justify-between items-center bg-slate-950 p-2 rounded border border-slate-800">
-                            <span class="text-slate-300 font-bold">BGM 音楽:</span>
-                            <button onclick="audioSystem.toggleBGM(); openSettingsPanel();" class="pixel-btn text-xs px-3 py-1 font-bold">
-                                ${audioSystem.bgmEnabled ? '🎵 ON' : '🔇 OFF'}
+                            <span class="text-slate-300 font-bold">効果音（SE）:</span>
+                            <button onclick="audioSystem.toggleSound(); openSettingsPanel();" class="pixel-btn text-xs px-3 py-1 font-bold">
+                                ${audioSystem.enabled ? '🔊 ON' : '🔇 OFF'}
                             </button>
                         </div>
 
