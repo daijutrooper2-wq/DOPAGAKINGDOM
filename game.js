@@ -1718,25 +1718,25 @@ static drawDopagaking(p, isCharged) {
                 id: 'dopagakingcharge',
                 name: 'ドパガキングチャージ',
                 title: '王の覚醒チャージアイコン',
-                image: 'images/dopagakingcharge.webp'
+                image: 'dopagaking/dopagakingcharge.webp'
             },
             ALT2: {
                 id: 'ALT2',
                 name: 'コートニーチャージ',
                 title: 'メロメロチャージアイコン',
-                image: 'images/ALT2.webp'
+                image: 'courtney/ALT2.webp'
             },
             chargenasu: {
                 id: 'chargenasu',
                 name: 'ナスチャージ',
                 title: '要塞ナスチャージアイコン',
-                image: 'images/chargenasu.webp'
+                image: 'momopin/chargenasu.webp'
             },
             moenancat: {
                 id: 'moenancat',
                 name: 'もえなんキャット',
                 title: '愛猫アイコン',
-                image: 'images/moenancat.webp'
+                image: 'moenan/moenancat.webp'
             },
             dopagakingdom: {
                 id: 'dopagakingdom',
@@ -1759,8 +1759,8 @@ dopagaking: {
     dopaChargeCount: 0,
     selectedInheritChar: null,
     maxHpRandom: 200,
-    image: 'images/dopagaking.webp',
-    chargedImage: 'images/dopagakingcharge.webp',
+    image: 'dopagaking/dopagaking.webp',
+    chargedImage: 'dopagaking/dopagakingcharge.webp',
     desc: 'すべてを運に任せる完全ランダム型の国王。アイコンタップで「王位継承」をチャージし、他キャラの力の4倍ダメージを叩き込む！',
     skills: [
         { id: 'dopa_juggler', name: 'ジャグラー', type: 'dopa_juggler_skill', power: 1.0, isNormalAttack: false, cooldown: 0, desc: '0～50の完全ランダムダメージを与える通常攻撃！' },
@@ -1780,8 +1780,8 @@ dopagaking: {
                 type: '恋属性 / 溜め・爆発型',
                 hp: 190, atk: 18, def: 15, critRate: 0.04, eva: 18,
                 courtneyChargeCount: 0,
-                image: 'images/ALT.webp',
-                chargedImage: 'images/ALT2.webp',
+                image: 'courtney/ALT.webp',
+                chargedImage: 'courtney/ALT2.webp',
                 desc: '相手をメロメロにして戦う海外ガール。王国初となる「溜め技」を駆使し、最大8回までチャージして一撃の爆発力を高める！',
                 skills: [
                     { id: 'courtney_attack', name: 'ミツメル', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, desc: '相手をじっと見つめて攻撃する通常攻撃。' },
@@ -1796,7 +1796,7 @@ dopagaking: {
                 title: 'クリケット部の天才',
                 type: '頭脳・デバフ型',
                 hp: 179, atk: 23, def: 15, critRate: 0.05, eva: 16,
-                image: 'images/ndaihyou.webp',
+                image: 'ndaihyo/ndaihyou.webp',
                 desc: 'N高クリケット部代表。高い知性と緻密な戦術で相手の能力を下げつつ優位に立つ。相手が「パシャ僧」の場合は専用パッシブ【パシャ僧キラー】が1試合に1回だけ発動し、現在HPの50%を一気に削る！',
                 skills: [
                     { id: 'ndaihyo_attack', name: '通常攻撃', type: 'attack', power: 1.05, isNormalAttack: true, cooldown: 0, desc: '正確なバッティング攻撃。「パシャ僧」相手には1試合1回【パシャ僧キラー】発動！' },
@@ -1811,7 +1811,7 @@ dopagaking: {
                 title: '暗黒スマホ僧侶',
                 type: '闇属性 / バランス',
                 hp: 178, atk: 24, def: 19, critRate: 0.06, eva: 21,
-                image: 'images/pasha.webp',
+                image: 'pasha/pasha.webp',
                 desc: 'スマホとカメラを駆使し、高い回避率と素早さで相手を翻弄するテクニカルな闇属性ファイター！\n眩い光で敵の目をくらます『カメラフラッシュ』や、罪深い記憶を呼び起こす『カメラロール参照』で戦線を維持する。\nさらに、過酷な過去から生まれた強烈な執念により、HPが半分以下になると「ダークモード」が自動発動して攻撃力が急上昇！\nピンチから一転して反撃の牙を剥く、危険な二面性を秘めたキャラクター。',
                 zukanDesc: 'かつてはごく普通の少年だったが、ある日偶然見かけた超人気女優「コートニー」を一目見て心を奪われ、思わずスマホで写真を撮ってしまったことから人生が一変。\n過剰な詮索とスキャンダル騒ぎにより逮捕寸前まで追い詰められ、世間の冷たい目に晒された。\nその消せない<span>「過去の過ち」</span>と深い後悔を引きずり続けた結果、心に巣食った闇に引きずり込まれていく。\n\nいつしか彼は、手にしたカメラの「強烈なフラッシュ」で周囲の人間をくらませ、自分と同じように様々な人々を漆黒の闇夜へと道連れにしようと企むようになった。\nその歪んだ執念と深まる闇こそが、のちに恐怖の「半浸闇化状態」を招き、彼を最強のダークモンスターへと変貌させる引き金となったのだ……。',
                 skills: [
@@ -1828,7 +1828,7 @@ pasha_dark: {
                 title: '闇に染まりかけし黒き僧侶',
                 type: '闇属性 / 超火力・回避特化',
                 hp: 163, atk: 25, def: 17, critRate: 0.07, eva: 25,
-                image: 'images/pasha-dark.webp',
+                image: 'pasha/pasha-dark.webp',
                 desc: '圧倒的な攻撃力と高回避を誇る超攻撃型。回避するたびに攻撃力が跳ね上がるアビリティを持ち、ハマれば一撃で全てを破壊するロマンと脅威を兼ね備えています。',
                 skills: [
                     { id: 'pasha_dark_attack', name: '通常攻撃', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, desc: 'カメラのフラッシュで攻撃＋20パーセントの確率で自身の回避率3％アップ' },
@@ -1845,7 +1845,7 @@ pasha_dark: {
                 title: '不屈のラップラッパー',
                 type: '岩属性 / 耐久強化',
                 hp: 195, atk: 22, def: 18, critRate: 0.03, eva: 8,
-                image: 'images/ganban.webp',
+                image: 'iwaba/ganban.webp',
                 desc: 'ダンスとラップと岩盤浴を愛する星人。防御が高く「岩盤浴」や「ラップ」でステータスを底上げする粘り強さ。',
                 skills: [
                     { id: 'iwaba_dance', name: 'ブレイクダンス', type: 'attack', power: 1.15, isNormalAttack: true, cooldown: 0, desc: 'リズムに乗った連続アタック。' },
@@ -1860,8 +1860,8 @@ pasha_dark: {
                 title: 'ナスを統べる守護要塞',
                 type: '土属性 / 超耐久一発型',
                 hp: 210, atk: 18, def: 25, critRate: 0.03, eva: 9,
-                image: 'images/momopin.webp',
-                chargedImage: 'images/chargenasu.webp',
+                image: 'momopin/momopin.webp',
+                chargedImage: 'momopin/chargenasu.webp',
                 desc: '圧倒的タフさを誇る要塞。「ナス準備中」でミニぞうさんに変身し、次のターン手動で大威力の“超ナス乱舞”を繰り出す！',
                 skills: [
                     { id: 'momo_attack', name: 'ポカポカ叩く', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, desc: '通常攻撃。' },
@@ -1876,7 +1876,7 @@ pasha_dark: {
                 title: 'トゲ髪のアタッカー',
                 type: '火属性 / 超超攻撃特化',
                 hp: 155, atk: 28, def: 14, critRate: 0.08, eva: 12,
-                image: 'images/moenan.webp',
+                image: 'moenan/moenan.webp',
                 desc: 'トゲ髪が目印の超攻撃的ハンター。素早さと威力が圧倒的で「筋トレ」後のハンドボールシュートは一撃必殺。',
                 skills: [
                     { id: 'moenan_cat', name: '高速猫パンチ', type: 'attack', power: 1.10, isNormalAttack: true, cooldown: 0, desc: '鋭い爪の通常攻撃。' },
@@ -1891,7 +1891,7 @@ pasha_dark: {
                 title: 'パーマなナルシスト',
                 type: '水属性 / COUNTER',
                 hp: 182, atk: 28, def: 20, critRate: 0.06, eva: 17,
-                image: 'images/asaiomizu.webp',
+                image: 'asaiomizu/asaiomizu.webp',
                 desc: '特徴的なパーマヘアを持つナルシスト。通常攻撃を受けると自動で反撃！「ディグ」で相手の攻撃技をコピーし「サッカーシュート」で大ダメージを狙う。',
                 skills: [
                     { id: 'asaiomizu_attack', name: '通常攻撃', type: 'attack', power: 1.15, isNormalAttack: true, cooldown: 0, desc: 'スタイリッシュな通常の攻撃。' },
