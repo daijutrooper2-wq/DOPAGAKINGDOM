@@ -656,7 +656,10 @@ static drawDopagaking(p, isCharged) {
             if (actionsEl) {
                 actionsEl.innerHTML = `<button onclick="completeFirstTimeSetup()" class="pixel-btn pixel-btn-primary px-8 py-2 font-bold text-sm">冒険へ出発！ ▶</button>`;
             }
-            if (overlay) overlay.classList.remove('hidden');
+            if (overlay) {
+                overlay.classList.remove('hidden');
+                document.body.classList.add('modal-open');
+            }
         }
 
         async function completeFirstTimeSetup() {
@@ -1050,7 +1053,10 @@ static drawDopagaking(p, isCharged) {
             if (actionsEl) {
                 actionsEl.innerHTML = `<button onclick="closeModal()" class="pixel-btn pixel-btn-primary px-6 py-2 font-bold text-sm">閉じる</button>`;
             }
-            if (overlay) overlay.classList.remove('hidden');
+            if (overlay) {
+                overlay.classList.remove('hidden');
+                document.body.classList.add('modal-open');
+            }
         }
 
         function showConfirmModal(title, body, onConfirm, confirmText = '決定') {
@@ -1070,12 +1076,16 @@ static drawDopagaking(p, isCharged) {
                     onConfirm();
                 };
             }
-            if (overlay) overlay.classList.remove('hidden');
+            if (overlay) {
+                overlay.classList.remove('hidden');
+                document.body.classList.add('modal-open');
+            }
         }
 
         function closeModal() {
             const overlay = document.getElementById('modal-overlay');
             if (overlay) overlay.classList.add('hidden');
+            document.body.classList.remove('modal-open');
         }
 
         function confirmRetireBattle() {
@@ -1151,7 +1161,10 @@ static drawDopagaking(p, isCharged) {
             if (actionsEl) {
                 actionsEl.innerHTML = `<button onclick="closeModal()" class="pixel-btn px-6 py-1.5 font-bold text-xs">もどる</button>`;
             }
-            if (overlay) overlay.classList.remove('hidden');
+            if (overlay) {
+                overlay.classList.remove('hidden');
+                document.body.classList.add('modal-open');
+            }
         }
 
         function openGachaLineupModal() {
@@ -1580,9 +1593,9 @@ static drawDopagaking(p, isCharged) {
             let backLabel = "🔙 戻る";
             if (returnSource === 'gacha_reveal') {
                 const index = typeof arg1 === 'number' ? arg1 : 0;
-                backAction = `document.getElementById('modal-overlay').classList.remove('hidden'); showGachaRevealStep(window._currentGachaResults || [], ${index})`;
+                backAction = `document.getElementById('modal-overlay').classList.remove('hidden'); document.body.classList.add('modal-open'); showGachaRevealStep(window._currentGachaResults || [], ${index})`;
             } else if (returnSource === 'gacha_summary') {
-                backAction = `document.getElementById('modal-overlay').classList.remove('hidden'); showGachaSummaryModal(window._currentGachaResults || [])`;
+                backAction = `document.getElementById('modal-overlay').classList.remove('hidden'); document.body.classList.add('modal-open'); showGachaSummaryModal(window._currentGachaResults || [])`;
             } else if (returnSource === 'select') {
                 const isOnline = !!arg1;
                 const sortOrder = arg2 || 'default';
@@ -3879,6 +3892,7 @@ case 'dopa_juggler_skill':
 
             if (backdrop) backdrop.classList.remove('hidden');
             if (panel) panel.classList.remove('translate-x-full');
+            document.body.classList.add('modal-open');
         }
 
         function closeSettingsPanel() {
@@ -3887,6 +3901,7 @@ case 'dopa_juggler_skill':
             const panel = document.getElementById('settings-slide-panel');
             if (panel) panel.classList.add('translate-x-full');
             if (backdrop) backdrop.classList.add('hidden');
+            document.body.classList.remove('modal-open');
         }
 
         window.onVolumeSliderChange = function(val) {

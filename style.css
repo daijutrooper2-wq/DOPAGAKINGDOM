@@ -7,7 +7,7 @@
             }
         }
 
-        body {
+        html, body {
             font-family: 'DotGothic16', monospace, sans-serif;
             background-color: #090a10;
             color: #ffffff;
@@ -17,10 +17,39 @@
             height: 100vh;
             margin: 0;
             padding: 0;
+            position: fixed;
+            inset: 0;
+            touch-action: none;
             padding-top: env(safe-area-inset-top);
             padding-right: env(safe-area-inset-right);
             padding-bottom: env(safe-area-inset-bottom);
             padding-left: env(safe-area-inset-left);
+        }
+
+        body.modal-open {
+            overflow: hidden !important;
+            touch-action: none !important;
+        }
+
+        #app {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        /* 3. 必要なエリアのみのスクロール許可 (touch-action: pan-y) */
+        #screen-container,
+        #modal-body,
+        #settings-slide-panel,
+        .overflow-y-auto {
+            touch-action: pan-y !important;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        #modal-overlay,
+        #settings-backdrop {
+            touch-action: none !important;
         }
 
         .font-pixel {
@@ -211,6 +240,9 @@
                 width: 100vw !important;
                 height: 100vh !important;
                 overflow: hidden !important;
+                position: fixed !important;
+                inset: 0 !important;
+                touch-action: none !important;
             }
             #app {
                 padding-left: max(4px, env(safe-area-inset-left)) !important;
@@ -225,14 +257,18 @@
                 min-height: 100vh !important;
                 display: flex !important;
                 flex-direction: column !important;
+                overflow: hidden !important;
+                touch-action: none !important;
             }
             #screen-container {
                 overflow-y: auto !important;
+                touch-action: pan-y !important;
                 max-height: calc(100vh - 24px) !important;
                 flex: 1 !important;
                 display: flex !important;
                 flex-direction: column !important;
                 align-items: center !important;
+                -webkit-overflow-scrolling: touch !important;
             }
             .landscape-battle-container {
                 display: flex !important;
@@ -243,7 +279,9 @@
                 width: 100% !important;
                 max-height: 100% !important;
                 overflow-y: auto !important;
+                touch-action: pan-y !important;
                 padding: 4px 8px !important;
+                -webkit-overflow-scrolling: touch !important;
             }
             .landscape-battle-upper {
                 width: 100% !important;
