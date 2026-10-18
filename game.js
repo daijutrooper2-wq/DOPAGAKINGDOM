@@ -3316,6 +3316,8 @@ case 'dopa_juggler_skill':
             const container = document.getElementById('screen-container');
             if (!container) return;
 
+            const selected = window.selectedNewBattleChar || 'asaiomizu';
+
             container.innerHTML = `
                 <div class="relative w-full h-full flex flex-col justify-between p-4 sm:p-6 select-none overflow-hidden bg-slate-950 text-white">
                     <div class="flex items-center justify-between relative z-10 w-full mb-3">
@@ -3327,22 +3329,41 @@ case 'dopa_juggler_skill':
                     </div>
 
                     <div class="flex-1 flex flex-col items-center justify-center gap-4 relative z-10 my-auto">
-                        <p class="text-xs text-amber-300 font-mono">※現在開発テスト中のため、「asaiomizu」のみ選択可能です</p>
-                        <div class="pixel-box bg-slate-900 border-2 border-amber-400 p-4 flex flex-col items-center gap-3 w-48 sm:w-56 shadow-2xl">
-                            <img src="asaiomizu/asaiomizu.webp" alt="asaiomizu" class="w-24 h-24 sm:w-32 sm:h-32 object-contain">
-                            <span class="text-amber-300 font-pixel font-bold text-sm">ASAIOMIZU</span>
-                            <span class="text-[10px] text-emerald-400 font-bold">✨ 選択中 (初期選択)</span>
+                        <p class="text-xs text-amber-300 font-mono">バトルで使用するキャラクターを選択してください</p>
+                        <div class="grid grid-cols-2 gap-4 max-w-lg w-full">
+                            <div onclick="window.selectedNewBattleChar = 'asaiomizu'; renderNewBattleCharSelectScreen();" class="pixel-box bg-slate-900 border-2 ${selected === 'asaiomizu' ? 'border-amber-400 scale-105 shadow-2xl' : 'border-slate-700 opacity-70'} p-4 flex flex-col items-center gap-3 cursor-pointer transition-all">
+                                <img src="asaiomizu/asaiomizu.webp" alt="asaiomizu" class="w-24 h-24 sm:w-32 sm:h-32 object-contain">
+                                <span class="text-amber-300 font-pixel font-bold text-sm">ASAIOMIZU</span>
+                                <span class="text-[10px] ${selected === 'asaiomizu' ? 'text-emerald-400 font-bold' : 'text-slate-400'}">${selected === 'asaiomizu' ? '✨ 選択中' : '選択する'}</span>
+                            </div>
+
+                            <div onclick="window.selectedNewBattleChar = 'courtney'; renderNewBattleCharSelectScreen();" class="pixel-box bg-slate-900 border-2 ${selected === 'courtney' ? 'border-amber-400 scale-105 shadow-2xl' : 'border-slate-700 opacity-70'} p-4 flex flex-col items-center gap-3 cursor-pointer transition-all">
+                                <img src="courtney/ALT22.webp" alt="courtney" class="w-24 h-24 sm:w-32 sm:h-32 object-contain">
+                                <span class="text-pink-300 font-pixel font-bold text-sm">コートニー</span>
+                                <span class="text-[10px] ${selected === 'courtney' ? 'text-emerald-400 font-bold' : 'text-slate-400'}">${selected === 'courtney' ? '✨ 選択中' : '選択する'}</span>
+                            </div>
                         </div>
                     </div>
 
                     <div class="text-center relative z-10 pb-4">
-                        <button onclick="startNewBattleMode('asaiomizu', 'asaiomizu')" class="pixel-btn pixel-btn-primary px-8 py-3 text-sm sm:text-base font-bold font-pixel shadow-lg">
+                        <button onclick="startNewBattleMode(window.selectedNewBattleChar || 'asaiomizu', (window.selectedNewBattleChar || 'asaiomizu') === 'asaiomizu' ? 'courtney' : 'asaiomizu')" class="pixel-btn pixel-btn-primary px-8 py-3 text-sm sm:text-base font-bold font-pixel shadow-lg">
                             このキャラクターで出陣！ ▶
                         </button>
                     </div>
                 </div>
             `;
         }
+
+        function executeNewBattleCourtneyCharge() {
+            if (!activeNewBattle || activeNewBattle.battleEnded || activeNewBattle.waitingForOpponent || activeNewBattle.p1.isResting) return;
+            if (activeNewBattle.p1.id !== 'courtney') return;
+            if ((activeNewBattle.p1.courtneyChargeCount || 0) < 8) {
+                activeNewBattle.submitAction(1, 'courtney_charge_only');
+            } else {
+                showModal("MAXチャージ", "これ以上溜められません！スキルから「FEEL SO HOT ///」を選択して解放してください！");
+            }
+        }
+        window.executeNewBattleCourtneyCharge = executeNewBattleCourtneyCharge;
 
         function startNewBattleMode(playerCharId = 'asaiomizu', enemyCharId = 'asaiomizu') {
             audioSystem.playSelect();
@@ -3378,28 +3399,65 @@ case 'dopa_juggler_skill':
 
             activeNewBattle.onBattleEnd = (winner) => {
                 updateNewBattleUIValues();
-                setTimeout(() => {
-                    if (activeNewBattle.p1.hp > 0 && activeNewBattle.p2.hp <= 0) {
-                        audioSystem.playVictory();
-                        addDopa(150);
-                        showModal("勝利！", `見事に勝利しました！\n報酬として 150 Dopa を獲得しました！`, () => {
-                            renderBotModesScreen();
-                        });
-                    } else if (activeNewBattle.p2.hp > 0 && activeNewBattle.p1.hp <= 0) {
-                        audioSystem.playDefeat();
-                        showModal("敗北...", `力尽きてしまいました...\n次こそは勝利を掴もう！`, () => {
-                            renderBotModesScreen();
-                        });
-                    } else {
-                        showModal("引き分け", `引き分けとなりました。`, () => {
-                            renderBotModesScreen();
-                        });
-                    }
-                }, 400);
+                handleNewBattleEnd();
             };
 
             activeNewBattle.startBattle();
             renderNewBattleScreen();
+        }
+
+        function handleNewBattleEnd() {
+            if (!activeNewBattle) return;
+            const p1 = activeNewBattle.p1;
+            const p2 = activeNewBattle.p2;
+
+            setTimeout(() => {
+                const stage = document.getElementById('screen-container');
+                if (!stage) return;
+
+                if (p1.hp <= 0 && p2.hp > 0) {
+                    audioSystem.playDefeat();
+                    stage.innerHTML += `
+                        <div id="battle-result-overlay" class="fixed inset-0 bg-black z-[9999] flex flex-col items-center justify-center p-6 text-center opacity-0 transition-opacity duration-1000">
+                            <div class="text-3xl sm:text-5xl font-pixel font-black text-red-500 mb-3 animate-pulse">LOSE / 敗北</div>
+                            <p class="text-xs sm:text-sm text-slate-300 font-mono mb-6">力尽きてしまいました……次こそは勝利を掴もう！</p>
+                            <button onclick="renderNewBattleCharSelectScreen()" class="pixel-btn pixel-btn-primary px-8 py-3 text-sm font-bold font-pixel shadow-xl">
+                                バトル選択画面へ戻る ▶
+                            </button>
+                        </div>
+                    `;
+                    setTimeout(() => {
+                        const overlay = document.getElementById('battle-result-overlay');
+                        if (overlay) overlay.classList.remove('opacity-0');
+                    }, 50);
+                } else if (p2.hp <= 0 && p1.hp > 0) {
+                    audioSystem.playVictory();
+                    addDopa(150);
+                    stage.innerHTML += `
+                        <div id="battle-result-overlay" class="fixed inset-0 bg-black/90 z-[9999] flex flex-col items-center justify-center p-6 text-center animate-cutin">
+                            <div class="pixel-box-gold p-8 bg-amber-950/95 border-amber-400 shadow-2xl max-w-md w-full flex flex-col items-center">
+                                <div class="text-3xl sm:text-5xl font-pixel font-black text-amber-300 mb-2 animate-bounce">WIN / 勝利</div>
+                                <p class="text-xs sm:text-sm text-amber-200 font-mono mb-4">お見事！見事に勝利を収めました！<br><b class="text-amber-400">+150 DOPA</b> を獲得！</p>
+                                <button onclick="renderNewBattleCharSelectScreen()" class="pixel-btn pixel-btn-primary px-8 py-3 text-sm font-bold font-pixel shadow-xl">
+                                    バトル選択画面へ戻る ▶
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    stage.innerHTML += `
+                        <div id="battle-result-overlay" class="fixed inset-0 bg-black/90 z-[9999] flex flex-col items-center justify-center p-6 text-center animate-cutin">
+                            <div class="pixel-box p-8 bg-slate-900 border-yellow-400 shadow-2xl max-w-md w-full flex flex-col items-center">
+                                <div class="text-2xl sm:text-4xl font-pixel font-black text-yellow-300 mb-2">DRAW / 引き分け</div>
+                                <p class="text-xs sm:text-sm text-slate-300 font-mono mb-4">相討ちとなりました！</p>
+                                <button onclick="renderNewBattleCharSelectScreen()" class="pixel-btn pixel-btn-primary px-8 py-3 text-sm font-bold font-pixel shadow-xl">
+                                    バトル選択画面へ戻る ▶
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+            }, 1000);
         }
 
         function renderNewBattleScreen() {
@@ -3412,8 +3470,36 @@ case 'dopa_juggler_skill':
             const pPercent = Math.max(0, Math.min(100, Math.round((p1.hp / p1.maxHp) * 100)));
             const ePercent = Math.max(0, Math.min(100, Math.round((p2.hp / p2.maxHp) * 100)));
 
-            const pImg = p1.hp <= 0 ? 'asaiomizu/asaiomizu3.webp' : (p1.image || 'asaiomizu/asaiomizu2.webp');
-            const eImg = p2.hp <= 0 ? 'asaiomizu/asaiomizu3.webp' : (p2.image || 'asaiomizu/asaiomizu1.webp');
+            const pIsCourtney = p1.id === 'courtney';
+            const eIsCourtney = p2.id === 'courtney';
+            const pIsAsai = p1.id === 'asaiomizu';
+            const eIsAsai = p2.id === 'asaiomizu';
+
+            let pImg = '';
+            if (p1.hp <= 0) {
+                pImg = pIsCourtney ? 'courtney/ALT3.webp' : (pIsAsai ? 'asaiomizu/asaiomizu3.webp' : (p1.image || 'asaiomizu/asaiomizu3.webp'));
+            } else if (pIsCourtney && (p1.courtneyChargeCount || 0) > 0) {
+                pImg = 'courtney/ALTchange1.webp';
+            } else if (pIsCourtney) {
+                pImg = 'courtney/ALT22.webp';
+            } else if (pIsAsai) {
+                pImg = 'asaiomizu/asaiomizu2.webp';
+            } else {
+                pImg = p1.image;
+            }
+
+            let eImg = '';
+            if (p2.hp <= 0) {
+                eImg = eIsCourtney ? 'courtney/ALT3.webp' : (eIsAsai ? 'asaiomizu/asaiomizu3.webp' : (p2.image || 'asaiomizu/asaiomizu3.webp'));
+            } else if (eIsCourtney && (p2.courtneyChargeCount || 0) > 0) {
+                eImg = 'courtney/ALTchange2.webp';
+            } else if (eIsCourtney) {
+                eImg = 'courtney/ALT11.webp';
+            } else if (eIsAsai) {
+                eImg = 'asaiomizu/asaiomizu1.webp';
+            } else {
+                eImg = p2.image;
+            }
 
             let leftAreaContent = '';
 
@@ -3459,10 +3545,10 @@ case 'dopa_juggler_skill':
                 `;
             } else {
                 leftAreaContent = `
-                    <!-- 2. 敵キャラクター（相手） + 敵のHPゲージ -->
-                    <div class="flex flex-col items-center mt-6">
+                    <!-- 2. 敵キャラクター（相手） + 敵のHPゲージ (サイズ大きめ) -->
+                    <div class="flex flex-col items-center mt-4">
                         <div class="flex items-center gap-4 p-2">
-                            <div class="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center overflow-hidden">
+                            <div class="w-24 h-24 sm:w-32 sm:h-32 flex items-center justify-center overflow-hidden">
                                 <img id="new-enemy-img" src="${eImg}" alt="Enemy" class="w-full h-full object-contain">
                             </div>
                             <div class="flex flex-col gap-1 w-40 sm:w-48">
@@ -3477,7 +3563,7 @@ case 'dopa_juggler_skill':
                         </div>
                     </div>
 
-                    <!-- 3. プレイヤーキャラクター（自分） + 自分のHP -->
+                    <!-- 3. プレイヤーキャラクター（自分） + 自分のHP (サイズ大きめ) -->
                     <div class="flex flex-col items-center mb-2">
                         <div class="flex items-center gap-4 p-2">
                             <div class="flex flex-col gap-1 w-40 sm:w-48">
@@ -3489,7 +3575,7 @@ case 'dopa_juggler_skill':
                                     <div id="new-player-hp-bar" class="bg-emerald-500 h-full hp-bar-fill" style="width: ${pPercent}%;"></div>
                                 </div>
                             </div>
-                            <div class="w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center overflow-hidden">
+                            <div onclick="if(activeNewBattle && activeNewBattle.p1.id === 'courtney') { executeNewBattleCourtneyCharge(); }" class="w-32 h-32 sm:w-40 sm:h-40 flex items-center justify-center overflow-hidden ${p1.id === 'courtney' ? 'cursor-pointer hover:scale-105 transition-transform' : ''}" title="${p1.id === 'courtney' ? 'タップしてチャージ！' : ''}">
                                 <img id="new-player-img" src="${pImg}" alt="Player" class="w-full h-full object-contain">
                             </div>
                         </div>
@@ -3501,6 +3587,8 @@ case 'dopa_juggler_skill':
                     </div>
                 `;
             }
+
+            const isMyTurn = !activeNewBattle.battleEnded && !activeNewBattle.waitingForOpponent && !p1.isResting;
 
             container.innerHTML = `
                 <div class="w-full h-full flex flex-row overflow-hidden bg-slate-950 text-white relative select-none">
@@ -3516,6 +3604,11 @@ case 'dopa_juggler_skill':
                         <div class="absolute top-2 right-2 z-10 text-xs font-mono bg-slate-900/90 px-3 py-1.5 rounded border border-slate-700 shadow-md flex items-center gap-1.5">
                             <span>制限時間:</span>
                             <strong id="new-battle-timer" class="text-emerald-400 font-pixel">${activeNewBattle.turnTimer}</strong>s
+                        </div>
+
+                        <!-- 3. 左下の固定表示: 「自分のターン」判別表示（仕様2・四隅の目立たない場所、画像やHPゲージへの直接装飾なし） -->
+                        <div class="absolute bottom-2 left-2 z-10 px-3 py-1.5 rounded text-xs font-mono font-bold shadow-md ${isMyTurn ? 'bg-emerald-950 text-emerald-300 border border-emerald-500 animate-pulse' : 'bg-slate-900 text-slate-400 border border-slate-700'}">
+                            ${isMyTurn ? '🟢 YOUR TURN (自分のターン)' : '⏳ 相手のターン / 待機中'}
                         </div>
 
                         ${leftAreaContent}
@@ -3544,14 +3637,14 @@ case 'dopa_juggler_skill':
                             </button>
                         </div>
 
-                        <!-- 下部：プレイヤー情報パネル -->
-                        <div class="border-t-2 border-amber-500/60 pt-3 pb-2 px-2.5 flex items-center gap-3 bg-slate-950 rounded border border-slate-800">
-                            <canvas id="new-panel-profile-icon" width="60" height="60" class="pixel-box bg-slate-900 rounded w-14 h-14 shrink-0 border-2 border-amber-500/80 shadow"></canvas>
+                        <!-- 下部：プレイヤー情報パネル（大型化・バランス調整：仕様4） -->
+                        <div class="border-t-2 border-amber-500/60 pt-3 pb-3 px-3 flex items-center gap-3 bg-slate-950 rounded border border-slate-800">
+                            <canvas id="new-panel-profile-icon" width="80" height="80" class="pixel-box bg-slate-900 rounded w-20 h-20 shrink-0 border-2 border-amber-500/80 shadow"></canvas>
                             <div class="flex flex-col justify-center space-y-1 overflow-hidden flex-1 min-w-0">
-                                <span id="new-panel-player-name" class="text-xs sm:text-sm font-bold text-amber-300 truncate font-pixel">${playerState.playerName || '名無しファイター'}</span>
+                                <span id="new-panel-player-name" class="text-sm sm:text-base font-bold text-amber-300 truncate font-pixel">${playerState.playerName || '名無しファイター'}</span>
                                 <div class="flex items-center gap-1 font-mono">
-                                    <span class="text-[9px] text-amber-200">DOPA:</span>
-                                    <strong id="new-panel-dopa" class="text-amber-400 font-pixel text-xs">${formatDopa(playerState.dopa)}</strong>
+                                    <span class="text-[10px] text-amber-200">DOPA:</span>
+                                    <strong id="new-panel-dopa" class="text-amber-400 font-pixel text-xs sm:text-sm">${formatDopa(playerState.dopa)}</strong>
                                 </div>
                             </div>
                         </div>
