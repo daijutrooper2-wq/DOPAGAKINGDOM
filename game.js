@@ -3539,12 +3539,13 @@ case 'dopa_juggler_skill':
                         </div>
 
                         <!-- 下部：プレイヤー情報パネル -->
-                        <div class="border-t-2 border-amber-500/60 pt-2.5 flex flex-col gap-2 bg-slate-950 p-2.5 rounded border border-slate-800">
-                            <div class="flex items-center gap-2">
-                                <canvas id="new-panel-profile-icon" width="40" height="40" class="pixel-box bg-slate-900 rounded w-10 h-10 shrink-0"></canvas>
-                                <div class="flex flex-col overflow-hidden">
-                                    <span id="new-panel-player-name" class="text-xs font-bold text-amber-300 truncate">${playerState.playerName || '名無しファイター'}</span>
-                                    <span class="text-[10px] text-amber-200 font-mono">DOPA: <strong id="new-panel-dopa" class="text-amber-400 font-pixel">${formatDopa(playerState.dopa)}</strong></span>
+                        <div class="border-t-2 border-amber-500/60 pt-3 pb-2 px-2.5 flex items-center gap-3 bg-slate-950 rounded border border-slate-800">
+                            <canvas id="new-panel-profile-icon" width="60" height="60" class="pixel-box bg-slate-900 rounded w-14 h-14 shrink-0 border-2 border-amber-500/80 shadow"></canvas>
+                            <div class="flex flex-col justify-center space-y-1 overflow-hidden flex-1 min-w-0">
+                                <span id="new-panel-player-name" class="text-xs sm:text-sm font-bold text-amber-300 truncate font-pixel">${playerState.playerName || '名無しファイター'}</span>
+                                <div class="flex items-center gap-1 font-mono">
+                                    <span class="text-[9px] text-amber-200">DOPA:</span>
+                                    <strong id="new-panel-dopa" class="text-amber-400 font-pixel text-xs">${formatDopa(playerState.dopa)}</strong>
                                 </div>
                             </div>
                         </div>
