@@ -3071,10 +3071,15 @@ case 'dopa_juggler_skill':
                         </div>
                     </div>
 
-                    <!-- 画面左上角に小さく表示する「設定」ボタン -->
-                    <button onclick="openSettingsPanel()" class="absolute top-2 left-2 pixel-btn text-[10px] px-2 py-0.5 font-bold z-30 shadow-md">
-                        ⚙️ 設定
-                    </button>
+                    <!-- 画面左上角に小さく表示する「設定」ボタンと「リロード」ボタン -->
+                    <div class="absolute top-2 left-2 flex items-center gap-1.5 z-30">
+                        <button onclick="openSettingsPanel()" class="pixel-btn text-[10px] px-2 py-0.5 font-bold shadow-md">
+                            ⚙️ 設定
+                        </button>
+                        <button onclick="forceReloadApp()" class="pixel-btn pixel-btn-warning text-[10px] px-2 py-0.5 font-bold shadow-md" title="最新状態に更新">
+                            🔄 更新
+                        </button>
+                    </div>
 
                     <!-- 画像 "rough" を画面右下に配置 -->
                     <img src="dopaAI/rough.webp" alt="rough" class="absolute bottom-0 right-2 sm:right-4 w-36 sm:w-52 object-contain pointer-events-none z-10 opacity-95">
@@ -3631,10 +3636,15 @@ case 'dopa_juggler_skill':
                                 <span>🏃 逃げる</span>
                                 <span class="text-[10px] text-red-200">撤退</span>
                             </button>
-                            <button onclick="executeNewBattleAction('setting')" class="w-full pixel-btn pixel-btn-warning py-2 px-3 text-xs font-bold text-left flex items-center justify-between">
-                                <span>⚙️ セッティング</span>
-                                <span class="text-[10px] text-amber-200">設定</span>
-                            </button>
+                            <div class="flex gap-2 w-full items-center">
+                                <button onclick="executeNewBattleAction('setting')" class="flex-1 pixel-btn pixel-btn-warning py-2 px-3 text-xs font-bold text-left flex items-center justify-between">
+                                    <span>⚙️ セッティング</span>
+                                    <span class="text-[10px] text-amber-200">設定</span>
+                                </button>
+                                <button onclick="forceReloadApp()" class="pixel-btn pixel-btn-warning py-2 px-2 text-xs font-bold shrink-0 flex items-center justify-center shadow-md" title="最新状態に更新">
+                                    🔄
+                                </button>
+                            </div>
                         </div>
 
                         <!-- 下部：プレイヤー情報パネル（大型化・バランス調整：仕様4） -->
@@ -3789,6 +3799,12 @@ case 'dopa_juggler_skill':
             showModal("👥 フレンド", "フレンド・ランキング機能は現在準備中です。\n今後のアップデートをお楽しみに！");
         }
 
+        function forceReloadApp() {
+            audioSystem.playSelect();
+            // セーブデータ（localStorage）は絶対に削除・リセットせず、キャッシュを無視して最新のWebファイルを強制再読み込みする
+            window.location.reload(true);
+        }
+
         function openSettingsModal() {
             openSettingsPanel();
         }
@@ -3841,6 +3857,13 @@ case 'dopa_juggler_skill':
                             <span class="text-slate-300 font-bold">オープニング再生停止:</span>
                             <button onclick="toggleSkipOpening()" class="pixel-btn text-xs px-3 py-1 font-bold">
                                 ${playerState.skipOpening ? 'ON' : 'OFF'}
+                            </button>
+                        </div>
+
+                        <div class="flex justify-between items-center bg-slate-950 p-2 rounded border border-slate-800">
+                            <span class="text-slate-300 font-bold">アプリ更新 (リロード):</span>
+                            <button onclick="forceReloadApp()" class="pixel-btn pixel-btn-warning text-xs px-3 py-1 font-bold">
+                                🔄 最新版に更新
                             </button>
                         </div>
                     </div>
@@ -5275,3 +5298,4 @@ case 'dopa_juggler_skill':
         window.playOpeningAgain = playOpeningAgain;
         window.renderBotModesScreen = renderBotModesScreen;
         window.renderNewBattleCharSelectScreen = renderNewBattleCharSelectScreen;
+        window.forceReloadApp = forceReloadApp;
