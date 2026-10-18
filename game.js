@@ -3252,7 +3252,7 @@ case 'dopa_juggler_skill':
                             <span class="text-[9px] text-slate-400 text-center">おなじみの本格バトル！</span>
                         </button>
 
-                        <button onclick="startNewBattleMode()" class="pixel-box bg-slate-900 border-emerald-400 hover:border-emerald-300 p-4 flex flex-col items-center justify-center gap-2 cursor-pointer transform hover:scale-105 transition-all shadow-xl h-28 sm:h-36 group">
+                        <button onclick="renderNewBattleCharSelectScreen()" class="pixel-box bg-slate-900 border-emerald-400 hover:border-emerald-300 p-4 flex flex-col items-center justify-center gap-2 cursor-pointer transform hover:scale-105 transition-all shadow-xl h-28 sm:h-36 group">
                             <span class="text-2xl sm:text-3xl">✨</span>
                             <span class="text-emerald-300 font-pixel font-bold text-xs sm:text-sm text-center">新規バトルモード</span>
                             <span class="text-[9px] text-slate-400 text-center">左右分割の最新バトルUI！</span>
@@ -3311,13 +3311,46 @@ case 'dopa_juggler_skill':
         let newBattleState = null;
         let newBattleTimerInterval = null;
 
+        function renderNewBattleCharSelectScreen() {
+            audioSystem.playSelect();
+            const container = document.getElementById('screen-container');
+            if (!container) return;
+
+            container.innerHTML = `
+                <div class="relative w-full h-full flex flex-col justify-between p-4 sm:p-6 select-none overflow-hidden bg-slate-950 text-white">
+                    <div class="flex items-center justify-between relative z-10 w-full mb-3">
+                        <button onclick="renderBotModesScreen()" class="pixel-btn pixel-btn-danger px-3 py-1.5 text-xs font-bold">
+                            ◀ モード選択に戻る
+                        </button>
+                        <h2 class="text-amber-400 font-pixel text-base sm:text-xl font-bold tracking-wider">✨ 新規バトルモード - キャラクター選択</h2>
+                        <div class="w-20"></div>
+                    </div>
+
+                    <div class="flex-1 flex flex-col items-center justify-center gap-4 relative z-10 my-auto">
+                        <p class="text-xs text-amber-300 font-mono">※現在開発テスト中のため、「asaiomizu」のみ選択可能です</p>
+                        <div class="pixel-box bg-slate-900 border-2 border-amber-400 p-4 flex flex-col items-center gap-3 w-48 sm:w-56 shadow-2xl">
+                            <img src="asaiomizu/asaiomizu.webp" alt="asaiomizu" class="w-24 h-24 sm:w-32 sm:h-32 object-contain">
+                            <span class="text-amber-300 font-pixel font-bold text-sm">ASAIOMIZU</span>
+                            <span class="text-[10px] text-emerald-400 font-bold">✨ 選択中 (初期選択)</span>
+                        </div>
+                    </div>
+
+                    <div class="text-center relative z-10 pb-4">
+                        <button onclick="startNewBattleMode()" class="pixel-btn pixel-btn-primary px-8 py-3 text-sm sm:text-base font-bold font-pixel shadow-lg">
+                            このキャラクターで出陣！ ▶
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
         function startNewBattleMode() {
             audioSystem.playSelect();
-            const playerCharId = playerState.selectedPlayerChar || (playerState.unlockedChars && playerState.unlockedChars.length > 0 ? playerState.unlockedChars[0] : 'dopagaking');
-            const enemyCharId = 'pasha';
+            const playerCharId = 'asaiomizu';
+            const enemyCharId = 'asaiomizu';
 
-            const playerCharData = CHARACTER_DATA[playerCharId] || CHARACTER_DATA['dopagaking'];
-            const enemyCharData = CHARACTER_DATA[enemyCharId] || CHARACTER_DATA['pasha'];
+            const playerCharData = CHARACTER_DATA[playerCharId];
+            const enemyCharData = CHARACTER_DATA[enemyCharId];
 
             newBattleState = {
                 turn: 1,
@@ -3325,16 +3358,16 @@ case 'dopa_juggler_skill':
                 player: {
                     id: playerCharId,
                     name: playerCharData.name || 'プレイヤー',
-                    hp: playerCharData.hp || 100,
-                    maxHp: playerCharData.hp || 100,
-                    atk: playerCharData.atk || 20
+                    hp: playerCharData.hp || 182,
+                    maxHp: playerCharData.hp || 182,
+                    atk: playerCharData.atk || 28
                 },
                 enemy: {
                     id: enemyCharId,
-                    name: enemyCharData.name || 'パシャ僧',
-                    hp: enemyCharData.hp || 100,
-                    maxHp: enemyCharData.hp || 100,
-                    atk: enemyCharData.atk || 18
+                    name: enemyCharData.name || 'ASAIOMIZU',
+                    hp: enemyCharData.hp || 182,
+                    maxHp: enemyCharData.hp || 182,
+                    atk: enemyCharData.atk || 28
                 },
                 logs: ["新規バトルモードが開始しました！コマンドを選択してください。"]
             };
@@ -3375,6 +3408,9 @@ case 'dopa_juggler_skill':
             const pPercent = Math.max(0, Math.min(100, Math.round((p.hp / p.maxHp) * 100)));
             const ePercent = Math.max(0, Math.min(100, Math.round((e.hp / e.maxHp) * 100)));
 
+            const pImg = p.hp <= 0 ? 'asaiomizu/asaiomizu3.webp' : 'asaiomizu/asaiomizu2.webp';
+            const eImg = e.hp <= 0 ? 'asaiomizu/asaiomizu3.webp' : 'asaiomizu/asaiomizu1.webp';
+
             container.innerHTML = `
                 <div class="w-full h-full flex flex-row overflow-hidden bg-slate-950 text-white relative select-none">
                     <!-- 画面左側：バトル環境描画エリア -->
@@ -3385,12 +3421,11 @@ case 'dopa_juggler_skill':
                             <span>制限: <strong id="new-battle-timer" class="text-emerald-400">${newBattleState.timer}</strong>s</span>
                         </div>
 
-                        <!-- 2. 敵キャラクター（相手） + 敵のHPゲージ (上側・小さく・フロントショット/ダミー) -->
+                        <!-- 2. 敵キャラクター（相手） + 敵のHPゲージ (上側・枠なし) -->
                         <div class="flex flex-col items-center mt-6">
-                            <div class="flex items-center gap-4 bg-slate-900/95 p-3 rounded-lg border border-slate-700 shadow-lg">
-                                <div class="relative w-16 h-16 sm:w-20 sm:h-20 bg-slate-950 border-2 border-red-500 rounded flex items-center justify-center overflow-hidden">
-                                    <canvas id="new-enemy-canvas" width="64" height="64" class="w-full h-full object-cover"></canvas>
-                                    <div class="absolute bottom-0 inset-x-0 bg-red-950/85 text-[8px] text-red-300 text-center font-bold">敵 (前)</div>
+                            <div class="flex items-center gap-4 p-2">
+                                <div class="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center overflow-hidden">
+                                    <img id="new-enemy-img" src="${eImg}" alt="Enemy" class="w-full h-full object-contain">
                                 </div>
                                 <div class="flex flex-col gap-1 w-40 sm:w-48">
                                     <div class="flex justify-between text-[10px] sm:text-xs text-slate-300 font-bold">
@@ -3404,9 +3439,9 @@ case 'dopa_juggler_skill':
                             </div>
                         </div>
 
-                        <!-- 3. プレイヤーキャラクター（自分） + 自分のHP (下側・大きく・バックショット/ダミー・HPは左隣) -->
+                        <!-- 3. プレイヤーキャラクター（自分） + 自分のHP (下側・枠なし) -->
                         <div class="flex flex-col items-center mb-2">
-                            <div class="flex items-center gap-4 bg-slate-900/95 p-3 rounded-lg border border-slate-700 shadow-lg">
+                            <div class="flex items-center gap-4 p-2">
                                 <div class="flex flex-col gap-1 w-40 sm:w-48">
                                     <div class="flex justify-between text-[10px] sm:text-xs text-slate-300 font-bold">
                                         <span id="new-player-name">${p.name}</span>
@@ -3416,9 +3451,8 @@ case 'dopa_juggler_skill':
                                         <div id="new-player-hp-bar" class="bg-emerald-500 h-full hp-bar-fill" style="width: ${pPercent}%;"></div>
                                     </div>
                                 </div>
-                                <div class="relative w-24 h-24 sm:w-28 sm:h-28 bg-slate-950 border-2 border-emerald-500 rounded flex items-center justify-center overflow-hidden">
-                                    <canvas id="new-player-canvas" width="80" height="80" class="w-full h-full object-cover"></canvas>
-                                    <div class="absolute bottom-0 inset-x-0 bg-emerald-950/85 text-[8px] text-emerald-300 text-center font-bold">自分 (後)</div>
+                                <div class="w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center overflow-hidden">
+                                    <img id="new-player-img" src="${pImg}" alt="Player" class="w-full h-full object-contain">
                                 </div>
                             </div>
                         </div>
@@ -3459,8 +3493,8 @@ case 'dopa_juggler_skill':
                         <!-- 下部：プレイヤー情報パネル (下側に横線を入れて独立エリア) -->
                         <div class="border-t-2 border-amber-500/60 pt-2.5 flex flex-col gap-2 bg-slate-950 p-2.5 rounded border border-slate-800">
                             <div class="flex items-center gap-2">
-                                <div class="w-10 h-10 bg-slate-900 border border-amber-400 rounded overflow-hidden flex-shrink-0">
-                                    <canvas id="new-panel-icon-canvas" width="40" height="40" class="w-full h-full object-cover"></canvas>
+                                <div class="w-10 h-10 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                                    <img src="asaiomizu/asaiomizu2.webp" alt="icon" class="w-full h-full object-contain">
                                 </div>
                                 <div class="flex flex-col overflow-hidden">
                                     <span id="new-panel-player-name" class="text-xs font-bold text-amber-300 truncate">${playerState.playerName || '名無しファイター'}</span>
@@ -3479,17 +3513,6 @@ case 'dopa_juggler_skill':
                     </div>
                 </div>
             `;
-
-            setTimeout(() => {
-                const enemyCvs = document.getElementById('new-enemy-canvas');
-                if (enemyCvs) CharacterRenderer.drawCharacter(enemyCvs, e.id);
-
-                const playerCvs = document.getElementById('new-player-canvas');
-                if (playerCvs) CharacterRenderer.drawCharacter(playerCvs, p.id);
-
-                const panelCvs = document.getElementById('new-panel-icon-canvas');
-                if (panelCvs) CharacterRenderer.drawCharacter(panelCvs, playerState.selectedIcon || p.id);
-            }, 50);
         }
 
         function appendNewBattleLog(text) {
@@ -3584,12 +3607,21 @@ case 'dopa_juggler_skill':
             const pBarEl = document.getElementById('new-player-hp-bar');
             const eBarEl = document.getElementById('new-enemy-hp-bar');
             const turnEl = document.getElementById('new-battle-turn');
+            const pImgEl = document.getElementById('new-player-img');
+            const eImgEl = document.getElementById('new-enemy-img');
 
             if (pHpEl) pHpEl.innerText = p.hp;
             if (eHpEl) eHpEl.innerText = e.hp;
             if (pBarEl) pBarEl.style.width = pPercent + '%';
             if (eBarEl) eBarEl.style.width = ePercent + '%';
             if (turnEl) turnEl.innerText = newBattleState.turn;
+
+            if (pImgEl) {
+                pImgEl.src = p.hp <= 0 ? 'asaiomizu/asaiomizu3.webp' : 'asaiomizu/asaiomizu2.webp';
+            }
+            if (eImgEl) {
+                eImgEl.src = e.hp <= 0 ? 'asaiomizu/asaiomizu3.webp' : 'asaiomizu/asaiomizu1.webp';
+            }
         }
 
         function stopNewBattleTimer() {
@@ -5041,3 +5073,4 @@ case 'dopa_juggler_skill':
         window.openSettingsModal = openSettingsModal;
         window.playOpeningAgain = playOpeningAgain;
         window.renderBotModesScreen = renderBotModesScreen;
+        window.renderNewBattleCharSelectScreen = renderNewBattleCharSelectScreen;
