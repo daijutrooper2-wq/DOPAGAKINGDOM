@@ -917,6 +917,9 @@ static drawDopagaking(p, isCharged) {
             }
             try {
                 localStorage.setItem('dopa_player_state', JSON.stringify(playerState));
+                if (playerState.playerId) {
+                    localStorage.setItem('dopa_backup_' + playerState.playerId, JSON.stringify(playerState));
+                }
             } catch(e){}
         }
 
@@ -3844,8 +3847,10 @@ case 'dopa_juggler_skill':
                         </div>
 
                         <div class="flex justify-between items-center bg-slate-950 p-2 rounded border border-slate-800">
-                            <span class="text-slate-300 font-bold">プレイヤー ID:</span>
-                            <span class="text-amber-400 font-mono text-xs">${playerState.playerId || 'DP-1004'}</span>
+                            <span class="text-slate-300 font-bold">再ログイン (データ復元):</span>
+                            <button onclick="openReloginModal()" class="pixel-btn pixel-btn-primary text-xs px-3 py-1 font-bold">
+                                🔑 再ログイン
+                            </button>
                         </div>
 
                         <div class="flex justify-between items-center bg-slate-950 p-2 rounded border border-slate-800">
@@ -4748,7 +4753,10 @@ case 'dopa_juggler_skill':
                                             <input id="profile-name-input" type="text" value="${playerState.playerName || ''}" maxlength="12" class="pixel-box bg-slate-950 px-2.5 py-1 text-sm font-bold text-amber-300 w-32 sm:w-40 outline-none border-amber-600">
                                             <button onclick="savePlayerName()" class="pixel-btn pixel-btn-primary px-2.5 py-1 text-xs font-bold shrink-0">保存</button>
                                         </div>
-                                        <span class="text-xs text-slate-300 font-mono">ID: ${playerState.playerId || 'DP-1004'}</span>
+                                         <div class="flex items-center gap-2 flex-wrap">
+                                             <span class="text-xs text-slate-300 font-mono">ID: <span id="profile-player-id-text">${playerState.playerId || 'DP-1004'}</span></span>
+                                             <button onclick="copyPlayerId('${playerState.playerId || 'DP-1004'}')" class="pixel-btn pixel-btn-primary px-2 py-0.5 text-[10px] font-bold">📋 コピー</button>
+                                         </div>
                                     </div>
                                 </div>
 
@@ -5299,6 +5307,142 @@ case 'dopa_juggler_skill':
         window.openFriendModal = openFriendModal;
         window.openSettingsModal = openSettingsModal;
         window.playOpeningAgain = playOpeningAgain;
+        function showToast(message) {
+            let toast = document.getElementById('app-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'app-toast';
+                toast.className = 'fixed top-4 left-1/2 -translate-x-1/2 z-[10000] pixel-box bg-slate-900 border-amber-400 text-amber-300 px-4 py-2 text-xs font-bold font-pixel shadow-2xl transition-all opacity-0 pointer-events-none';
+                document.body.appendChild(toast);
+            }
+            toast.innerText = message;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            toast.classList.add('opacity-100');
+            
+            if (window._toastTimer) clearTimeout(window._toastTimer);
+            window._toastTimer = setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 2000);
+        }
+
+        function copyPlayerId(id) {
+            audioSystem.playSelect();
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(id).then(() => {
+                    showToast("IDをコピーしました！");
+                }).catch(() => {
+                    fallbackCopyText(id);
+                });
+            } else {
+                fallbackCopyText(id);
+            }
+        }
+
+        function fallbackCopyText(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast("IDをコピーしました！");
+            } catch (err) {
+                showToast("コピーに失敗しました");
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function openReloginModal() {
+            audioSystem.playSelect();
+            closeSettingsPanel();
+            
+            let savedIds = [];
+            try {
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('dopa_backup_')) {
+                        savedIds.push(key.replace('dopa_backup_', ''));
+                    }
+                }
+            } catch(e){}
+            
+            let savedIdsHtml = '';
+            if (savedIds.length > 0) {
+                savedIdsHtml = `
+                    <div class="mt-3 text-left">
+                        <p class="text-[11px] text-amber-300 font-bold mb-1">📂 この端末に保存されているID履歴:</p>
+                        <div class="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto bg-slate-950 p-2 rounded border border-slate-800">
+                            ${savedIds.map(id => `<button onclick="document.getElementById('relogin-id-input').value='${id}';" class="pixel-btn px-2 py-1 text-[10px] bg-slate-900 border-slate-700 text-amber-200">${id}</button>`).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            const bodyHtml = `
+                <div class="text-center space-y-3 py-1">
+                    <p class="text-xs text-slate-200 leading-relaxed font-mono">
+                        過去に使用していた<b class="text-amber-400">「プレイヤーID」</b>を入力してください。<br>
+                        該当するバックアップデータが存在する場合、データを復元してゲームを再開できます。
+                    </p>
+                    <div class="text-left space-y-1">
+                        <label class="text-xs text-amber-300 font-bold block">プレイヤーID:</label>
+                        <input id="relogin-id-input" type="text" placeholder="例: DP-1234" class="pixel-box bg-slate-950 px-3 py-2 text-sm font-bold text-amber-300 w-full outline-none border-amber-600">
+                    </div>
+                    ${savedIdsHtml}
+                </div>
+            `;
+
+            showConfirmModal("🔑 プレイヤー再ログイン (データ復元)", bodyHtml, async () => {
+                const input = document.getElementById('relogin-id-input');
+                if (!input) return;
+                const targetId = input.value.trim();
+                if (!targetId) {
+                    showModal("エラー", "プレイヤーIDを入力してください！");
+                    return;
+                }
+
+                let restoredData = null;
+                try {
+                    const localBackup = localStorage.getItem('dopa_backup_' + targetId);
+                    if (localBackup) {
+                        restoredData = JSON.parse(localBackup);
+                    }
+                } catch(e){}
+
+                if (!restoredData && window.fbDb && window.fbCollection && window.fbGetDocs && window.fbQuery) {
+                    try {
+                        const { collection, getDocs, query, where } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+                        const usersRef = collection(window.fbDb, 'users');
+                        const q = query(usersRef, where('playerId', '==', targetId));
+                        const querySnapshot = await getDocs(q);
+                        if (!querySnapshot.empty) {
+                            restoredData = querySnapshot.docs[0].data();
+                        }
+                    } catch(e) {
+                        console.warn("Firestore relogin query error:", e);
+                    }
+                }
+
+                if (restoredData) {
+                    Object.assign(playerState, restoredData);
+                    await savePlayerState();
+                    updateHeaderProfile();
+                    showModal("復元成功！", `プレイヤーID「${targetId}」のデータを正常に復元しました！\nようこそおかえりなさい、${playerState.playerName}さん！`);
+                    setTimeout(() => {
+                        closeModal();
+                        renderHomeScreen();
+                    }, 1500);
+                } else {
+                    showModal("データが見つかりません", `プレイヤーID「${targetId}」に該当するバックアップデータが見つかりませんでした。\nIDが正しいかご確認ください。`);
+                }
+            }, "データを復元してログイン");
+        }
+
+        window.copyPlayerId = copyPlayerId;
+        window.openReloginModal = openReloginModal;
         window.renderBotModesScreen = renderBotModesScreen;
         window.renderNewBattleCharSelectScreen = renderNewBattleCharSelectScreen;
         window.forceReloadApp = forceReloadApp;
