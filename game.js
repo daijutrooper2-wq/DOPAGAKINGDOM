@@ -3154,10 +3154,8 @@ case 'dopa_juggler_skill':
                 </div>
             `;
 
-            setTimeout(() => {
-                const cvs = document.getElementById('home-profile-icon');
-                if (cvs) CharacterRenderer.drawCharacter(cvs, playerState.selectedIcon || 'dopagaking');
-            }, 50);
+            const cvs = document.getElementById('home-profile-icon');
+            if (cvs) CharacterRenderer.drawCharacter(cvs, playerState.selectedIcon || 'dopagaking');
         }
 
         function handleDopagaKingdomClick() {
@@ -3668,10 +3666,8 @@ case 'dopa_juggler_skill':
                 </div>
             `;
 
-            setTimeout(() => {
-                const cvs = document.getElementById('new-panel-profile-icon');
-                if (cvs) CharacterRenderer.drawCharacter(cvs, playerState.selectedIcon || 'dopagaking');
-            }, 50);
+            const cvs = document.getElementById('new-panel-profile-icon');
+            if (cvs) CharacterRenderer.drawCharacter(cvs, playerState.selectedIcon || 'dopagaking');
         }
 
         function appendNewBattleLog(text, colorClass = 'text-slate-200') {
@@ -4808,17 +4804,15 @@ case 'dopa_juggler_skill':
                 </div>
             `;
 
-            setTimeout(() => {
-                const mainIconCvs = document.getElementById('profile-main-icon');
-                if (mainIconCvs) CharacterRenderer.drawCharacter(mainIconCvs, playerState.selectedIcon || 'courtney');
+            const mainIconCvs = document.getElementById('profile-main-icon');
+            if (mainIconCvs) CharacterRenderer.drawCharacter(mainIconCvs, playerState.selectedIcon || 'courtney');
 
-                if (showUsage) {
-                    Object.keys(playerState.charUsage).forEach(cId => {
-                        const uCvs = document.getElementById(`usage-cvs-${cId}`);
-                        if (uCvs) CharacterRenderer.drawCharacter(uCvs, cId);
-                    });
-                }
-            }, 50);
+            if (showUsage) {
+                Object.keys(playerState.charUsage).forEach(cId => {
+                    const uCvs = document.getElementById(`usage-cvs-${cId}`);
+                    if (uCvs) CharacterRenderer.drawCharacter(uCvs, cId);
+                });
+            }
         }
 
         window.toggleProfileUsage = function() {
