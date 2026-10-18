@@ -1595,24 +1595,22 @@ static drawDopagaking(p, isCharged) {
             }
 
             let html = `
-                <div id="zukan-detail-wrapper" class="w-full flex flex-col items-center max-w-md mx-auto py-2 px-3">
+                <div id="zukan-detail-wrapper" class="w-full flex flex-col items-center max-w-5xl mx-auto py-2 px-3">
                     <div class="flex justify-between items-center w-full mb-3">
                         <button onclick="${backAction}" class="pixel-btn px-3 py-1 text-xs">${backLabel}</button>
+                        <span class="text-xs font-bold text-amber-300 font-pixel">📖 キャラクター詳細図鑑</span>
                         <div></div>
                     </div>
 
-                    <div class="pixel-box-gold p-4 bg-amber-950/80 w-full flex flex-col items-center space-y-4 relative">
-                        <div class="absolute top-2 right-2 text-xs font-mono font-bold px-2 py-0.5 rounded border ${isUnlocked ? 'bg-emerald-950 text-emerald-300 border-emerald-600' : 'bg-red-950 text-red-300 border-red-600'}">
+                    <div class="pixel-box-gold p-4 sm:p-6 bg-amber-950/90 w-full relative">
+                        <div class="absolute top-3 right-3 text-xs font-mono font-bold px-2.5 py-1 rounded border ${isUnlocked ? 'bg-emerald-950 text-emerald-300 border-emerald-600' : 'bg-red-950 text-red-300 border-red-600'}">
                             ${isUnlocked ? '✨ 所持済み' : '🔒 未所持'}
                         </div>
 
-                        <div class="text-center mt-2">
-                            <h2 class="text-xl font-bold text-amber-300 font-pixel mb-1">${c.name}</h2>
-                            <p class="text-xs text-amber-200">${c.title}</p>
-                            <p class="text-[11px] text-slate-300 mt-0.5">${isExtra ? 'プロフィールアイコン / チャージアイテム' : c.type}</p>
-                        </div>
-
-                        <canvas id="zukan-detail-cvs" width="200" height="200" class="pixel-box bg-slate-950 shadow-lg border-2 border-amber-500"></canvas>
+                        <div class="flex flex-col md:flex-row gap-6 w-full items-start mt-2">
+                            <!-- Left Column: Icon & Select Button -->
+                            <div class="w-full md:w-1/3 flex flex-col items-center gap-4 flex-shrink-0">
+                                <canvas id="zukan-detail-cvs" width="180" height="180" class="pixel-box bg-slate-950 shadow-xl border-2 border-amber-500 w-36 h-36 sm:w-44 sm:h-44"></canvas>
             `;
 
             if (returnSource === 'select' && !isExtra) {
@@ -1622,48 +1620,60 @@ static drawDopagaking(p, isCharged) {
                 if (isUnlocked) {
                     const isSelected = playerState.selectedPlayerChar === c.id;
                     html += `
-                        <button onclick="playerState.selectedPlayerChar = '${c.id}'; savePlayerState(); renderCharacterSelectScreen(${isOnline}, '${sortOrder}', '${sortDir}');" class="pixel-btn ${isSelected ? 'pixel-btn-success' : 'pixel-btn-primary'} w-full py-2.5 font-bold text-xs sm:text-sm shadow-md">
-                            ${isSelected ? '✨ 選択中 (キャラクター選択へ戻る)' : '⚔ このキャラクターで出陣する'}
+                        <button onclick="playerState.selectedPlayerChar = '${c.id}'; savePlayerState(); renderCharacterSelectScreen(${isOnline}, '${sortOrder}', '${sortDir}');" class="pixel-btn ${isSelected ? 'pixel-btn-success' : 'pixel-btn-primary'} w-full py-3 font-bold text-xs sm:text-sm shadow-lg">
+                            ${isSelected ? '✨ 選択中 (戻る)' : '⚔ このキャラで出陣'}
                         </button>
                     `;
                 } else {
                     html += `
-                        <div class="w-full text-center py-2 text-xs text-red-400 font-bold bg-slate-950 rounded border border-red-900">
-                            🔒 未所持のため選択できません（ガチャで入手してください）
+                        <div class="w-full text-center py-2.5 text-xs text-red-400 font-bold bg-slate-950 rounded border border-red-900">
+                            🔒 未所持 (ガチャで入手)
                         </div>
                     `;
                 }
             }
 
+            html += `
+                            </div>
+
+                            <!-- Right Column: Details, Stats, Description, Skills -->
+                            <div class="w-full md:flex-1 flex flex-col gap-4 min-w-0">
+                                <div>
+                                    <h2 class="text-xl sm:text-2xl font-bold text-amber-300 font-pixel mb-1">${c.name}</h2>
+                                    <p class="text-xs sm:text-sm text-amber-200">${c.title}</p>
+                                    <p class="text-[11px] text-slate-300 mt-0.5">${isExtra ? 'プロフィールアイコン / チャージアイテム' : c.type}</p>
+                                </div>
+            `;
+
             if (!isExtra) {
                 html += `
-                        <div class="w-full bg-slate-950 p-3 rounded border border-amber-800 space-y-2 text-xs font-mono">
-                            <div class="text-amber-300 font-bold mb-1 border-b border-amber-900 pb-1">📊 ステータス</div>
-                            <div class="grid grid-cols-2 gap-2">
-                                <div class="flex justify-between"><span class="text-slate-400">HP:</span><span class="text-emerald-400 font-bold">${c.hp}</span></div>
-                                <div class="flex justify-between"><span class="text-slate-400">攻撃力:</span><span class="text-red-400 font-bold">${c.atk}</span></div>
-                                <div class="flex justify-between"><span class="text-slate-400">防御力:</span><span class="text-blue-400 font-bold">${c.def}</span></div>
-                                 <div class="flex justify-between"><span class="text-slate-400">クリティカル率:</span><span class="text-yellow-400 font-bold">${Math.round(c.critRate * 100)}%</span></div>
-                                <div class="flex justify-between col-span-2"><span class="text-slate-400">回避率:</span><span class="text-purple-400 font-bold">${c.eva}%</span></div>
-                            </div>
-                        </div>
+                                <div class="w-full bg-slate-950 p-3.5 rounded border border-amber-800 space-y-2 text-xs font-mono">
+                                    <div class="text-amber-300 font-bold mb-1.5 border-b border-amber-900 pb-1">📊 ステータス</div>
+                                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                                        <div class="flex justify-between bg-slate-900 p-1.5 rounded"><span class="text-slate-400">HP:</span><span class="text-emerald-400 font-bold">${c.hp}</span></div>
+                                        <div class="flex justify-between bg-slate-900 p-1.5 rounded"><span class="text-slate-400">攻撃力:</span><span class="text-red-400 font-bold">${c.atk}</span></div>
+                                        <div class="flex justify-between bg-slate-900 p-1.5 rounded"><span class="text-slate-400">防御力:</span><span class="text-blue-400 font-bold">${c.def}</span></div>
+                                        <div class="flex justify-between bg-slate-900 p-1.5 rounded"><span class="text-slate-400">クリ率:</span><span class="text-yellow-400 font-bold">${Math.round(c.critRate * 100)}%</span></div>
+                                        <div class="flex justify-between bg-slate-900 p-1.5 rounded col-span-2 sm:col-span-2"><span class="text-slate-400">回避率:</span><span class="text-purple-400 font-bold">${c.eva}%</span></div>
+                                    </div>
+                                </div>
 
-                        <div class="w-full bg-slate-950 p-3 rounded border border-amber-800 space-y-2 text-xs font-mono">
-                            <div class="text-amber-300 font-bold mb-1 border-b border-amber-900 pb-1">📖 キャラクター解説</div>
-                            <p class="text-slate-200 leading-relaxed whitespace-pre-line">${c.zukanDesc || c.desc}</p>
-                        </div>
+                                <div class="w-full bg-slate-950 p-3.5 rounded border border-amber-800 space-y-2 text-xs font-mono">
+                                    <div class="text-amber-300 font-bold mb-1.5 border-b border-amber-900 pb-1">📖 キャラクター解説</div>
+                                    <p class="text-slate-200 leading-relaxed whitespace-pre-line">${c.zukanDesc || c.desc}</p>
+                                </div>
 
-                        <div class="w-full bg-slate-950 p-3 rounded border border-amber-800 space-y-2 text-xs font-mono">
-                            <div class="text-amber-300 font-bold mb-1 border-b border-amber-900 pb-1">⚔ 所持スキル</div>
-                            <div class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                                <div class="w-full bg-slate-950 p-3.5 rounded border border-amber-800 space-y-2 text-xs font-mono">
+                                    <div class="text-amber-300 font-bold mb-1.5 border-b border-amber-900 pb-1">⚔ 所持スキル</div>
+                                    <div class="space-y-2 max-h-44 overflow-y-auto pr-1">
                 `;
 
                 c.skills.forEach(s => {
                     const cdStr = s.cooldown > 0 ? ` [CT: ${s.cooldown}T]` : '';
                     html += `
-                        <div class="bg-slate-900 p-2 rounded border border-slate-800">
+                        <div class="bg-slate-900 p-2.5 rounded border border-slate-800">
                             <div class="font-bold text-amber-200">${s.name}${cdStr}</div>
-                            <div class="text-[10px] text-slate-400">${s.desc}</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">${s.desc}</div>
                         </div>
                     `;
                 });
@@ -1671,14 +1681,16 @@ static drawDopagaking(p, isCharged) {
                 html += `</div></div>`;
             } else {
                 html += `
-                        <div class="w-full bg-slate-950 p-3 rounded border border-amber-800 space-y-2 text-xs font-mono">
-                            <div class="text-amber-300 font-bold mb-1 border-b border-amber-900 pb-1">📖 アイテム解説</div>
-                            <p class="text-slate-200 leading-relaxed whitespace-pre-line">ドパガキングダムの特別なチャージアイコン・記念アイテムです。プロフィールアイコンとして設定してアピールできます！</p>
-                        </div>
+                                <div class="w-full bg-slate-950 p-3.5 rounded border border-amber-800 space-y-2 text-xs font-mono">
+                                    <div class="text-amber-300 font-bold mb-1.5 border-b border-amber-900 pb-1">📖 アイテム解説</div>
+                                    <p class="text-slate-200 leading-relaxed whitespace-pre-line">ドパガキングダムの特別なチャージアイコン・記念アイテムです。プロフィールアイコンとして設定してアピールできます！</p>
+                                </div>
                 `;
             }
 
             html += `
+                            </div>
+                        </div>
                     </div>
                 </div>
             `;
