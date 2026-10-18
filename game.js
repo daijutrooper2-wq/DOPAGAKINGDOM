@@ -3420,7 +3420,7 @@ case 'dopa_juggler_skill':
             if (newBattleViewMode === 'attack_select') {
                 const normalSkill = p1.skills.find(s => s.isNormalAttack) || p1.skills[0];
                 leftAreaContent = `
-                    <div class="flex flex-col h-full justify-center items-center p-3">
+                    <div class="w-full h-full flex flex-col justify-center items-center p-3">
                         <div class="w-full max-w-md flex flex-col justify-center items-center gap-3">
                             <button onclick="executeNewBattleAction('${normalSkill.id}')" class="pixel-box bg-slate-900 border-2 border-amber-400 hover:border-amber-300 p-4 w-full flex flex-col items-center text-center cursor-pointer shadow-lg group">
                                 <span class="font-pixel text-sm text-amber-300 font-bold mb-1">${normalSkill.name}</span>
@@ -3451,7 +3451,7 @@ case 'dopa_juggler_skill':
                 }).join('');
 
                 leftAreaContent = `
-                    <div class="flex flex-col h-full justify-start p-3 overflow-y-auto">
+                    <div class="w-full h-full flex flex-col justify-start p-3 overflow-y-auto">
                         <div class="w-full max-w-md mx-auto space-y-2">
                             ${skillsHtml}
                         </div>
@@ -3506,10 +3506,16 @@ case 'dopa_juggler_skill':
                 <div class="w-full h-full flex flex-row overflow-hidden bg-slate-950 text-white relative select-none">
                     <!-- 画面左側：バトル環境描画エリア -->
                     <div class="flex-1 flex flex-col justify-between p-3 pt-12 relative border-r-4 border-slate-700">
-                        <!-- 1. 左上の固定表示: ターン数 と 制限時間 -->
-                        <div class="absolute top-2 left-2 z-10 flex gap-2 text-xs font-mono bg-slate-900/90 px-2.5 py-1 rounded border border-slate-700 shadow-md">
-                            <span>ターン: <strong id="new-battle-turn" class="text-amber-400">${activeNewBattle.turn}</strong></span>
-                            <span>制限: <strong id="new-battle-timer" class="text-emerald-400">${activeNewBattle.turnTimer}</strong>s</span>
+                        <!-- 1. 左上の固定表示: ターン数 -->
+                        <div class="absolute top-2 left-2 z-10 text-xs font-mono bg-slate-900/90 px-3 py-1.5 rounded border border-slate-700 shadow-md flex items-center gap-1.5">
+                            <span>ターン:</span>
+                            <strong id="new-battle-turn" class="text-amber-400 font-pixel">${activeNewBattle.turn}</strong>
+                        </div>
+
+                        <!-- 2. 右上の固定表示: 制限時間 -->
+                        <div class="absolute top-2 right-2 z-10 text-xs font-mono bg-slate-900/90 px-3 py-1.5 rounded border border-slate-700 shadow-md flex items-center gap-1.5">
+                            <span>制限時間:</span>
+                            <strong id="new-battle-timer" class="text-emerald-400 font-pixel">${activeNewBattle.turnTimer}</strong>s
                         </div>
 
                         ${leftAreaContent}
