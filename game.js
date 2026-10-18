@@ -3308,8 +3308,8 @@ case 'dopa_juggler_skill':
             `;
         }
 
-        let newBattleState = null;
-        let newBattleTimerInterval = null;
+        let activeNewBattle = null;
+        let newBattleViewMode = 'main';
 
         function renderNewBattleCharSelectScreen() {
             audioSystem.playSelect();
@@ -3336,7 +3336,7 @@ case 'dopa_juggler_skill':
                     </div>
 
                     <div class="text-center relative z-10 pb-4">
-                        <button onclick="startNewBattleMode()" class="pixel-btn pixel-btn-primary px-8 py-3 text-sm sm:text-base font-bold font-pixel shadow-lg">
+                        <button onclick="startNewBattleMode('asaiomizu', 'asaiomizu')" class="pixel-btn pixel-btn-primary px-8 py-3 text-sm sm:text-base font-bold font-pixel shadow-lg">
                             このキャラクターで出陣！ ▶
                         </button>
                     </div>
@@ -3344,72 +3344,171 @@ case 'dopa_juggler_skill':
             `;
         }
 
-        function startNewBattleMode() {
+        function startNewBattleMode(playerCharId = 'asaiomizu', enemyCharId = 'asaiomizu') {
             audioSystem.playSelect();
-            const playerCharId = 'asaiomizu';
-            const enemyCharId = 'asaiomizu';
+            newBattleViewMode = 'main';
 
-            const playerCharData = CHARACTER_DATA[playerCharId];
-            const enemyCharData = CHARACTER_DATA[enemyCharId];
+            if (activeNewBattle) {
+                activeNewBattle.stopTimer();
+                activeNewBattle = null;
+            }
 
-            newBattleState = {
-                turn: 1,
-                timer: 60,
-                player: {
-                    id: playerCharId,
-                    name: playerCharData.name || 'プレイヤー',
-                    hp: playerCharData.hp || 182,
-                    maxHp: playerCharData.hp || 182,
-                    atk: playerCharData.atk || 28
-                },
-                enemy: {
-                    id: enemyCharId,
-                    name: enemyCharData.name || 'ASAIOMIZU',
-                    hp: enemyCharData.hp || 182,
-                    maxHp: enemyCharData.hp || 182,
-                    atk: enemyCharData.atk || 28
-                },
-                logs: ["新規バトルモードが開始しました！コマンドを選択してください。"]
+            activeNewBattle = new BattleEngine(playerCharId, enemyCharId, false);
+
+            activeNewBattle.onLogUpdate = (msg, colorClass) => {
+                appendNewBattleLog(msg, colorClass);
             };
 
-            renderNewBattleScreen();
-            startNewBattleTimer();
-        }
-
-        function startNewBattleTimer() {
-            if (newBattleTimerInterval) clearInterval(newBattleTimerInterval);
-            newBattleTimerInterval = setInterval(() => {
-                if (!newBattleState) {
-                    clearInterval(newBattleTimerInterval);
-                    return;
-                }
-                newBattleState.timer--;
+            activeNewBattle.onTimerUpdate = (sec) => {
                 const timerEl = document.getElementById('new-battle-timer');
-                if (timerEl) timerEl.innerText = newBattleState.timer;
-                if (newBattleState.timer <= 0) {
-                    clearInterval(newBattleTimerInterval);
-                    appendNewBattleLog("制限時間がゼロになりました！タイムアップ！");
-                    setTimeout(() => {
-                        showModal("タイムアップ", "制限時間終了！引き分けとなります。", () => {
+                if (timerEl) {
+                    timerEl.innerText = sec;
+                    if (sec <= 5) timerEl.className = 'font-pixel text-xs sm:text-sm font-bold text-red-500 animate-ping';
+                    else timerEl.className = 'font-pixel text-xs sm:text-sm font-bold text-emerald-400';
+                }
+            };
+
+            activeNewBattle.onStateChange = (engine) => {
+                updateNewBattleUIValues();
+            };
+
+            activeNewBattle.onCutin = (title, subtitle) => {
+                if (typeof triggerCutinBanner === 'function') triggerCutinBanner(title, subtitle);
+            };
+
+            activeNewBattle.onBattleEnd = (winner) => {
+                updateNewBattleUIValues();
+                setTimeout(() => {
+                    if (activeNewBattle.p1.hp > 0 && activeNewBattle.p2.hp <= 0) {
+                        audioSystem.playVictory();
+                        addDopa(150);
+                        showModal("勝利！", `見事に勝利しました！\n報酬として 150 Dopa を獲得しました！`, () => {
                             renderBotModesScreen();
                         });
-                    }, 500);
-                }
-            }, 1000);
+                    } else if (activeNewBattle.p2.hp > 0 && activeNewBattle.p1.hp <= 0) {
+                        audioSystem.playDefeat();
+                        showModal("敗北...", `力尽きてしまいました...\n次こそは勝利を掴もう！`, () => {
+                            renderBotModesScreen();
+                        });
+                    } else {
+                        showModal("引き分け", `引き分けとなりました。`, () => {
+                            renderBotModesScreen();
+                        });
+                    }
+                }, 400);
+            };
+
+            activeNewBattle.startBattle();
+            renderNewBattleScreen();
         }
 
         function renderNewBattleScreen() {
             const container = document.getElementById('screen-container');
-            if (!container || !newBattleState) return;
+            if (!container || !activeNewBattle) return;
 
-            const p = newBattleState.player;
-            const e = newBattleState.enemy;
+            const p1 = activeNewBattle.p1;
+            const p2 = activeNewBattle.p2;
 
-            const pPercent = Math.max(0, Math.min(100, Math.round((p.hp / p.maxHp) * 100)));
-            const ePercent = Math.max(0, Math.min(100, Math.round((e.hp / e.maxHp) * 100)));
+            const pPercent = Math.max(0, Math.min(100, Math.round((p1.hp / p1.maxHp) * 100)));
+            const ePercent = Math.max(0, Math.min(100, Math.round((p2.hp / p2.maxHp) * 100)));
 
-            const pImg = p.hp <= 0 ? 'asaiomizu/asaiomizu3.webp' : 'asaiomizu/asaiomizu2.webp';
-            const eImg = e.hp <= 0 ? 'asaiomizu/asaiomizu3.webp' : 'asaiomizu/asaiomizu1.webp';
+            const pImg = p1.hp <= 0 ? 'asaiomizu/asaiomizu3.webp' : (p1.image || 'asaiomizu/asaiomizu2.webp');
+            const eImg = p2.hp <= 0 ? 'asaiomizu/asaiomizu3.webp' : (p2.image || 'asaiomizu/asaiomizu1.webp');
+
+            let leftAreaContent = '';
+
+            if (newBattleViewMode === 'attack_select') {
+                const normalSkill = p1.skills.find(s => s.isNormalAttack) || p1.skills[0];
+                leftAreaContent = `
+                    <div class="flex flex-col h-full justify-between p-2">
+                        <div class="flex items-center justify-between border-b border-slate-700 pb-2 mb-2">
+                            <span class="text-xs font-pixel text-amber-400 font-bold">⚔️ 通常攻撃選択</span>
+                            <button onclick="executeNewBattleAction('back_to_main')" class="pixel-btn pixel-btn-danger text-[10px] px-2 py-0.5">◀ 戻る</button>
+                        </div>
+                        <div class="flex-1 flex flex-col justify-center items-center gap-3">
+                            <button onclick="executeNewBattleAction('${normalSkill.id}')" class="pixel-box bg-slate-900 border-2 border-amber-400 hover:border-amber-300 p-4 w-full max-w-md flex flex-col items-center text-center cursor-pointer shadow-lg group">
+                                <span class="font-pixel text-sm text-amber-300 font-bold mb-1">${normalSkill.name}</span>
+                                <div class="w-full bg-slate-950 border border-slate-800 rounded p-2 text-xs text-slate-300 font-mono mt-1">
+                                    ${normalSkill.desc}
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else if (newBattleViewMode === 'skill_select') {
+                const skills = p1.skills.filter(s => !s.isNormalAttack);
+                let skillsHtml = skills.map(s => {
+                    const cd = p1.cooldowns[s.id] || 0;
+                    const isCd = cd > 0;
+                    const disabled = isCd || (p1.id === 'dopagaking' && s.id === 'dopa_inheritance' && (p1.dopaChargeCount || 0) < 5);
+                    return `
+                        <button onclick="${disabled ? '' : `executeNewBattleAction('${s.id}')`}" class="pixel-box bg-slate-900 border-2 ${disabled ? 'border-slate-700 opacity-60 cursor-not-allowed' : 'border-emerald-400 hover:border-emerald-300 cursor-pointer'} p-3 w-full flex flex-col items-start text-left shadow-md">
+                            <div class="flex justify-between w-full items-center mb-1">
+                                <span class="font-pixel text-xs text-emerald-300 font-bold">${s.name} ${isCd ? `(CT:${cd})` : ''}</span>
+                                ${disabled && isCd ? `<span class="text-[10px] text-red-400 font-mono">CT中</span>` : ''}
+                            </div>
+                            <div class="w-full bg-slate-950 border border-slate-800 rounded p-2 text-[11px] text-slate-300 font-mono">
+                                ${s.desc}
+                            </div>
+                        </button>
+                    `;
+                }).join('');
+
+                leftAreaContent = `
+                    <div class="flex flex-col h-full justify-between p-2">
+                        <div class="flex items-center justify-between border-b border-slate-700 pb-2 mb-2">
+                            <span class="text-xs font-pixel text-emerald-400 font-bold">✨ スキル選択</span>
+                            <button onclick="executeNewBattleAction('back_to_main')" class="pixel-btn pixel-btn-danger text-[10px] px-2 py-0.5">◀ 戻る</button>
+                        </div>
+                        <div class="flex-1 overflow-y-auto space-y-2 pr-1">
+                            ${skillsHtml}
+                        </div>
+                    </div>
+                `;
+            } else {
+                leftAreaContent = `
+                    <!-- 2. 敵キャラクター（相手） + 敵のHPゲージ -->
+                    <div class="flex flex-col items-center mt-6">
+                        <div class="flex items-center gap-4 p-2">
+                            <div class="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center overflow-hidden">
+                                <img id="new-enemy-img" src="${eImg}" alt="Enemy" class="w-full h-full object-contain">
+                            </div>
+                            <div class="flex flex-col gap-1 w-40 sm:w-48">
+                                <div class="flex justify-between text-[10px] sm:text-xs text-slate-300 font-bold">
+                                    <span id="new-enemy-name">${p2.charName}</span>
+                                    <span><span id="new-enemy-hp">${p2.hp}</span> / <span id="new-enemy-maxhp">${p2.maxHp}</span></span>
+                                </div>
+                                <div class="w-full bg-slate-950 h-3 border border-slate-700 rounded overflow-hidden">
+                                    <div id="new-enemy-hp-bar" class="bg-red-500 h-full hp-bar-fill" style="width: ${ePercent}%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. プレイヤーキャラクター（自分） + 自分のHP -->
+                    <div class="flex flex-col items-center mb-2">
+                        <div class="flex items-center gap-4 p-2">
+                            <div class="flex flex-col gap-1 w-40 sm:w-48">
+                                <div class="flex justify-between text-[10px] sm:text-xs text-slate-300 font-bold">
+                                    <span id="new-player-name">${p1.charName}</span>
+                                    <span><span id="new-player-hp">${p1.hp}</span> / <span id="new-player-maxhp">${p1.maxHp}</span></span>
+                                </div>
+                                <div class="w-full bg-slate-950 h-3 border border-slate-700 rounded overflow-hidden">
+                                    <div id="new-player-hp-bar" class="bg-emerald-500 h-full hp-bar-fill" style="width: ${pPercent}%;"></div>
+                                </div>
+                            </div>
+                            <div class="w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center overflow-hidden">
+                                <img id="new-player-img" src="${pImg}" alt="Player" class="w-full h-full object-contain">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. バトルログ -->
+                    <div class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs font-mono text-slate-200 h-16 overflow-y-auto" id="new-battle-log">
+                        ${(activeNewBattle.currentTurnLogs && activeNewBattle.currentTurnLogs.length > 0) ? activeNewBattle.currentTurnLogs.map(l => l.msg).join('<br>') : "新規バトルモードが開始しました！コマンドを選択してください。"}
+                    </div>
+                `;
+            }
 
             container.innerHTML = `
                 <div class="w-full h-full flex flex-row overflow-hidden bg-slate-950 text-white relative select-none">
@@ -3417,68 +3516,25 @@ case 'dopa_juggler_skill':
                     <div class="flex-1 flex flex-col justify-between p-3 relative border-r-4 border-slate-700">
                         <!-- 1. 左上の固定表示: ターン数 と 制限時間 -->
                         <div class="absolute top-2 left-2 z-10 flex gap-2 text-xs font-mono bg-slate-900/90 px-2.5 py-1 rounded border border-slate-700 shadow-md">
-                            <span>ターン: <strong id="new-battle-turn" class="text-amber-400">${newBattleState.turn}</strong></span>
-                            <span>制限: <strong id="new-battle-timer" class="text-emerald-400">${newBattleState.timer}</strong>s</span>
+                            <span>ターン: <strong id="new-battle-turn" class="text-amber-400">${activeNewBattle.turn}</strong></span>
+                            <span>制限: <strong id="new-battle-timer" class="text-emerald-400">${activeNewBattle.turnTimer}</strong>s</span>
                         </div>
 
-                        <!-- 2. 敵キャラクター（相手） + 敵のHPゲージ (上側・枠なし) -->
-                        <div class="flex flex-col items-center mt-6">
-                            <div class="flex items-center gap-4 p-2">
-                                <div class="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center overflow-hidden">
-                                    <img id="new-enemy-img" src="${eImg}" alt="Enemy" class="w-full h-full object-contain">
-                                </div>
-                                <div class="flex flex-col gap-1 w-40 sm:w-48">
-                                    <div class="flex justify-between text-[10px] sm:text-xs text-slate-300 font-bold">
-                                        <span id="new-enemy-name">${e.name}</span>
-                                        <span><span id="new-enemy-hp">${e.hp}</span> / <span id="new-enemy-maxhp">${e.maxHp}</span></span>
-                                    </div>
-                                    <div class="w-full bg-slate-950 h-3 border border-slate-700 rounded overflow-hidden">
-                                        <div id="new-enemy-hp-bar" class="bg-red-500 h-full hp-bar-fill" style="width: ${ePercent}%;"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 3. プレイヤーキャラクター（自分） + 自分のHP (下側・枠なし) -->
-                        <div class="flex flex-col items-center mb-2">
-                            <div class="flex items-center gap-4 p-2">
-                                <div class="flex flex-col gap-1 w-40 sm:w-48">
-                                    <div class="flex justify-between text-[10px] sm:text-xs text-slate-300 font-bold">
-                                        <span id="new-player-name">${p.name}</span>
-                                        <span><span id="new-player-hp">${p.hp}</span> / <span id="new-player-maxhp">${p.maxHp}</span></span>
-                                    </div>
-                                    <div class="w-full bg-slate-950 h-3 border border-slate-700 rounded overflow-hidden">
-                                        <div id="new-player-hp-bar" class="bg-emerald-500 h-full hp-bar-fill" style="width: ${pPercent}%;"></div>
-                                    </div>
-                                </div>
-                                <div class="w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center overflow-hidden">
-                                    <img id="new-player-img" src="${pImg}" alt="Player" class="w-full h-full object-contain">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 4. バトルログ (一番下：画面左下の最下部) -->
-                        <div class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-xs font-mono text-slate-200 h-16 overflow-y-auto" id="new-battle-log">
-                            ${newBattleState.logs.join('<br>')}
-                        </div>
+                        ${leftAreaContent}
                     </div>
 
                     <!-- 画面右側：操作パネルエリア -->
                     <div class="w-72 sm:w-80 flex flex-col justify-between p-3 bg-slate-900/98">
-                        <!-- 上部：コマンド選択パネル (上下にスライド・スクロール可能なコマンドボタン列) -->
+                        <!-- 上部：コマンド選択パネル -->
                         <div class="flex-1 overflow-y-auto space-y-2 pr-1 mb-2">
                             <div class="text-[10px] text-amber-400 font-bold font-pixel mb-1">COMMANDS</div>
-                            <button onclick="executeNewBattleAction('attack')" class="w-full pixel-btn pixel-btn-primary py-2 px-3 text-xs font-bold text-left flex items-center justify-between">
+                            <button onclick="executeNewBattleAction('normal_attack_click')" class="w-full pixel-btn pixel-btn-primary py-2 px-3 text-xs font-bold text-left flex items-center justify-between">
                                 <span>⚔️ 通常攻撃</span>
-                                <span class="text-[10px] text-blue-200">威力小</span>
+                                <span class="text-[10px] text-blue-200">選択</span>
                             </button>
-                            <button onclick="executeNewBattleAction('shield')" class="w-full pixel-btn py-2 px-3 text-xs font-bold text-left flex items-center justify-between bg-slate-800 border-slate-600">
-                                <span>🛡️ シールド</span>
-                                <span class="text-[10px] text-slate-400">未登録</span>
-                            </button>
-                            <button onclick="executeNewBattleAction('item')" class="w-full pixel-btn py-2 px-3 text-xs font-bold text-left flex items-center justify-between bg-slate-800 border-slate-600">
-                                <span>🧪 道具</span>
-                                <span class="text-[10px] text-slate-400">未登録</span>
+                            <button onclick="executeNewBattleAction('skill_click')" class="w-full pixel-btn pixel-btn-success py-2 px-3 text-xs font-bold text-left flex items-center justify-between">
+                                <span>✨ スキル</span>
+                                <span class="text-[10px] text-emerald-200">選択</span>
                             </button>
                             <button onclick="executeNewBattleAction('run')" class="w-full pixel-btn pixel-btn-danger py-2 px-3 text-xs font-bold text-left flex items-center justify-between">
                                 <span>🏃 逃げる</span>
@@ -3490,7 +3546,7 @@ case 'dopa_juggler_skill':
                             </button>
                         </div>
 
-                        <!-- 下部：プレイヤー情報パネル (下側に横線を入れて独立エリア) -->
+                        <!-- 下部：プレイヤー情報パネル -->
                         <div class="border-t-2 border-amber-500/60 pt-2.5 flex flex-col gap-2 bg-slate-950 p-2.5 rounded border border-slate-800">
                             <div class="flex items-center gap-2">
                                 <div class="w-10 h-10 overflow-hidden flex-shrink-0 flex items-center justify-center">
@@ -3502,10 +3558,10 @@ case 'dopa_juggler_skill':
                                 </div>
                             </div>
                             <div class="flex gap-2">
-                                <button onclick="stopNewBattleTimer(); renderBotModesScreen();" class="flex-1 pixel-btn pixel-btn-danger py-1 text-[10px] font-bold">
+                                <button onclick="if(activeNewBattle) activeNewBattle.stopTimer(); renderBotModesScreen();" class="flex-1 pixel-btn pixel-btn-danger py-1 text-[10px] font-bold">
                                     ◀ BOT選択
                                 </button>
-                                <button onclick="stopNewBattleTimer(); renderHomeScreen();" class="flex-1 pixel-btn pixel-btn-primary py-1 text-[10px] font-bold">
+                                <button onclick="if(activeNewBattle) activeNewBattle.stopTimer(); renderHomeScreen();" class="flex-1 pixel-btn pixel-btn-primary py-1 text-[10px] font-bold">
                                     🏠 ホーム
                                 </button>
                             </div>
@@ -3515,120 +3571,108 @@ case 'dopa_juggler_skill':
             `;
         }
 
-        function appendNewBattleLog(text) {
-            if (!newBattleState) return;
-            newBattleState.logs.push(text);
-            if (newBattleState.logs.length > 20) newBattleState.logs.shift();
+        function appendNewBattleLog(text, colorClass = 'text-slate-200') {
+            if (!activeNewBattle) return;
             const logEl = document.getElementById('new-battle-log');
             if (logEl) {
-                logEl.innerHTML = newBattleState.logs.join('<br>');
+                const line = document.createElement('div');
+                line.className = colorClass;
+                line.innerHTML = text;
+                logEl.appendChild(line);
                 logEl.scrollTop = logEl.scrollHeight;
             }
         }
 
         function executeNewBattleAction(actionType) {
-            if (!newBattleState) return;
+            if (!activeNewBattle) return;
             audioSystem.playSelect();
 
-            if (actionType === 'shield') {
-                appendNewBattleLog("【未実装】シールド機能はまだ登録されていません！");
-                audioSystem.playTone(200, 0.1, 'sawtooth', 0.05);
+            if (actionType === 'normal_attack_click') {
+                newBattleViewMode = 'attack_select';
+                renderNewBattleScreen();
                 return;
             }
-            if (actionType === 'item') {
-                appendNewBattleLog("【未実装】道具機能はまだ登録されていません！");
-                audioSystem.playTone(200, 0.1, 'sawtooth', 0.05);
+            if (actionType === 'skill_click') {
+                newBattleViewMode = 'skill_select';
+                renderNewBattleScreen();
+                return;
+            }
+            if (actionType === 'back_to_main') {
+                newBattleViewMode = 'main';
+                renderNewBattleScreen();
                 return;
             }
             if (actionType === 'run') {
-                appendNewBattleLog("バトルから逃走しました！");
-                stopNewBattleTimer();
+                appendNewBattleLog("バトルから逃走しました！", 'text-red-400 font-bold');
+                activeNewBattle.stopTimer();
                 setTimeout(() => renderBotModesScreen(), 500);
                 return;
             }
             if (actionType === 'setting') {
-                openSettingsPanel();
+                openNewBattleSettingsPanel();
                 return;
             }
 
-            if (actionType === 'attack') {
-                const dmg = Math.floor(newBattleState.player.atk * (0.8 + Math.random() * 0.4));
-                newBattleState.enemy.hp = Math.max(0, newBattleState.enemy.hp - dmg);
-                audioSystem.playHit();
-                appendNewBattleLog(`${newBattleState.player.name}の通常攻撃！ ${newBattleState.enemy.name}に ${dmg} のダメージ！`);
-
-                updateNewBattleUIValues();
-
-                if (newBattleState.enemy.hp <= 0) {
-                    stopNewBattleTimer();
-                    audioSystem.playVictory();
-                    addDopa(150);
-                    setTimeout(() => {
-                        showModal("勝利！", `見事に勝利しました！\n報酬として 150 Dopa を獲得しました！`, () => {
-                            renderBotModesScreen();
-                        });
-                    }, 400);
-                    return;
-                }
-
-                setTimeout(() => {
-                    if (!newBattleState) return;
-                    const eDmg = Math.floor(newBattleState.enemy.atk * (0.8 + Math.random() * 0.4));
-                    newBattleState.player.hp = Math.max(0, newBattleState.player.hp - eDmg);
-                    audioSystem.playHit();
-                    appendNewBattleLog(`${newBattleState.enemy.name}の反撃！ ${newBattleState.player.name}は ${eDmg} のダメージを受けた！`);
-
-                    newBattleState.turn++;
-                    updateNewBattleUIValues();
-
-                    if (newBattleState.player.hp <= 0) {
-                        stopNewBattleTimer();
-                        audioSystem.playDefeat();
-                        setTimeout(() => {
-                            showModal("敗北...", `力尽きてしまいました...\n次こそは勝利を掴もう！`, () => {
-                                renderBotModesScreen();
-                            });
-                        }, 400);
-                    }
-                }, 600);
-            }
+            newBattleViewMode = 'main';
+            activeNewBattle.submitAction(1, actionType);
+            renderNewBattleScreen();
         }
 
         function updateNewBattleUIValues() {
-            if (!newBattleState) return;
-            const p = newBattleState.player;
-            const e = newBattleState.enemy;
+            if (!activeNewBattle) return;
+            const p1 = activeNewBattle.p1;
+            const p2 = activeNewBattle.p2;
 
-            const pPercent = Math.max(0, Math.min(100, Math.round((p.hp / p.maxHp) * 100)));
-            const ePercent = Math.max(0, Math.min(100, Math.round((e.hp / e.maxHp) * 100)));
+            const pPercent = Math.max(0, Math.min(100, Math.round((p1.hp / p1.maxHp) * 100)));
+            const ePercent = Math.max(0, Math.min(100, Math.round((p2.hp / p2.maxHp) * 100)));
 
             const pHpEl = document.getElementById('new-player-hp');
             const eHpEl = document.getElementById('new-enemy-hp');
             const pBarEl = document.getElementById('new-player-hp-bar');
             const eBarEl = document.getElementById('new-enemy-hp-bar');
             const turnEl = document.getElementById('new-battle-turn');
-            const pImgEl = document.getElementById('new-player-img');
-            const eImgEl = document.getElementById('new-enemy-img');
+            const pMaxHpEl = document.getElementById('new-player-maxhp');
+            const eMaxHpEl = document.getElementById('new-enemy-maxhp');
 
-            if (pHpEl) pHpEl.innerText = p.hp;
-            if (eHpEl) eHpEl.innerText = e.hp;
+            if (pHpEl) pHpEl.innerText = p1.hp;
+            if (eHpEl) eHpEl.innerText = p2.hp;
+            if (pMaxHpEl) pMaxHpEl.innerText = p1.maxHp;
+            if (eMaxHpEl) eMaxHpEl.innerText = p2.maxHp;
             if (pBarEl) pBarEl.style.width = pPercent + '%';
             if (eBarEl) eBarEl.style.width = ePercent + '%';
-            if (turnEl) turnEl.innerText = newBattleState.turn;
-
-            if (pImgEl) {
-                pImgEl.src = p.hp <= 0 ? 'asaiomizu/asaiomizu3.webp' : 'asaiomizu/asaiomizu2.webp';
-            }
-            if (eImgEl) {
-                eImgEl.src = e.hp <= 0 ? 'asaiomizu/asaiomizu3.webp' : 'asaiomizu/asaiomizu1.webp';
-            }
+            if (turnEl) turnEl.innerText = activeNewBattle.turn;
         }
 
-        function stopNewBattleTimer() {
-            if (newBattleTimerInterval) {
-                clearInterval(newBattleTimerInterval);
-                newBattleTimerInterval = null;
+        function openNewBattleSettingsPanel() {
+            audioSystem.playSelect();
+            const backdrop = document.getElementById('settings-backdrop');
+            const panel = document.getElementById('settings-slide-panel');
+            const body = document.getElementById('settings-panel-body');
+
+            if (body) {
+                const volVal = Math.round((audioSystem.volume !== undefined ? audioSystem.volume : 0.5) * 100);
+                body.innerHTML = `
+                    <div class="space-y-2 text-left py-1 text-xs">
+                        <div class="bg-slate-950 p-2.5 rounded border border-slate-800 space-y-1.5">
+                            <div class="flex justify-between items-center">
+                                <span class="text-slate-300 font-bold">音量調節:</span>
+                                <span id="volume-val-label" class="text-amber-400 font-mono font-bold">${volVal}%</span>
+                            </div>
+                            <input type="range" min="0" max="100" value="${volVal}" oninput="onVolumeSliderChange(this.value)" class="w-full accent-amber-400 cursor-pointer">
+                        </div>
+
+                        <div class="flex justify-between items-center bg-slate-950 p-2.5 rounded border border-slate-800">
+                            <span class="text-slate-300 font-bold">サウンドの変更 (SFX):</span>
+                            <button onclick="audioSystem.toggleSound(); openNewBattleSettingsPanel();" class="pixel-btn text-xs px-3 py-1 font-bold">
+                                ${audioSystem.enabled ? '🔊 ON' : '🔇 OFF'}
+                            </button>
+                        </div>
+                    </div>
+                `;
             }
+
+            if (backdrop) backdrop.classList.remove('hidden');
+            if (panel) panel.classList.remove('translate-x-full');
         }
 
         function handleOnlineBattleClick() {
