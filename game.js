@@ -4213,17 +4213,17 @@ case 'dopa_juggler_skill':
             if (totalChoices === 0) {
                 usageHtml = `<p class="text-slate-400 text-xs">使用記録なし</p>`;
             } else {
-                usageHtml = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">`;
+                usageHtml = `<div class="grid grid-cols-1 gap-2 w-full">`;
                 Object.entries(playerState.charUsage).forEach(([cId, count]) => {
                     const cData = CHARACTER_DATA[cId] || { name: cId };
                     const rate = ((count / totalChoices) * 100).toFixed(1);
                     usageHtml += `
                         <div class="pixel-box p-2 bg-slate-900 flex items-center justify-between text-xs">
                             <div class="flex items-center gap-2">
-                                 <canvas id="usage-cvs-${cId}" width="60" height="60" class="pixel-box bg-slate-950 rounded"></canvas>
+                                 <canvas id="usage-cvs-${cId}" width="40" height="40" class="pixel-box bg-slate-950 rounded"></canvas>
                                 <div>
                                     <b class="text-amber-300">${cData.name}</b>
-                                    <div class="text-[10px] text-slate-400">使用回数: ${count}回</div>
+                                    <div class="text-[10px] text-slate-400">回数: ${count}回</div>
                                 </div>
                             </div>
                             <span class="text-emerald-400 font-bold font-mono">${rate}%</span>
@@ -4237,7 +4237,7 @@ case 'dopa_juggler_skill':
             if (playerState.battleHistory.length === 0) {
                 historyHtml = `<p class="text-slate-400 text-xs text-center py-4">対戦記録はありません</p>`;
             } else {
-                historyHtml = `<div class="space-y-2 max-h-60 overflow-y-auto pr-1">`;
+                historyHtml = `<div class="space-y-2 pr-1">`;
                 playerState.battleHistory.forEach((h, idx) => {
                     let resultBadge = h.result === 'win' ? '<span class="text-emerald-400 font-bold">勝利</span>' : (h.result === 'lose' ? '<span class="text-red-400 font-bold">敗北</span>' : '<span class="text-yellow-400 font-bold">引き分け</span>');
                     let opponentDisplay = h.isBot ? `<span class="text-purple-300">[BOT] ${h.opponentName}</span>` : `<button onclick="openOpponentProfileModal(${idx})" class="text-cyan-300 underline font-bold hover:text-cyan-200">[対戦相手] ${h.opponentName}</button>`;
@@ -4259,68 +4259,83 @@ case 'dopa_juggler_skill':
                 historyHtml += `</div>`;
             }
 
+            const showUsage = window._profileShowUsage || false;
+
             container.innerHTML = `
-                <div class="flex flex-col items-center justify-center w-full max-w-xl space-y-3 py-4 px-2">
-                    <h2 class="text-lg font-bold text-amber-300 font-pixel">👑 プレイヤープロフィール</h2>
+                <div class="flex flex-col items-center justify-start w-full max-w-5xl mx-auto py-3 px-2 space-y-3 h-full overflow-hidden">
+                    <h2 class="text-lg font-bold text-amber-300 font-pixel flex-shrink-0">👑 プレイヤープロフィール</h2>
                     
-                    <div class="pixel-box-gold p-3.5 bg-amber-950/80 w-full">
-                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                            <!-- 画面左側：プロフィールアイコン、小さいアイコンの変更ボタンとID、名前をコンパクトに表示 -->
-                            <div class="flex items-center gap-3 w-full sm:w-auto">
-                                <div class="flex flex-col items-center gap-1 shrink-0">
-                                    <canvas id="profile-main-icon" width="60" height="60" class="pixel-box bg-slate-950 rounded cursor-pointer border-amber-400 w-15 h-15" onclick="openIconSelectModal()" title="クリックしてアイコン変更"></canvas>
-                                    <button onclick="openIconSelectModal()" class="pixel-btn pixel-btn-primary px-2 py-0.5 text-[9px] font-bold">変更</button>
-                                </div>
-                                <div class="flex flex-col justify-center space-y-1 text-left flex-1 min-w-0">
-                                    <div class="flex items-center gap-1.5 flex-wrap">
-                                        <input id="profile-name-input" type="text" value="${playerState.playerName || ''}" maxlength="12" class="pixel-box bg-slate-950 px-2 py-0.5 text-xs font-bold text-amber-300 w-28 sm:w-32 outline-none border-amber-600">
-                                        <button onclick="savePlayerName()" class="pixel-btn pixel-btn-primary px-2 py-0.5 text-[10px] font-bold shrink-0">保存</button>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full flex-1 min-h-0 items-start">
+                        <!-- 左側：プロフィール欄と勝利数など固定表示 -->
+                        <div class="flex flex-col space-y-3 overflow-y-auto max-h-full pr-1">
+                            <div class="pixel-box-gold p-3.5 bg-amber-950/80 w-full space-y-3">
+                                <div class="flex items-center gap-3 w-full">
+                                    <div class="flex flex-col items-center gap-1 shrink-0">
+                                        <canvas id="profile-main-icon" width="60" height="60" class="pixel-box bg-slate-950 rounded cursor-pointer border-amber-400 w-15 h-15" onclick="openIconSelectModal()" title="クリックしてアイコン変更"></canvas>
+                                        <button onclick="openIconSelectModal()" class="pixel-btn pixel-btn-primary px-2 py-0.5 text-[9px] font-bold">変更</button>
                                     </div>
-                                    <span class="text-[10px] text-slate-300 font-mono">ID: ${playerState.playerId || 'DP-1004'}</span>
+                                    <div class="flex flex-col justify-center space-y-1 text-left flex-1 min-w-0">
+                                        <div class="flex items-center gap-1.5 flex-wrap">
+                                            <input id="profile-name-input" type="text" value="${playerState.playerName || ''}" maxlength="12" class="pixel-box bg-slate-950 px-2 py-0.5 text-xs font-bold text-amber-300 w-28 sm:w-32 outline-none border-amber-600">
+                                            <button onclick="savePlayerName()" class="pixel-btn pixel-btn-primary px-2 py-0.5 text-[10px] font-bold shrink-0">保存</button>
+                                        </div>
+                                        <span class="text-[10px] text-slate-300 font-mono">ID: ${playerState.playerId || 'DP-1004'}</span>
+                                    </div>
+                                </div>
+
+                                <div class="flex flex-col justify-center space-y-2 w-full font-mono text-xs border-t border-amber-800/60 pt-2">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-[11px] text-slate-300">始めた日: <b class="text-amber-300">${playerState.startDate || '2026/10/14'}</b></span>
+                                        <span class="text-[11px] text-amber-200">DOPA: <b class="text-amber-400 font-pixel">${formatDopa(playerState.dopa)}</b></span>
+                                    </div>
+                                    <div class="grid grid-cols-4 gap-1.5 text-center text-xs">
+                                        <div class="bg-slate-950 px-2 py-1 rounded border border-amber-800/50">
+                                            <div class="text-slate-400 text-[9px]">総対戦</div>
+                                            <div class="text-amber-300 font-bold">${playerState.totalBattles}</div>
+                                        </div>
+                                        <div class="bg-slate-950 px-2 py-1 rounded border border-amber-800/50">
+                                            <div class="text-slate-400 text-[9px]">勝利</div>
+                                            <div class="text-emerald-400 font-bold">${playerState.wins}</div>
+                                        </div>
+                                        <div class="bg-slate-950 px-2 py-1 rounded border border-amber-800/50">
+                                            <div class="text-slate-400 text-[9px]">敗北</div>
+                                            <div class="text-red-400 font-bold">${playerState.losses}</div>
+                                        </div>
+                                        <div class="bg-slate-950 px-2 py-1 rounded border border-amber-800/50">
+                                            <div class="text-slate-400 text-[9px]">勝率</div>
+                                            <div class="text-cyan-400 font-bold">${winRate}%</div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- 画面右側：戦歴類、始めた日などを見やすくコンパクトに表示 -->
-                            <div class="flex flex-col justify-center space-y-2 w-full sm:w-auto font-mono text-xs border-t sm:border-t-0 sm:border-l border-amber-800/60 pt-2 sm:pt-0 sm:pl-4">
-                                <div class="flex justify-between sm:justify-end gap-3 items-center">
-                                    <span class="text-[11px] text-slate-300">始めた日: <b class="text-amber-300">${playerState.startDate || '2026/10/14'}</b></span>
-                                    <span class="text-[11px] text-amber-200">DOPA: <b class="text-amber-400 font-pixel">${formatDopa(playerState.dopa)}</b></span>
-                                </div>
-                                <div class="grid grid-cols-4 gap-1.5 text-center text-xs">
-                                    <div class="bg-slate-950 px-2 py-1 rounded border border-amber-800/50">
-                                        <div class="text-slate-400 text-[9px]">総対戦</div>
-                                        <div class="text-amber-300 font-bold">${playerState.totalBattles}</div>
+                            <!-- キャラクター使用率表示切り替えボタン -->
+                            <div class="w-full">
+                                <button onclick="toggleProfileUsage()" class="pixel-btn pixel-btn-warning w-full py-2 text-xs font-bold flex items-center justify-center gap-2">
+                                    <span>📊 キャラクター使用率</span>
+                                    <span class="bg-slate-950 px-2 py-0.5 rounded text-[10px]">${showUsage ? '▲ 閉じる' : '▼ 表示する'}</span>
+                                </button>
+                                ${showUsage ? `
+                                    <div class="pixel-box p-3 bg-slate-900 w-full space-y-2 mt-2 animate-cutin">
+                                        <h3 class="text-xs font-bold text-amber-300 font-pixel">📊 キャラクター使用率</h3>
+                                        ${usageHtml}
                                     </div>
-                                    <div class="bg-slate-950 px-2 py-1 rounded border border-amber-800/50">
-                                        <div class="text-slate-400 text-[9px]">勝利</div>
-                                        <div class="text-emerald-400 font-bold">${playerState.wins}</div>
-                                    </div>
-                                    <div class="bg-slate-950 px-2 py-1 rounded border border-amber-800/50">
-                                        <div class="text-slate-400 text-[9px]">敗北</div>
-                                        <div class="text-red-400 font-bold">${playerState.losses}</div>
-                                    </div>
-                                    <div class="bg-slate-950 px-2 py-1 rounded border border-amber-800/50">
-                                        <div class="text-slate-400 text-[9px]">勝率</div>
-                                        <div class="text-cyan-400 font-bold">${winRate}%</div>
-                                    </div>
-                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+
+                        <!-- 右側：上下スクロール可能な対戦履歴 -->
+                        <div class="pixel-box p-3 bg-slate-900 w-full flex flex-col h-full max-h-[520px]">
+                            <h3 class="text-xs font-bold text-amber-300 font-pixel mb-2 flex-shrink-0">📜 過去の戦歴 (最大50件)</h3>
+                            <div class="flex-1 min-h-0 overflow-y-auto pr-1">
+                                ${historyHtml}
                             </div>
                         </div>
                     </div>
 
-                    <div class="pixel-box p-3 bg-slate-900 w-full space-y-2">
-                        <h3 class="text-xs font-bold text-amber-300 font-pixel">📊 キャラクター使用率</h3>
-                        ${usageHtml}
-                    </div>
-
-                    <div class="pixel-box p-3 bg-slate-900 w-full space-y-2">
-                        <h3 class="text-xs font-bold text-amber-300 font-pixel">📜 過去の戦歴 (最大50件)</h3>
-                        ${historyHtml}
-                    </div>
-
-                    <div class="flex justify-between items-center w-full">
-                        <button onclick="confirmResetPlayerProfile()" class="pixel-btn pixel-btn-danger px-4 py-2 text-xs font-bold">⚠️ データ初期化</button>
-                        <button onclick="renderHomeScreen()" class="pixel-btn px-6 py-2 text-xs font-bold">ホームに戻る</button>
+                    <div class="flex justify-between items-center w-full flex-shrink-0 pt-1">
+                        <button onclick="confirmResetPlayerProfile()" class="pixel-btn pixel-btn-danger px-4 py-1.5 text-xs font-bold">⚠️ データ初期化</button>
+                        <button onclick="renderHomeScreen()" class="pixel-btn px-6 py-1.5 text-xs font-bold">ホームに戻る</button>
                     </div>
                 </div>
             `;
@@ -4329,12 +4344,20 @@ case 'dopa_juggler_skill':
                 const mainIconCvs = document.getElementById('profile-main-icon');
                 if (mainIconCvs) CharacterRenderer.drawCharacter(mainIconCvs, playerState.selectedIcon || 'courtney');
 
-                Object.keys(playerState.charUsage).forEach(cId => {
-                    const uCvs = document.getElementById(`usage-cvs-${cId}`);
-                    if (uCvs) CharacterRenderer.drawCharacter(uCvs, cId);
-                });
+                if (showUsage) {
+                    Object.keys(playerState.charUsage).forEach(cId => {
+                        const uCvs = document.getElementById(`usage-cvs-${cId}`);
+                        if (uCvs) CharacterRenderer.drawCharacter(uCvs, cId);
+                    });
+                }
             }, 50);
         }
+
+        window.toggleProfileUsage = function() {
+            audioSystem.playSelect();
+            window._profileShowUsage = !window._profileShowUsage;
+            openProfileScreen();
+        };
 
         function confirmResetPlayerProfile() {
             audioSystem.playSelect();
