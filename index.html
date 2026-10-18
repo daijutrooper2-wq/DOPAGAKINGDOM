@@ -15,6 +15,11 @@
     <!-- iPhoneなどのホーム画面に追加したときのアプリ名 -->
     <meta name="apple-mobile-web-app-title" content="ドパキン">
 
+    <!-- キャッシュ無効化メタタグ -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
     <!-- アイコンの設定 (imagesフォルダ内の DOPAGAKINGDOM.png を指定) -->
     <link rel="icon" type="image/png" sizes="32x32" href="images/DOPAGAKINGDOM.png">
     <link rel="apple-touch-icon" href="images/DOPAGAKINGDOM.png">
@@ -23,7 +28,36 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=DotGothic16&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=20261018">
+
+    <script>
+        // PWAホーム画面起動時などの自動更新検知＆キャッシュ対策
+        (function() {
+            const VERSION_KEY = 'dopa_app_version';
+            async function checkUpdate() {
+                try {
+                    const res = await fetch('version.json?_t=' + Date.now(), { cache: 'no-store' });
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    const serverVersion = data.version;
+                    const currentVersion = sessionStorage.getItem(VERSION_KEY);
+                    
+                    if (!currentVersion) {
+                        sessionStorage.setItem(VERSION_KEY, serverVersion);
+                    } else if (currentVersion !== serverVersion) {
+                        sessionStorage.setItem(VERSION_KEY, serverVersion);
+                        window.location.reload(true);
+                    }
+                } catch (e) {}
+            }
+            window.addEventListener('load', checkUpdate);
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible') {
+                    checkUpdate();
+                }
+            });
+        })();
+    </script>
 </head>
 <body class="w-screen h-screen overflow-hidden flex flex-col items-center justify-center p-0 m-0 bg-slate-950">
 
@@ -66,6 +100,6 @@
         </div>
     </div>
 
-    <script src="game.js"></script>
+    <script src="game.js?v=20261018"></script>
 </body>
 </html>
