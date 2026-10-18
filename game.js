@@ -644,15 +644,15 @@ static drawDopagaking(p, isCharged) {
             if (bodyEl) {
                 bodyEl.innerHTML = `
                     <div class="text-center space-y-3 py-2">
+                        <div class="text-left mb-3">
+                            <label class="text-xs text-amber-300 font-bold block mb-1">あなたのファイター名を入力してください：</label>
+                            <input id="first-name-input" type="text" value="${playerState.playerName || '名無しファイター'}" maxlength="12" class="pixel-box bg-slate-950 px-3 py-2 text-sm font-bold text-amber-300 w-full outline-none border-amber-600">
+                        </div>
                         <p class="text-xs text-amber-300 font-bold font-pixel">🎉 新規プレイヤー特典！ 🎉</p>
                         <p class="text-xs text-slate-200 leading-relaxed font-mono">
                             ドパガキングダムへようこそ！<br>
                             新規特典として <b class="text-amber-400">1000 DOPA</b> をプレゼントしました！
                         </p>
-                        <div class="text-left mt-3">
-                            <label class="text-xs text-slate-300 font-bold block mb-1">あなたのファイター名を入力してください：</label>
-                            <input id="first-name-input" type="text" value="${playerState.playerName || '名無しファイター'}" maxlength="12" class="pixel-box bg-slate-950 px-3 py-2 text-sm font-bold text-amber-300 w-full outline-none border-amber-600">
-                        </div>
                     </div>
                 `;
             }
@@ -1617,6 +1617,26 @@ static drawDopagaking(p, isCharged) {
 
                         <canvas id="zukan-detail-cvs" width="200" height="200" class="pixel-box bg-slate-950 shadow-lg border-2 border-amber-500"></canvas>
             `;
+
+            if (returnSource === 'select' && !isExtra) {
+                const isOnline = !!arg1;
+                const sortOrder = arg2 || 'default';
+                const sortDir = arg3 || 'desc';
+                if (isUnlocked) {
+                    const isSelected = playerState.selectedPlayerChar === c.id;
+                    html += `
+                        <button onclick="playerState.selectedPlayerChar = '${c.id}'; savePlayerState(); renderCharacterSelectScreen(${isOnline}, '${sortOrder}', '${sortDir}');" class="pixel-btn ${isSelected ? 'pixel-btn-success' : 'pixel-btn-primary'} w-full py-2.5 font-bold text-xs sm:text-sm shadow-md">
+                            ${isSelected ? '✨ 選択中 (キャラクター選択へ戻る)' : '⚔ このキャラクターで出陣する'}
+                        </button>
+                    `;
+                } else {
+                    html += `
+                        <div class="w-full text-center py-2 text-xs text-red-400 font-bold bg-slate-950 rounded border border-red-900">
+                            🔒 未所持のため選択できません（ガチャで入手してください）
+                        </div>
+                    `;
+                }
+            }
 
             if (!isExtra) {
                 html += `
@@ -3313,14 +3333,6 @@ case 'dopa_juggler_skill':
                 const volVal = Math.round((audioSystem.volume !== undefined ? audioSystem.volume : 0.5) * 100);
                 body.innerHTML = `
                     <div class="space-y-1.5 text-left py-1 text-xs">
-                        <div class="flex items-center justify-between bg-slate-950 p-2 rounded border border-slate-800">
-                            <span class="text-slate-300 font-bold">ファイター名:</span>
-                            <div class="flex gap-1.5 items-center">
-                                <input id="settings-name-input" type="text" value="${playerState.playerName || '名無しファイター'}" maxlength="12" class="pixel-box bg-slate-900 px-2 py-1 text-xs font-bold text-amber-300 w-32 outline-none border-amber-600">
-                                <button onclick="updatePlayerNameFromSettings()" class="pixel-btn pixel-btn-primary px-2 py-1 text-xs font-bold">変更</button>
-                            </div>
-                        </div>
-
                         <div class="bg-slate-950 p-2 rounded border border-slate-800 space-y-1">
                             <div class="flex justify-between items-center">
                                 <span class="text-slate-300 font-bold">音量調節 (つまみ):</span>
@@ -3386,24 +3398,6 @@ case 'dopa_juggler_skill':
             savePlayerState();
         };
 
-            async function updatePlayerNameFromSettings() {
-                audioSystem.playSelect();
-                const input = document.getElementById('settings-name-input');
-                if (input) {
-                    const name = input.value.trim();
-                    if (name) {
-                        playerState.playerName = name;
-                        await savePlayerState();
-                        updateHeaderProfile();
-                        showModal("設定完了", "ファイター名を変更しました！");
-                        setTimeout(() => {
-                            closeModal();
-                            openSettingsPanel();
-                        }, 1200);
-                    }
-                }
-            }
-
         function renderCharacterSelectScreen(isOnline = false, sortOrder = 'default', sortDir = 'desc') {
             audioSystem.playSelect();
             if (!playerState.unlockedChars || playerState.unlockedChars.length === 0) {
@@ -3431,15 +3425,15 @@ case 'dopa_juggler_skill':
             const totalCount = Object.keys(CHARACTER_DATA).length;
 
             let html = `
-                <div class="w-full flex flex-col items-center max-w-4xl mx-auto py-2 px-2">
-                    <div class="pixel-box-gold p-2 sm:p-3 bg-amber-950/90 w-full text-center space-y-0.5 sm:space-y-1 border-amber-400 mb-2 sm:mb-3">
+                <div class="w-full h-full flex flex-col items-center justify-between max-w-4xl mx-auto py-2 px-2 overflow-hidden">
+                    <div class="pixel-box-gold p-2 sm:p-3 bg-amber-950/90 w-full text-center space-y-0.5 sm:space-y-1 border-amber-400 mb-2 flex-shrink-0">
                         <h2 class="text-sm sm:text-lg font-bold text-amber-300 font-pixel">
                             ${isOnline ? '🌐 オンライン対戦 - 自キャラ選択' : '⚔ キャラクター選択 (BOT対戦)'}
                         </h2>
-                        <p class="text-[9px] sm:text-xs text-amber-200 font-mono">出陣するファイターを選んでバトルに備えよ！</p>
+                        <p class="text-[9px] sm:text-xs text-amber-200 font-mono">アイコンをタップして詳細確認・出陣ファイターを選択せよ！</p>
                     </div>
 
-                    <div class="flex items-center justify-between w-full mb-2 sm:mb-3 px-1 gap-2 flex-wrap">
+                    <div class="flex items-center justify-between w-full mb-2 px-1 gap-2 flex-wrap flex-shrink-0">
                         <div class="flex items-center gap-1.5 text-xs">
                             <span class="text-slate-400 font-bold">並び替え:</span>
                             <select id="char-select-sort-order" onchange="onCharSelectSortChange(${isOnline})" class="pixel-box bg-slate-900 text-amber-300 px-2 py-1 text-xs outline-none border-amber-600">
@@ -3459,7 +3453,7 @@ case 'dopa_juggler_skill':
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3 w-full mb-2 sm:mb-4 px-1 max-h-[180px] sm:max-h-[320px] overflow-y-auto">
+                    <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3 w-full mb-2 px-1 overflow-y-auto flex-1 min-h-0">
             `;
 
             chars.forEach(c => {
@@ -3474,7 +3468,7 @@ case 'dopa_juggler_skill':
                 else if (sortOrder === 'eva') statDisplay = `<span class="text-[9px] sm:text-[10px] text-blue-400 font-bold">避: ${c.eva}%</span>`;
 
                 html += `
-                    <div onclick="${isUnlocked ? `selectChar('${c.id}',${isOnline}, '${sortOrder}', '${sortDir}')` : `openCharDetail('${c.id}', 'select', ${isOnline}, '${sortOrder}', '${sortDir}')`}" 
+                    <div onclick="openCharDetail('${c.id}', 'select', ${isOnline}, '${sortOrder}', '${sortDir}')" 
                          class="pixel-box p-2 sm:p-3 bg-slate-900 cursor-pointer flex flex-col items-center justify-between border-2 transition-all ${isSelected ? 'border-amber-400 bg-amber-950/40 scale-105 shadow-lg' : 'border-slate-700 hover:border-slate-400'} ${!isUnlocked ? 'opacity-60 grayscale' : ''}">
                         <canvas id="select-cvs-${c.id}" width="95" height="95" class="pixel-box bg-slate-950 mb-1 w-16 h-16 sm:w-24 sm:h-24"></canvas>
                         <span class="text-[11px] sm:text-xs font-bold ${isSelected ? 'text-amber-300 font-pixel' : 'text-slate-200'} truncate max-w-full">${c.name}</span>
@@ -3487,8 +3481,7 @@ case 'dopa_juggler_skill':
 
             html += `
                     </div>
-                    <div id="char-detail-box" class="pixel-box p-2.5 sm:p-3 bg-slate-900 w-full mb-2 sm:mb-4 text-xs text-slate-300"></div>
-                    <div class="flex gap-3 w-full justify-center pb-2">
+                    <div class="flex gap-3 w-full justify-center pb-2 flex-shrink-0">
                         <button onclick="renderHomeScreen()" class="pixel-btn px-4 py-1.5 sm:py-2 text-xs">ホームに戻る</button>
                         <button onclick="${isOnline ? 'openOnlineLobby()' : 'startBotBattle()'}" class="pixel-btn pixel-btn-primary px-6 py-1.5 sm:py-2 text-xs sm:text-sm font-bold">
                             ${isOnline ? 'ロビーへ進む 🚀' : '対戦開始！ ⚔'}
@@ -3504,14 +3497,7 @@ case 'dopa_juggler_skill':
                     const cvs = document.getElementById(`select-cvs-${id}`);
                     if (cvs) CharacterRenderer.drawCharacter(cvs, id);
                 });
-                updateCharDetailBox();
             }, 50);
-        }
-
-        function selectChar(id, isOnline, sortOrder = 'default', sortDir = 'desc') {
-            audioSystem.playSelect();
-            playerState.selectedPlayerChar = id;
-            renderCharacterSelectScreen(isOnline, sortOrder, sortDir);
         }
 
         function onCharSelectSortChange(isOnline) {
