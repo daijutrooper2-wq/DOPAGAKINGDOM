@@ -3336,10 +3336,27 @@ case 'dopa_juggler_skill':
             if (!container) return;
 
             const selected = window.selectedNewBattleChar || 'asaiomizu';
+            const chars = Object.values(CHARACTER_DATA);
+
+            let gridHtml = '';
+            chars.forEach(c => {
+                const isSelected = selected === c.id;
+                let imgSrc = c.image;
+                if (c.id === 'asaiomizu') imgSrc = 'asaiomizu/asaiomizu.webp';
+                else if (c.id === 'courtney') imgSrc = 'courtney/ALT22.webp';
+
+                gridHtml += `
+                    <div onclick="window.selectedNewBattleChar = '${c.id}'; renderNewBattleCharSelectScreen();" class="pixel-box bg-slate-900 border-2 ${isSelected ? 'border-amber-400 scale-105 shadow-2xl bg-amber-950/40' : 'border-slate-700 opacity-70 hover:opacity-100'} p-3 flex flex-col items-center gap-2 cursor-pointer transition-all">
+                        <img src="${imgSrc}" alt="${c.id}" class="w-20 h-20 sm:w-24 sm:h-24 object-contain">
+                        <span class="text-amber-300 font-pixel font-bold text-xs truncate max-w-full">${c.name}</span>
+                        <span class="text-[9px] ${isSelected ? 'text-emerald-400 font-bold' : 'text-slate-400'}">${isSelected ? '✨ 選択中' : '選択する'}</span>
+                    </div>
+                `;
+            });
 
             container.innerHTML = `
                 <div class="relative w-full h-full flex flex-col justify-between p-4 sm:p-6 select-none overflow-hidden bg-slate-950 text-white">
-                    <div class="flex items-center justify-between relative z-10 w-full mb-3">
+                    <div class="flex items-center justify-between relative z-10 w-full mb-3 flex-shrink-0">
                         <button onclick="renderBotModesScreen()" class="pixel-btn pixel-btn-danger px-3 py-1.5 text-xs font-bold">
                             ◀ モード選択に戻る
                         </button>
@@ -3347,25 +3364,20 @@ case 'dopa_juggler_skill':
                         <div class="w-20"></div>
                     </div>
 
-                    <div class="flex-1 flex flex-col items-center justify-center gap-4 relative z-10 my-auto">
+                    <div class="flex-1 flex flex-col items-center justify-center gap-3 relative z-10 my-auto overflow-y-auto max-h-[72vh] p-2">
                         <p class="text-xs text-amber-300 font-mono">バトルで使用するキャラクターを選択してください</p>
-                        <div class="grid grid-cols-2 gap-4 max-w-lg w-full">
-                            <div onclick="window.selectedNewBattleChar = 'asaiomizu'; renderNewBattleCharSelectScreen();" class="pixel-box bg-slate-900 border-2 ${selected === 'asaiomizu' ? 'border-amber-400 scale-105 shadow-2xl' : 'border-slate-700 opacity-70'} p-4 flex flex-col items-center gap-3 cursor-pointer transition-all">
-                                <img src="asaiomizu/asaiomizu.webp" alt="asaiomizu" class="w-24 h-24 sm:w-32 sm:h-32 object-contain">
-                                <span class="text-amber-300 font-pixel font-bold text-sm">ASAIOMIZU</span>
-                                <span class="text-[10px] ${selected === 'asaiomizu' ? 'text-emerald-400 font-bold' : 'text-slate-400'}">${selected === 'asaiomizu' ? '✨ 選択中' : '選択する'}</span>
-                            </div>
-
-                            <div onclick="window.selectedNewBattleChar = 'courtney'; renderNewBattleCharSelectScreen();" class="pixel-box bg-slate-900 border-2 ${selected === 'courtney' ? 'border-amber-400 scale-105 shadow-2xl' : 'border-slate-700 opacity-70'} p-4 flex flex-col items-center gap-3 cursor-pointer transition-all">
-                                <img src="courtney/ALT22.webp" alt="courtney" class="w-24 h-24 sm:w-32 sm:h-32 object-contain">
-                                <span class="text-pink-300 font-pixel font-bold text-sm">コートニー</span>
-                                <span class="text-[10px] ${selected === 'courtney' ? 'text-emerald-400 font-bold' : 'text-slate-400'}">${selected === 'courtney' ? '✨ 選択中' : '選択する'}</span>
-                            </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-4xl w-full">
+                            ${gridHtml}
                         </div>
                     </div>
 
-                    <div class="text-center relative z-10 pb-4">
-                        <button onclick="startNewBattleMode(window.selectedNewBattleChar || 'asaiomizu', (window.selectedNewBattleChar || 'asaiomizu') === 'asaiomizu' ? 'courtney' : 'asaiomizu')" class="pixel-btn pixel-btn-primary px-8 py-3 text-sm sm:text-base font-bold font-pixel shadow-lg">
+                    <div class="text-center relative z-10 pb-2 flex-shrink-0">
+                        <button onclick="
+                            const pChar = window.selectedNewBattleChar || 'asaiomizu';
+                            const otherIds = Object.keys(CHARACTER_DATA).filter(id => id !== pChar);
+                            const eChar = otherIds[Math.floor(Math.random() * otherIds.length)] || 'pasha';
+                            startNewBattleMode(pChar, eChar);
+                        " class="pixel-btn pixel-btn-primary px-8 py-3 text-sm sm:text-base font-bold font-pixel shadow-lg">
                             このキャラクターで出陣！ ▶
                         </button>
                     </div>
@@ -3496,7 +3508,7 @@ case 'dopa_juggler_skill':
 
             let pImg = '';
             if (p1.hp <= 0) {
-                pImg = pIsCourtney ? 'courtney/ALT3.webp' : (pIsAsai ? 'asaiomizu/asaiomizu3.webp' : (p1.image || 'asaiomizu/asaiomizu3.webp'));
+                pImg = pIsCourtney ? 'courtney/ALT3.webp' : (pIsAsai ? 'asaiomizu/asaiomizu3.webp' : (CHARACTER_DATA[p1.id]?.image || p1.image || 'asaiomizu/asaiomizu3.webp'));
             } else if (pIsCourtney && (p1.courtneyChargeCount || 0) > 0) {
                 pImg = 'courtney/ALTchange1.webp';
             } else if (pIsCourtney) {
@@ -3504,12 +3516,12 @@ case 'dopa_juggler_skill':
             } else if (pIsAsai) {
                 pImg = 'asaiomizu/asaiomizu2.webp';
             } else {
-                pImg = p1.image;
+                pImg = CHARACTER_DATA[p1.id]?.image || p1.image;
             }
 
             let eImg = '';
             if (p2.hp <= 0) {
-                eImg = eIsCourtney ? 'courtney/ALT3.webp' : (eIsAsai ? 'asaiomizu/asaiomizu3.webp' : (p2.image || 'asaiomizu/asaiomizu3.webp'));
+                eImg = eIsCourtney ? 'courtney/ALT3.webp' : (eIsAsai ? 'asaiomizu/asaiomizu3.webp' : (CHARACTER_DATA[p2.id]?.image || p2.image || 'asaiomizu/asaiomizu3.webp'));
             } else if (eIsCourtney && (p2.courtneyChargeCount || 0) > 0) {
                 eImg = 'courtney/ALTchange2.webp';
             } else if (eIsCourtney) {
@@ -3517,7 +3529,7 @@ case 'dopa_juggler_skill':
             } else if (eIsAsai) {
                 eImg = 'asaiomizu/asaiomizu1.webp';
             } else {
-                eImg = p2.image;
+                eImg = CHARACTER_DATA[p2.id]?.image || p2.image;
             }
 
             let leftAreaContent = '';
