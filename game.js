@@ -1798,8 +1798,8 @@ dopagaking: {
     dopaChargeCount: 0,
     selectedInheritChar: null,
     maxHpRandom: 200,
-    image: 'dopagaking/dopagaking.webp',
-    chargedImage: 'dopagaking/dopagakingcharge.webp',
+    image: 'dopagaking/dopagaking11.webp',
+    chargedImage: 'dopagaking/dopagakingchange.webp',
     desc: 'すべてを運に任せる完全ランダム型の国王。アイコンタップで「王位継承」をチャージし、他キャラの力の4倍ダメージを叩き込む！',
     skills: [
         { id: 'dopa_juggler', name: 'ジャグラー', type: 'dopa_juggler_skill', power: 1.0, isNormalAttack: false, cooldown: 0, desc: '0～50の完全ランダムダメージを与える通常攻撃！' },
@@ -3634,39 +3634,37 @@ case 'dopa_juggler_skill':
             const pPercent = Math.max(0, Math.min(100, Math.round((p1.hp / p1.maxHp) * 100)));
             const ePercent = Math.max(0, Math.min(100, Math.round((p2.hp / p2.maxHp) * 100)));
 
-            const pIsCourtney = p1.id === 'courtney';
-            const eIsCourtney = p2.id === 'courtney';
-            const pIsAsai = p1.id === 'asaiomizu';
-            const eIsAsai = p2.id === 'asaiomizu';
+            const getCharImg = (player, isPlayerSide) => {
+                const isC = player.id === 'courtney';
+                const isA = player.id === 'asaiomizu';
+                const isD = player.id === 'dopagaking';
+                const charData = CHARACTER_DATA[player.id] || {};
 
-            let pImg = '';
-            if (p1.hp <= 0) {
-                pImg = pIsCourtney ? 'courtney/ALT3.webp' : (pIsAsai ? 'asaiomizu/asaiomizu3.webp' : (CHARACTER_DATA[p1.id]?.image || p1.image || 'asaiomizu/asaiomizu3.webp'));
-            } else if (pIsCourtney && (p1.courtneyChargeCount || 0) > 0) {
-                pImg = 'courtney/ALTchange2.webp';
-            } else if (pIsCourtney) {
-                pImg = 'courtney/ALT11.webp';
-            } else if (pIsAsai) {
-                pImg = 'asaiomizu/asaiomizu2.webp';
-            } else {
-                pImg = CHARACTER_DATA[p1.id]?.image || p1.image;
-            }
+                if (player.hp <= 0) {
+                    if (isC) return 'courtney/ALT3.webp';
+                    if (isA) return 'asaiomizu/asaiomizu3.webp';
+                    return charData.image || player.image;
+                }
 
-            let eImg = '';
-            if (p2.hp <= 0) {
-                eImg = eIsCourtney ? 'courtney/ALT3.webp' : (eIsAsai ? 'asaiomizu/asaiomizu3.webp' : (CHARACTER_DATA[p2.id]?.image || p2.image || 'asaiomizu/asaiomizu3.webp'));
-            } else if (eIsCourtney && (p2.courtneyChargeCount || 0) > 0) {
-                eImg = 'courtney/ALTchange2.webp';
-            } else if (eIsCourtney) {
-                eImg = 'courtney/ALT11.webp';
-            } else if (eIsAsai) {
-                eImg = 'asaiomizu/asaiomizu1.webp';
-            } else {
-                eImg = CHARACTER_DATA[p2.id]?.image || p2.image;
-            }
+                const isCharged = (isC && (player.courtneyChargeCount || 0) > 0) ||
+                                  (isD && (player.dopaChargeCount || 0) > 0 && (player.dopaChargeCount || 0) < 5);
 
-            const p1IsCharging = p1.id === 'courtney' && (p1.courtneyChargeCount || 0) > 0 && p1.hp > 0;
-            const p2IsCharging = p2.id === 'courtney' && (p2.courtneyChargeCount || 0) > 0 && p2.hp > 0;
+                if (isCharged && charData.chargedImage) {
+                    return charData.chargedImage;
+                }
+
+                if (isC) return 'courtney/ALT11.webp';
+                if (isA) return isPlayerSide ? 'asaiomizu/asaiomizu2.webp' : 'asaiomizu/asaiomizu1.webp';
+                if (isD) return 'dopagaking/dopagaking11.webp';
+
+                return charData.image || player.image;
+            };
+
+            const pImg = getCharImg(p1, true);
+            const eImg = getCharImg(p2, false);
+
+            const p1IsCharging = (p1.id === 'courtney' && (p1.courtneyChargeCount || 0) > 0 && p1.hp > 0) || (p1.id === 'dopagaking' && (p1.dopaChargeCount || 0) > 0 && (p1.dopaChargeCount || 0) < 5 && p1.hp > 0);
+            const p2IsCharging = (p2.id === 'courtney' && (p2.courtneyChargeCount || 0) > 0 && p2.hp > 0) || (p2.id === 'dopagaking' && (p2.dopaChargeCount || 0) > 0 && (p2.dopaChargeCount || 0) < 5 && p2.hp > 0);
 
             const isMyTurn = !activeNewBattle.battleEnded && !activeNewBattle.waitingForOpponent && !p1.isResting;
 
@@ -3807,7 +3805,7 @@ case 'dopa_juggler_skill':
 
                         <!-- 右：敵 -->
                         <div class="w-32 h-32 sm:w-48 sm:h-48 flex items-center justify-center overflow-hidden">
-                            <img id="new-enemy-img" src="${eImg}" alt="Enemy" class="w-full h-full object-contain drop-shadow-xl ${p2IsCharging ? 'animate-courtney-bounce' : ''}">
+                            <img id="new-enemy-img" src="${eImg}" alt="Enemy" class="w-full h-full object-contain drop-shadow-xl ${p2IsCharging ? 'animate-courtney-bounce' : ''}" style="transform: scaleX(-1);">
                         </div>
                     </div>
 
