@@ -3336,6 +3336,7 @@ case 'dopa_juggler_skill':
         }
 
         let activeNewBattle = null;
+        let isNewBattleSkillModalOpen = false;
         let newBattleViewMode = 'main';
 
         function renderNewBattleCharSelectScreen(sortOrder = 'default', sortDir = 'desc') {
