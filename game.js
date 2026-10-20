@@ -1739,7 +1739,7 @@ static drawDopagaking(p, isCharged) {
                 id: 'ALT2',
                 name: 'コートニーチャージ',
                 title: 'メロメロチャージアイコン',
-                image: 'courtney/ALTchange1.webp'
+                image: 'courtney/ALT2.webp'
             },
             chargenasu: {
                 id: 'chargenasu',
@@ -3510,7 +3510,7 @@ case 'dopa_juggler_skill':
             if (p1.hp <= 0) {
                 pImg = pIsCourtney ? 'courtney/ALT3.webp' : (pIsAsai ? 'asaiomizu/asaiomizu3.webp' : (CHARACTER_DATA[p1.id]?.image || p1.image || 'asaiomizu/asaiomizu3.webp'));
             } else if (pIsCourtney && (p1.courtneyChargeCount || 0) > 0) {
-                pImg = 'courtney/ALTchange1.webp';
+                pImg = 'courtney/ALTchange2.webp';
             } else if (pIsCourtney) {
                 pImg = 'courtney/ALT22.webp';
             } else if (pIsAsai) {
