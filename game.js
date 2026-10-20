@@ -1606,6 +1606,11 @@ static drawDopagaking(p, isCharged) {
                 const sortDir = arg3 || 'desc';
                 const onlyOwned = !!arg4;
                 backAction = `renderCharacterSelectScreen(${isOnline}, '${sortOrder}', '${sortDir}', ${onlyOwned})`;
+            } else if (returnSource === 'new_select') {
+                const sortOrder = arg1 || 'default';
+                const sortDir = arg2 || 'desc';
+                const onlyOwned = !!arg3;
+                backAction = `renderNewBattleCharSelectScreen('${sortOrder}', '${sortDir}', ${onlyOwned})`;
             } else {
                 const sortOrder = arg1 || 'default';
                 const sortDir = arg2 || 'desc';
@@ -1645,6 +1650,24 @@ static drawDopagaking(p, isCharged) {
                     const isSelected = playerState.selectedPlayerChar === c.id;
                     html += `
                         <button onclick="playerState.selectedPlayerChar = '${c.id}'; savePlayerState(); renderCharacterSelectScreen(${isOnline}, '${sortOrder}', '${sortDir}', ${onlyOwned});" class="pixel-btn ${isSelected ? 'pixel-btn-success' : 'pixel-btn-primary'} w-full py-2.5 font-bold text-xs sm:text-sm shadow-lg mt-auto">
+                            ${isSelected ? '✨ 選択中 (戻る)' : '⚔ このキャラで出陣'}
+                        </button>
+                    `;
+                } else {
+                    html += `
+                        <div class="w-full text-center py-2 text-xs text-red-400 font-bold bg-slate-950 rounded border border-red-900 mt-auto">
+                            🔒 未所持 (ガチャで入手)
+                        </div>
+                    `;
+                }
+            } else if (returnSource === 'new_select' && !isExtra) {
+                const sortOrder = arg1 || 'default';
+                const sortDir = arg2 || 'desc';
+                const onlyOwned = !!arg3;
+                if (isUnlocked) {
+                    const isSelected = window.selectedNewBattleChar === c.id;
+                    html += `
+                        <button onclick="window.selectedNewBattleChar = '${c.id}'; renderNewBattleCharSelectScreen('${sortOrder}', '${sortDir}', ${onlyOwned});" class="pixel-btn ${isSelected ? 'pixel-btn-success' : 'pixel-btn-primary'} w-full py-2.5 font-bold text-xs sm:text-sm shadow-lg mt-auto">
                             ${isSelected ? '✨ 選択中 (戻る)' : '⚔ このキャラで出陣'}
                         </button>
                     `;
@@ -3339,13 +3362,17 @@ case 'dopa_juggler_skill':
         let isNewBattleSkillModalOpen = false;
         let newBattleViewMode = 'main';
 
-        function renderNewBattleCharSelectScreen(sortOrder = 'default', sortDir = 'desc') {
+        function renderNewBattleCharSelectScreen(sortOrder = 'default', sortDir = 'desc', onlyOwned = false) {
             audioSystem.playSelect();
             const container = document.getElementById('screen-container');
             if (container) container.scrollTop = 0;
 
             const selected = window.selectedNewBattleChar || 'asaiomizu';
             let chars = Object.values(CHARACTER_DATA);
+
+            if (onlyOwned) {
+                chars = chars.filter(c => playerState.unlockedChars.includes(c.id));
+            }
 
             chars.sort((a, b) => {
                 let valA = 0;
@@ -3377,27 +3404,28 @@ case 'dopa_juggler_skill':
                 }
             });
 
+            const unlockedCount = playerState.unlockedChars.length;
             const totalCount = Object.keys(CHARACTER_DATA).length;
 
             let html = `
-                <div class="w-full h-full flex flex-col items-center justify-between max-w-4xl mx-auto py-2 px-2 overflow-hidden select-none bg-slate-950 text-white">
-                    <div class="pixel-box-gold p-2 sm:p-3 bg-amber-950/90 w-full text-center space-y-0.5 sm:space-y-1 border-amber-400 mb-2 flex-shrink-0">
-                        <div class="flex items-center justify-between mb-1">
-                            <button onclick="renderBotModesScreen()" class="pixel-btn pixel-btn-danger px-3 py-1 text-xs font-bold">
-                                ◀ モード選択に戻る
+                <div class="w-full h-full flex flex-col items-center justify-between max-w-4xl mx-auto py-1 px-2 overflow-hidden select-none bg-slate-950 text-white">
+                    <div class="pixel-box-gold p-1.5 sm:p-2 bg-amber-950/90 w-full text-center space-y-0.5 border-amber-400 mb-1.5 flex-shrink-0">
+                        <div class="flex items-center justify-between">
+                            <button onclick="renderBotModesScreen()" class="pixel-btn pixel-btn-danger px-2.5 py-0.5 text-xs font-bold">
+                                ◀ モード選択
                             </button>
-                            <h2 class="text-sm sm:text-lg font-bold text-amber-300 font-pixel">
-                                ✨ 新規バトルモード - キャラクター選択
+                            <h2 class="text-xs sm:text-base font-bold text-amber-300 font-pixel">
+                                ✨ 新規バトルモード - キャラ選択
                             </h2>
-                            <div class="w-20"></div>
+                            <div class="w-16"></div>
                         </div>
-                        <p class="text-[9px] sm:text-xs text-amber-200 font-mono">アイコンをタップして出陣ファイターを選択せよ！</p>
+                        <p class="text-[9px] sm:text-[11px] text-amber-200 font-mono">アイコンをタップして詳細確認・出陣ファイターを選択せよ！</p>
                     </div>
 
-                    <div class="flex items-center justify-between w-full mb-2 px-1 gap-2 flex-wrap flex-shrink-0">
+                    <div class="flex items-center justify-between w-full mb-1.5 px-1 gap-2 flex-wrap flex-shrink-0">
                         <div class="flex items-center gap-1.5 text-xs">
                             <span class="text-slate-400 font-bold">並び替え:</span>
-                            <select id="new-char-select-sort-order" onchange="onNewCharSelectSortChange('${sortDir}')" class="pixel-box bg-slate-900 text-amber-300 px-2 py-1 text-xs outline-none border-amber-600">
+                            <select id="new-char-select-sort-order" onchange="onNewCharSelectSortChange('${sortDir}', ${onlyOwned})" class="pixel-box bg-slate-900 text-amber-300 px-2 py-1 text-xs outline-none border-amber-600">
                                 <option value="default" ${sortOrder === 'default' ? 'selected' : ''}>登録順</option>
                                 <option value="hp" ${sortOrder === 'hp' ? 'selected' : ''}>HPが高い順</option>
                                 <option value="atk" ${sortOrder === 'atk' ? 'selected' : ''}>攻撃力が高い順</option>
@@ -3405,19 +3433,23 @@ case 'dopa_juggler_skill':
                                 <option value="critRate" ${sortOrder === 'critRate' ? 'selected' : ''}>クリティカル率が高い順</option>
                                 <option value="eva" ${sortOrder === 'eva' ? 'selected' : ''}>回避率が高い順</option>
                             </select>
-                            <button onclick="toggleNewCharSelectSortDir('${sortOrder}', '${sortDir}')" class="pixel-btn px-2 py-1 text-xs font-bold bg-slate-800 border-slate-600">
+                            <button onclick="toggleNewCharSelectSortDir('${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-1 text-xs font-bold bg-slate-800 border-slate-600">
                                 ${sortDir === 'desc' ? '🔽 降順(高)' : '🔼 昇順(低)'}
+                            </button>
+                            <button onclick="toggleNewCharSelectOwnedFilter('${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-1 text-xs font-bold ${onlyOwned ? 'pixel-btn-success border-emerald-400 text-emerald-200' : 'bg-slate-800 border-slate-600 text-slate-300'}">
+                                ${onlyOwned ? '✨ 入手済みのみ: ON' : '📦 入手済みのみ: OFF'}
                             </button>
                         </div>
                         <div class="text-[10px] sm:text-xs font-mono text-amber-200 bg-slate-900 px-2.5 py-1 rounded border border-amber-600/50">
-                            全キャラクター: <b class="text-emerald-400">${totalCount}</b> 体
+                            所持: <b class="text-emerald-400">${unlockedCount}</b> / ${totalCount} 体
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3 w-full mb-2 px-1 overflow-y-auto flex-1 min-h-0">
+                    <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3 w-full mb-1.5 px-1 overflow-y-auto flex-1 min-h-0">
             `;
 
             chars.forEach(c => {
+                const isUnlocked = playerState.unlockedChars.includes(c.id);
                 const isSelected = selected === c.id;
 
                 let statDisplay = '';
@@ -3428,20 +3460,20 @@ case 'dopa_juggler_skill':
                 else if (sortOrder === 'eva') statDisplay = `<span class="text-[9px] sm:text-[10px] text-blue-400 font-bold">避: ${c.eva}%</span>`;
 
                 html += `
-                    <div onclick="window.selectedNewBattleChar = '${c.id}'; renderNewBattleCharSelectScreen('${sortOrder}', '${sortDir}');" 
-                         class="pixel-box p-2 sm:p-3 bg-slate-900 cursor-pointer flex flex-col items-center justify-between border-2 transition-all ${isSelected ? 'border-amber-400 bg-amber-950/40 scale-105 shadow-lg' : 'border-slate-700 hover:border-slate-400'}">
+                    <div onclick="openCharDetail('${c.id}', 'new_select', '${sortOrder}', '${sortDir}', ${onlyOwned})" 
+                         class="pixel-box p-2 sm:p-3 bg-slate-900 cursor-pointer flex flex-col items-center justify-between border-2 transition-all ${isSelected ? 'border-amber-400 bg-amber-950/40 scale-105 shadow-lg' : 'border-slate-700 hover:border-slate-400'} ${!isUnlocked ? 'opacity-60 grayscale' : ''}">
                         <canvas id="new-select-cvs-${c.id}" width="95" height="95" class="pixel-box bg-slate-950 mb-1 w-16 h-16 sm:w-24 sm:h-24"></canvas>
                         <span class="text-[11px] sm:text-xs font-bold ${isSelected ? 'text-amber-300 font-pixel' : 'text-slate-200'} truncate max-w-full">${c.name}</span>
                         <span class="text-[9px] text-slate-400 truncate max-w-full">${c.title}</span>
                         ${statDisplay}
-                        ${isSelected ? '<span class="text-[9px] text-amber-400 font-pixel font-bold mt-0.5">✨ 選択中</span>' : '<span class="text-[9px] text-slate-400 font-bold mt-0.5">選択する</span>'}
+                        ${!isUnlocked ? '<span class="text-[9px] text-red-400 font-bold mt-0.5">🔒 未解放</span>' : (isSelected ? '<span class="text-[9px] text-amber-400 font-pixel font-bold mt-0.5">✨ 選択中</span>' : '<span class="text-[9px] text-slate-400 font-bold mt-0.5">タップで詳細</span>')}
                     </div>
                 `;
             });
 
             html += `
                     </div>
-                    <div class="flex gap-3 w-full justify-center pb-2 flex-shrink-0">
+                    <div class="flex gap-3 w-full justify-center pb-1 flex-shrink-0">
                         <button onclick="
                             const pChar = window.selectedNewBattleChar || 'asaiomizu';
                             const otherIds = Object.keys(CHARACTER_DATA).filter(id => id !== pChar);
@@ -3457,28 +3489,33 @@ case 'dopa_juggler_skill':
             container.innerHTML = html;
 
             setTimeout(() => {
-                Object.keys(CHARACTER_DATA).forEach(id => {
-                    const cvs = document.getElementById(`new-select-cvs-${id}`);
-                    if (cvs) CharacterRenderer.drawCharacter(cvs, id);
+                chars.forEach(c => {
+                    const cvs = document.getElementById(`new-select-cvs-${c.id}`);
+                    if (cvs) CharacterRenderer.drawCharacter(cvs, c.id);
                 });
             }, 50);
         }
 
-        function onNewCharSelectSortChange(currentDir) {
+        function onNewCharSelectSortChange(currentDir, onlyOwned) {
             const select = document.getElementById('new-char-select-sort-order');
             if (select) {
-                renderNewBattleCharSelectScreen(select.value, currentDir);
+                renderNewBattleCharSelectScreen(select.value, currentDir, onlyOwned);
             }
         }
 
-        function toggleNewCharSelectSortDir(currentOrder, currentDir) {
+        function toggleNewCharSelectSortDir(currentOrder, currentDir, onlyOwned) {
             const newDir = currentDir === 'desc' ? 'asc' : 'desc';
-            renderNewBattleCharSelectScreen(currentOrder, newDir);
+            renderNewBattleCharSelectScreen(currentOrder, newDir, onlyOwned);
         }
 
-        window.renderNewBattleCharSelectScreen = renderNewBattleCharSelectScreen;
+        function toggleNewCharSelectOwnedFilter(currentOrder, currentDir, onlyOwned) {
+            renderNewBattleCharSelectScreen(currentOrder, currentDir, !onlyOwned);
+        }
+
+        window.renderNewCharSelectScreen = renderNewBattleCharSelectScreen;
         window.onNewCharSelectSortChange = onNewCharSelectSortChange;
         window.toggleNewCharSelectSortDir = toggleNewCharSelectSortDir;
+        window.toggleNewCharSelectOwnedFilter = toggleNewCharSelectOwnedFilter;
 
         function executeNewBattleCourtneyCharge() {
             if (!activeNewBattle || activeNewBattle.battleEnded || activeNewBattle.waitingForOpponent || activeNewBattle.p1.isResting) return;
