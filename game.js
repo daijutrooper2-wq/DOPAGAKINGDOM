@@ -3576,45 +3576,42 @@ case 'dopa_juggler_skill':
                 `;
             } else {
                 leftAreaContent = `
-                    <!-- 2. 敵キャラクター（相手） + 敵のHPゲージ (少し上へ配置してログスペース確保) -->
-                    <div class="flex flex-col items-center mt-1">
-                        <div class="flex items-center gap-4 px-2 py-1">
-                            <div class="w-20 h-20 sm:w-28 sm:h-28 flex items-center justify-center overflow-hidden">
-                                <img id="new-enemy-img" src="${eImg}" alt="Enemy" class="w-full h-full object-contain">
-                            </div>
-                            <div class="flex flex-col gap-1 w-36 sm:w-44">
-                                <div class="flex justify-between text-[10px] sm:text-xs text-slate-300 font-bold">
-                                    <span id="new-enemy-name">${p2.charName}</span>
-                                    <span><span id="new-enemy-hp">${p2.hp}</span> / <span id="new-enemy-maxhp">${p2.maxHp}</span></span>
+                    <div class="w-full h-full flex flex-col justify-around items-center py-4 px-2">
+                        <!-- 敵キャラクター（相手） + 敵のHPゲージ -->
+                        <div class="flex flex-col items-center">
+                            <div class="flex items-center gap-4 px-4 py-2.5 bg-slate-900/60 border border-slate-800 rounded-lg shadow-md">
+                                <div class="w-24 h-24 sm:w-32 sm:h-32 flex items-center justify-center overflow-hidden">
+                                    <img id="new-enemy-img" src="${eImg}" alt="Enemy" class="w-full h-full object-contain">
                                 </div>
-                                <div class="w-full bg-slate-950 h-2.5 border border-slate-700 rounded overflow-hidden">
-                                    <div id="new-enemy-hp-bar" class="bg-red-500 h-full hp-bar-fill" style="width: ${ePercent}%;"></div>
+                                <div class="flex flex-col gap-1.5 w-40 sm:w-52">
+                                    <div class="flex justify-between text-xs sm:text-sm text-slate-300 font-bold">
+                                        <span id="new-enemy-name" class="font-pixel text-amber-400">${p2.charName}</span>
+                                        <span><span id="new-enemy-hp">${p2.hp}</span> / <span id="new-enemy-maxhp">${p2.maxHp}</span></span>
+                                    </div>
+                                    <div class="w-full bg-slate-950 h-3 border border-slate-700 rounded-full overflow-hidden shadow-inner">
+                                        <div id="new-enemy-hp-bar" class="bg-red-500 h-full hp-bar-fill transition-all duration-300" style="width: ${ePercent}%;"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- 3. プレイヤーキャラクター（自分） + 自分のHP (少し上へ配置してログスペース確保) -->
-                    <div class="flex flex-col items-center mb-1">
-                        <div class="flex items-center gap-4 px-2 py-1">
-                            <div class="flex flex-col gap-1 w-36 sm:w-44">
-                                <div class="flex justify-between text-[10px] sm:text-xs text-slate-300 font-bold">
-                                    <span id="new-player-name">${p1.charName}</span>
-                                    <span><span id="new-player-hp">${p1.hp}</span> / <span id="new-player-maxhp">${p1.maxHp}</span></span>
+                        <!-- プレイヤーキャラクター（自分） + 自分のHP -->
+                        <div class="flex flex-col items-center">
+                            <div class="flex items-center gap-4 px-4 py-2.5 bg-slate-900/60 border border-slate-800 rounded-lg shadow-md">
+                                <div class="flex flex-col gap-1.5 w-40 sm:w-52">
+                                    <div class="flex justify-between text-xs sm:text-sm text-slate-300 font-bold">
+                                        <span id="new-player-name" class="font-pixel text-emerald-400">${p1.charName}</span>
+                                        <span><span id="new-player-hp">${p1.hp}</span> / <span id="new-player-maxhp">${p1.maxHp}</span></span>
+                                    </div>
+                                    <div class="w-full bg-slate-950 h-3 border border-slate-700 rounded-full overflow-hidden shadow-inner">
+                                        <div id="new-player-hp-bar" class="bg-emerald-500 h-full hp-bar-fill transition-all duration-300" style="width: ${pPercent}%;"></div>
+                                    </div>
                                 </div>
-                                <div class="w-full bg-slate-950 h-2.5 border border-slate-700 rounded overflow-hidden">
-                                    <div id="new-player-hp-bar" class="bg-emerald-500 h-full hp-bar-fill" style="width: ${pPercent}%;"></div>
+                                <div onclick="if(activeNewBattle && activeNewBattle.p1.id === 'courtney') { executeNewBattleCourtneyCharge(); }" class="w-32 h-32 sm:w-40 sm:h-40 flex items-center justify-center overflow-hidden ${p1.id === 'courtney' ? 'cursor-pointer hover:scale-105 transition-transform' : ''}" title="${p1.id === 'courtney' ? 'タップしてチャージ！' : ''}">
+                                    <img id="new-player-img" src="${pImg}" alt="Player" class="w-full h-full object-contain">
                                 </div>
-                            </div>
-                            <div onclick="if(activeNewBattle && activeNewBattle.p1.id === 'courtney') { executeNewBattleCourtneyCharge(); }" class="w-28 h-28 sm:w-36 sm:h-36 flex items-center justify-center overflow-hidden ${p1.id === 'courtney' ? 'cursor-pointer hover:scale-105 transition-transform' : ''}" title="${p1.id === 'courtney' ? 'タップしてチャージ！' : ''}">
-                                <img id="new-player-img" src="${pImg}" alt="Player" class="w-full h-full object-contain">
                             </div>
                         </div>
-                    </div>
-
-                    <!-- 4. バトルログ (高さを確保してしっかりスクロール・視認可能に) -->
-                    <div class="w-full bg-slate-900 border border-slate-700 rounded p-2.5 text-xs font-mono text-slate-200 h-24 sm:h-32 overflow-y-auto shadow-inner flex-shrink-0" id="new-battle-log">
-                        ${(activeNewBattle.currentTurnLogs && activeNewBattle.currentTurnLogs.length > 0) ? activeNewBattle.currentTurnLogs.map(l => l.msg).join('<br>') : "新規バトルモードが開始しました！コマンドを選択してください。"}
                     </div>
                 `;
             }
@@ -3666,23 +3663,16 @@ case 'dopa_juggler_skill':
                             </button>
                         </div>
 
-                        <!-- 下部：プレイヤー情報パネル（大型化・バランス調整：仕様4） -->
-                        <div class="border-t-2 border-amber-500/60 pt-3 pb-3 px-3 flex items-center gap-3 bg-slate-950 rounded border border-slate-800">
-                            <canvas id="new-panel-profile-icon" width="80" height="80" class="pixel-box bg-slate-900 rounded w-20 h-20 shrink-0 border-2 border-amber-500/80 shadow"></canvas>
-                            <div class="flex flex-col justify-center space-y-1 overflow-hidden flex-1 min-w-0">
-                                <span id="new-panel-player-name" class="text-sm sm:text-base font-bold text-amber-300 truncate font-pixel">${playerState.playerName || '名無しファイター'}</span>
-                                <div class="flex items-center gap-1 font-mono">
-                                    <span class="text-[10px] text-amber-200">DOPA:</span>
-                                    <strong id="new-panel-dopa" class="text-amber-400 font-pixel text-xs sm:text-sm">${formatDopa(playerState.dopa)}</strong>
-                                </div>
+                        <!-- 下部：バトルログエリア -->
+                        <div class="flex flex-col space-y-1 border-t-2 border-amber-500/60 pt-2">
+                            <div class="text-[10px] text-amber-400 font-bold font-pixel">BATTLE LOG</div>
+                            <div class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-[11px] sm:text-xs font-mono text-slate-200 h-36 sm:h-48 overflow-y-auto shadow-inner" id="new-battle-log">
+                                ${(activeNewBattle.currentTurnLogs && activeNewBattle.currentTurnLogs.length > 0) ? activeNewBattle.currentTurnLogs.map(l => l.msg).join('<br>') : "新規バトルモードが開始しました！コマンドを選択してください。"}
                             </div>
                         </div>
                     </div>
                 </div>
             `;
-
-            const cvs = document.getElementById('new-panel-profile-icon');
-            if (cvs) CharacterRenderer.drawCharacter(cvs, playerState.selectedIcon || 'dopagaking');
         }
 
         function appendNewBattleLog(text, colorClass = 'text-slate-200') {
