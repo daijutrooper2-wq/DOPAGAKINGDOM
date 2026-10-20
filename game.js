@@ -1983,6 +1983,7 @@ pasha_dark: {
                 this.lastProcessedTurn = 0;
                 this.heartbeatTimer = null;
                 this.currentTurnLogs = [];
+                this.battleLogs = [];
                 this.onlineSyncStarted = false;
                 this.latestRoomData = null;
             }
@@ -1990,6 +1991,9 @@ pasha_dark: {
             log(msg, colorClass = 'text-slate-200') {
                 if (this.currentTurnLogs) {
                     this.currentTurnLogs.push({ msg, colorClass });
+                }
+                if (this.battleLogs) {
+                    this.battleLogs.push({ msg, colorClass });
                 }
                 if (this.onLogUpdate) {
                     this.onLogUpdate(msg, colorClass);
@@ -2176,6 +2180,9 @@ pasha_dark: {
 
                             if (data.logs && data.logs.length > 0) {
                                 data.logs.forEach(l => {
+                                    if (this.battleLogs) {
+                                        this.battleLogs.push({ msg: l.msg, colorClass: l.colorClass });
+                                    }
                                     if (this.onLogUpdate) this.onLogUpdate(l.msg, l.colorClass);
                                     if (l.effect && this.onVisualEffect) this.onVisualEffect(l.effect.side, l.effect.type, l.effect.text);
                                     if (l.cutin && this.onCutin) this.onCutin(l.cutin.title, l.cutin.subtitle);
@@ -3666,13 +3673,17 @@ case 'dopa_juggler_skill':
                         <!-- 下部：バトルログエリア -->
                         <div class="flex flex-col space-y-1 border-t-2 border-amber-500/60 pt-2">
                             <div class="text-[10px] text-amber-400 font-bold font-pixel">BATTLE LOG</div>
-                            <div class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-[11px] sm:text-xs font-mono text-slate-200 h-36 sm:h-48 overflow-y-auto shadow-inner" id="new-battle-log">
-                                ${(activeNewBattle.currentTurnLogs && activeNewBattle.currentTurnLogs.length > 0) ? activeNewBattle.currentTurnLogs.map(l => l.msg).join('<br>') : "新規バトルモードが開始しました！コマンドを選択してください。"}
+                            <div class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-[11px] sm:text-xs font-mono text-slate-200 h-20 sm:h-28 overflow-y-auto shadow-inner" id="new-battle-log">
+                                ${(activeNewBattle.battleLogs && activeNewBattle.battleLogs.length > 0) ? activeNewBattle.battleLogs.map(l => `<div class="${l.colorClass || 'text-slate-200'}">${l.msg}</div>`).join('') : "新規バトルモードが開始しました！コマンドを選択してください。"}
                             </div>
                         </div>
                     </div>
                 </div>
             `;
+            const logEl = document.getElementById('new-battle-log');
+            if (logEl) {
+                logEl.scrollTop = logEl.scrollHeight;
+            }
         }
 
         function appendNewBattleLog(text, colorClass = 'text-slate-200') {
