@@ -3751,6 +3751,10 @@ case 'dopa_juggler_skill':
             container.innerHTML = `
                 <div class="w-full h-full flex flex-col justify-between bg-slate-950 text-white relative select-none p-1.5 sm:p-2 overflow-hidden">
                     ${skillModalHtml}
+                    <!-- 背景画像 "backnormal" -->
+                    <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
+                        <img src="images/backnormal.webp" alt="backnormal" class="w-full h-full object-cover">
+                    </div>
                     <!-- 1. 上部エリア（ターン・制限時間・HPの高さ同一の横一列） -->
                     <div class="w-full flex items-center justify-between gap-2 px-3 py-2 bg-slate-900/95 rounded-lg border border-slate-700 shadow-md z-20 shrink-0">
                         <!-- 左：自分 HP & 名前 -->
