@@ -808,15 +808,16 @@ static drawDopagaking(p, isCharged) {
                     case 5:
                         audioSystem.playTitleSound();
                         stage.innerHTML = `
-                            <div class="absolute inset-0 w-full h-full overflow-hidden bg-black z-0 flex items-center justify-center">
-                                <img src="images/Title2.webp" alt="DOPAGA KINGDOM" class="w-full h-full object-contain">
-                            </div>
-                            <div class="relative z-10 flex flex-col justify-end items-center h-full w-full p-4 sm:p-8 pb-8 sm:pb-12 pointer-events-none">
-                                <div class="flex flex-col items-center justify-center space-y-4 text-center pointer-events-auto max-w-lg w-full">
-                                    <p class="text-xs sm:text-sm text-amber-200 font-mono leading-relaxed drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] font-bold">
+                            <div class="flex flex-col items-center justify-center space-y-6 animate-logo-glow w-full">
+                                <div class="pixel-box-gold p-8 bg-amber-950/95 w-full max-w-lg text-center border-4 border-amber-300 shadow-2xl relative">
+                                    <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-amber-500 text-slate-950 font-pixel text-[10px] px-3 py-1 rounded font-bold">
+                                        🌟 決定版・神バランス調整版 EX 🌟
+                                    </div>
+                                     <img src="images/title-1.webp" alt="DOPAGA KINGDOM" class="w-full max-w-lg sm:max-w-xl mx-auto object-contain mb-3">
+                                    <p class="text-xs sm:text-sm text-amber-100 font-mono mb-6">
                                         王国に真の平和を取り戻せ！<br>最強の王者の座を掴むのは誰だ――？
                                     </p>
-                                    <button onclick="finishOpening()" class="pixel-btn pixel-btn-primary px-8 py-3 text-base font-bold font-pixel shadow-xl">
+                                    <button onclick="finishOpening()" class="pixel-btn pixel-btn-primary px-8 py-3 text-base font-bold font-pixel shadow-lg">
                                         冒険へ出発！ ▶
                                     </button>
                                 </div>
@@ -834,7 +835,7 @@ static drawDopagaking(p, isCharged) {
                     <button onclick="finishOpening()" class="absolute top-2 right-2 pixel-btn pixel-btn-danger text-xs px-3 py-1 font-bold z-50">
                         ⏩ スキップ
                     </button>
-                    <div id="opening-stage" class="absolute inset-0 w-full h-full flex flex-col items-center justify-center p-2 sm:p-4 overflow-y-auto">
+                    <div id="opening-stage" class="w-full flex flex-col items-center justify-center my-auto">
                     </div>
                 </div>
             `;
