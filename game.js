@@ -5008,9 +5008,11 @@ case 'dopa_juggler_skill':
         function openIconSelectModal() {
             audioSystem.playSelect();
             let html = `
-                <div class="text-center space-y-3">
-                    <p class="text-xs text-slate-300">アイコンに設定する画像を選んでください。</p>
-                    <div class="grid grid-cols-3 gap-2 max-h-60 overflow-y-auto p-1">
+                <div class="flex flex-col space-y-3 w-full">
+                    <div class="border-b border-slate-800 pb-2 text-center sm:text-left">
+                        <p class="text-xs text-slate-300 font-mono">所持しているお気に入りのアイコンを選択してください。</p>
+                    </div>
+                    <div class="grid grid-cols-3 sm:grid-cols-4 gap-3 pr-1 w-full">
             `;
 
             const allItems = { ...CHARACTER_DATA, ...EXTRA_ICONS };
@@ -5021,9 +5023,10 @@ case 'dopa_juggler_skill':
                 if (!isIconUnlocked) return;
 
                 html += `
-                    <div onclick="setProfileIcon('${item.id}')" class="pixel-box p-2 bg-slate-950 cursor-pointer flex flex-col items-center justify-center border-2 ${isSelected ? 'border-amber-400 bg-amber-950/40' : 'border-slate-700 hover:border-slate-400'}">
-                        <canvas id="icon-sel-cvs-${item.id}" width="88" height="88" class="pixel-box bg-slate-900 mb-1"></canvas>
-                        <span class="text-[11px] font-bold text-slate-200 truncate max-w-full">${item.name}</span>
+                    <div onclick="setProfileIcon('${item.id}')" class="pixel-box p-2.5 bg-slate-950 cursor-pointer flex flex-col items-center justify-center relative border-2 transition-all ${isSelected ? 'border-amber-400 bg-amber-950/50 shadow-lg shadow-amber-500/20 ring-2 ring-amber-400/40' : 'border-slate-700 hover:border-slate-400 hover:bg-slate-900'}">
+                        ${isSelected ? '<span class="absolute -top-2 -right-2 bg-amber-500 text-slate-950 text-[9px] font-bold px-1.5 py-0.5 rounded shadow font-pixel">選択中</span>' : ''}
+                        <canvas id="icon-sel-cvs-${item.id}" width="88" height="88" class="pixel-box bg-slate-900 mb-2 w-16 h-16 sm:w-20 sm:h-20 rounded"></canvas>
+                        <span class="text-[11px] font-bold text-slate-200 truncate max-w-full text-center">${item.name}</span>
                     </div>
                 `;
             });
