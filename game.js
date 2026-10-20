@@ -808,21 +808,20 @@ static drawDopagaking(p, isCharged) {
                     case 5:
                         audioSystem.playTitleSound();
                         stage.innerHTML = `
-                            <div class="absolute inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
-                                <img src="images/Title2.webp" alt="DOPAGA KINGDOM" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 w-full h-full overflow-hidden bg-black z-0 flex items-center justify-center">
+                                <img src="images/Title2.webp" alt="DOPAGA KINGDOM" class="w-full h-full object-contain">
                             </div>
-                            <div class="relative z-10 flex flex-col items-center justify-center space-y-6 animate-logo-glow w-full p-4">
-                                <div class="pixel-box-gold p-6 sm:p-8 bg-amber-950/90 w-full max-w-lg text-center border-4 border-amber-300 shadow-2xl relative">
-                                    <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-amber-500 text-slate-950 font-pixel text-[10px] px-3 py-1 rounded font-bold z-20">
-                                        🌟 決定版・神バランス調整版 EX 🌟
-                                    </div>
-                                    <p class="text-xs sm:text-sm text-amber-100 font-mono mb-6 mt-2 relative z-20">
+                            <div class="relative z-10 flex flex-col items-center justify-between h-full w-full p-4 sm:p-8 pointer-events-none">
+                                <div></div>
+                                <div class="flex flex-col items-center justify-center space-y-4 text-center pointer-events-auto bg-black/70 p-4 sm:p-6 rounded-lg backdrop-blur-sm max-w-lg w-full border border-amber-500/50 shadow-xl">
+                                    <p class="text-xs sm:text-sm text-amber-100 font-mono leading-relaxed drop-shadow">
                                         王国に真の平和を取り戻せ！<br>最強の王者の座を掴むのは誰だ――？
                                     </p>
-                                    <button onclick="finishOpening()" class="pixel-btn pixel-btn-primary px-8 py-3 text-base font-bold font-pixel shadow-lg relative z-20">
+                                    <button onclick="finishOpening()" class="pixel-btn pixel-btn-primary px-8 py-3 text-base font-bold font-pixel shadow-lg">
                                         冒険へ出発！ ▶
                                     </button>
                                 </div>
+                                <div></div>
                             </div>
                         `;
                         break;
