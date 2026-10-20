@@ -1819,8 +1819,8 @@ dopagaking: {
                 type: '恋属性 / 溜め・爆発型',
                 hp: 190, atk: 18, def: 15, critRate: 0.04, eva: 18,
                 courtneyChargeCount: 0,
-                image: 'courtney/ALT.webp',
-                chargedImage: 'courtney/ALT2.webp',
+                image: 'courtney/ALT11.webp',
+                chargedImage: 'courtney/ALTchange2.webp',
                 desc: '相手をメロメロにして戦う海外ガール。王国初となる「溜め技」を駆使し、最大8回までチャージして一撃の爆発力を高める！',
                 skills: [
                     { id: 'courtney_attack', name: 'ミツメル', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, desc: '相手をじっと見つめて攻撃する通常攻撃。' },
@@ -3645,7 +3645,7 @@ case 'dopa_juggler_skill':
             } else if (pIsCourtney && (p1.courtneyChargeCount || 0) > 0) {
                 pImg = 'courtney/ALTchange2.webp';
             } else if (pIsCourtney) {
-                pImg = 'courtney/ALT22.webp';
+                pImg = 'courtney/ALT11.webp';
             } else if (pIsAsai) {
                 pImg = 'asaiomizu/asaiomizu2.webp';
             } else {
@@ -3664,6 +3664,9 @@ case 'dopa_juggler_skill':
             } else {
                 eImg = CHARACTER_DATA[p2.id]?.image || p2.image;
             }
+
+            const p1IsCharging = p1.id === 'courtney' && (p1.courtneyChargeCount || 0) > 0;
+            const p2IsCharging = p2.id === 'courtney' && (p2.courtneyChargeCount || 0) > 0;
 
             const isMyTurn = !activeNewBattle.battleEnded && !activeNewBattle.waitingForOpponent && !p1.isResting;
 
@@ -3795,12 +3798,12 @@ case 'dopa_juggler_skill':
                     <div class="flex-1 flex flex-row items-center justify-between px-6 sm:px-16 pt-3 pb-1 relative z-10 overflow-hidden">
                         <!-- 左：自分（プレイヤー） -->
                         <div onclick="if(activeNewBattle && activeNewBattle.p1.id === 'courtney') { executeNewBattleCourtneyCharge(); }" class="w-32 h-32 sm:w-48 sm:h-48 flex items-center justify-center overflow-hidden ${p1.id === 'courtney' ? 'cursor-pointer hover:scale-105 transition-transform' : ''}" title="${p1.id === 'courtney' ? 'タップしてチャージ！' : ''}">
-                            <img id="new-player-img" src="${pImg}" alt="Player" class="w-full h-full object-contain drop-shadow-xl ${p1.id === 'asaiomizu' ? 'animate-asaiomizu-breath' : ''}">
+                            <img id="new-player-img" src="${pImg}" alt="Player" class="w-full h-full object-contain drop-shadow-xl ${p1.id === 'asaiomizu' ? 'animate-asaiomizu-breath' : (p1IsCharging ? 'animate-courtney-bounce' : '')}">
                         </div>
 
                         <!-- 右：敵 -->
                         <div class="w-32 h-32 sm:w-48 sm:h-48 flex items-center justify-center overflow-hidden">
-                            <img id="new-enemy-img" src="${eImg}" alt="Enemy" class="w-full h-full object-contain drop-shadow-xl ${p2.id === 'asaiomizu' ? 'animate-asaiomizu-breath' : ''}">
+                            <img id="new-enemy-img" src="${eImg}" alt="Enemy" class="w-full h-full object-contain drop-shadow-xl ${p2.id === 'asaiomizu' ? 'animate-asaiomizu-breath' : (p2IsCharging ? 'animate-courtney-bounce' : '')}">
                         </div>
                     </div>
 
