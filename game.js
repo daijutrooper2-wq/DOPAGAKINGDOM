@@ -811,17 +811,15 @@ static drawDopagaking(p, isCharged) {
                             <div class="absolute inset-0 w-full h-full overflow-hidden bg-black z-0 flex items-center justify-center">
                                 <img src="images/Title2.webp" alt="DOPAGA KINGDOM" class="w-full h-full object-contain">
                             </div>
-                            <div class="relative z-10 flex flex-col items-center justify-between h-full w-full p-4 sm:p-8 pointer-events-none">
-                                <div></div>
-                                <div class="flex flex-col items-center justify-center space-y-4 text-center pointer-events-auto bg-black/70 p-4 sm:p-6 rounded-lg backdrop-blur-sm max-w-lg w-full border border-amber-500/50 shadow-xl">
-                                    <p class="text-xs sm:text-sm text-amber-100 font-mono leading-relaxed drop-shadow">
+                            <div class="relative z-10 flex flex-col justify-end items-center h-full w-full p-4 sm:p-8 pb-8 sm:pb-12 pointer-events-none">
+                                <div class="flex flex-col items-center justify-center space-y-4 text-center pointer-events-auto max-w-lg w-full">
+                                    <p class="text-xs sm:text-sm text-amber-200 font-mono leading-relaxed drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] font-bold">
                                         王国に真の平和を取り戻せ！<br>最強の王者の座を掴むのは誰だ――？
                                     </p>
-                                    <button onclick="finishOpening()" class="pixel-btn pixel-btn-primary px-8 py-3 text-base font-bold font-pixel shadow-lg">
+                                    <button onclick="finishOpening()" class="pixel-btn pixel-btn-primary px-8 py-3 text-base font-bold font-pixel shadow-xl">
                                         冒険へ出発！ ▶
                                     </button>
                                 </div>
-                                <div></div>
                             </div>
                         `;
                         break;
