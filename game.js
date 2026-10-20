@@ -77,8 +77,9 @@
                         // DOM上の全キャンバスを再描画して最新画像を確実に反映
                         document.querySelectorAll('canvas').forEach(cvs => {
                             const id = cvs.id;
-                            if (id.startsWith('select-cvs-')) {
-                                CharacterRenderer.drawCharacter(cvs, id.replace('select-cvs-', ''));
+                            if (id.startsWith('select-cvs-') || id.startsWith('new-select-cvs-')) {
+                                const charId = id.replace('select-cvs-', '').replace('new-select-cvs-', '');
+                                CharacterRenderer.drawCharacter(cvs, charId);
                             } else if (id.startsWith('icon-sel-cvs-')) {
                                 CharacterRenderer.drawCharacter(cvs, id.replace('icon-sel-cvs-', ''));
                             } else if (id.startsWith('usage-cvs-')) {
@@ -3337,60 +3338,146 @@ case 'dopa_juggler_skill':
         let activeNewBattle = null;
         let newBattleViewMode = 'main';
 
-        function renderNewBattleCharSelectScreen() {
+        function renderNewBattleCharSelectScreen(sortOrder = 'default', sortDir = 'desc') {
             audioSystem.playSelect();
             const container = document.getElementById('screen-container');
-            if (!container) return;
+            if (container) container.scrollTop = 0;
 
             const selected = window.selectedNewBattleChar || 'asaiomizu';
-            const chars = Object.values(CHARACTER_DATA);
+            let chars = Object.values(CHARACTER_DATA);
 
-            let gridHtml = '';
+            chars.sort((a, b) => {
+                let valA = 0;
+                let valB = 0;
+                if (sortOrder === 'hp') {
+                    valA = a.hp;
+                    valB = b.hp;
+                } else if (sortOrder === 'atk') {
+                    valA = a.atk;
+                    valB = b.atk;
+                } else if (sortOrder === 'def') {
+                    valA = a.def;
+                    valB = b.def;
+                } else if (sortOrder === 'critRate') {
+                    valA = a.critRate;
+                    valB = b.critRate;
+                } else if (sortOrder === 'eva') {
+                    valA = a.eva;
+                    valB = b.eva;
+                } else {
+                    const keys = Object.keys(CHARACTER_DATA);
+                    return keys.indexOf(a.id) - keys.indexOf(b.id);
+                }
+
+                if (sortDir === 'desc') {
+                    return valB - valA;
+                } else {
+                    return valA - valB;
+                }
+            });
+
+            const totalCount = Object.keys(CHARACTER_DATA).length;
+
+            let html = `
+                <div class="w-full h-full flex flex-col items-center justify-between max-w-4xl mx-auto py-2 px-2 overflow-hidden select-none bg-slate-950 text-white">
+                    <div class="pixel-box-gold p-2 sm:p-3 bg-amber-950/90 w-full text-center space-y-0.5 sm:space-y-1 border-amber-400 mb-2 flex-shrink-0">
+                        <div class="flex items-center justify-between mb-1">
+                            <button onclick="renderBotModesScreen()" class="pixel-btn pixel-btn-danger px-3 py-1 text-xs font-bold">
+                                ◀ モード選択に戻る
+                            </button>
+                            <h2 class="text-sm sm:text-lg font-bold text-amber-300 font-pixel">
+                                ✨ 新規バトルモード - キャラクター選択
+                            </h2>
+                            <div class="w-20"></div>
+                        </div>
+                        <p class="text-[9px] sm:text-xs text-amber-200 font-mono">アイコンをタップして出陣ファイターを選択せよ！</p>
+                    </div>
+
+                    <div class="flex items-center justify-between w-full mb-2 px-1 gap-2 flex-wrap flex-shrink-0">
+                        <div class="flex items-center gap-1.5 text-xs">
+                            <span class="text-slate-400 font-bold">並び替え:</span>
+                            <select id="new-char-select-sort-order" onchange="onNewCharSelectSortChange('${sortDir}')" class="pixel-box bg-slate-900 text-amber-300 px-2 py-1 text-xs outline-none border-amber-600">
+                                <option value="default" ${sortOrder === 'default' ? 'selected' : ''}>登録順</option>
+                                <option value="hp" ${sortOrder === 'hp' ? 'selected' : ''}>HPが高い順</option>
+                                <option value="atk" ${sortOrder === 'atk' ? 'selected' : ''}>攻撃力が高い順</option>
+                                <option value="def" ${sortOrder === 'def' ? 'selected' : ''}>防御力が高い順</option>
+                                <option value="critRate" ${sortOrder === 'critRate' ? 'selected' : ''}>クリティカル率が高い順</option>
+                                <option value="eva" ${sortOrder === 'eva' ? 'selected' : ''}>回避率が高い順</option>
+                            </select>
+                            <button onclick="toggleNewCharSelectSortDir('${sortOrder}', '${sortDir}')" class="pixel-btn px-2 py-1 text-xs font-bold bg-slate-800 border-slate-600">
+                                ${sortDir === 'desc' ? '🔽 降順(高)' : '🔼 昇順(低)'}
+                            </button>
+                        </div>
+                        <div class="text-[10px] sm:text-xs font-mono text-amber-200 bg-slate-900 px-2.5 py-1 rounded border border-amber-600/50">
+                            全キャラクター: <b class="text-emerald-400">${totalCount}</b> 体
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3 w-full mb-2 px-1 overflow-y-auto flex-1 min-h-0">
+            `;
+
             chars.forEach(c => {
                 const isSelected = selected === c.id;
-                let imgSrc = c.image;
-                if (c.id === 'asaiomizu') imgSrc = 'asaiomizu/asaiomizu.webp';
-                else if (c.id === 'courtney') imgSrc = 'courtney/ALT22.webp';
 
-                gridHtml += `
-                    <div onclick="window.selectedNewBattleChar = '${c.id}'; renderNewBattleCharSelectScreen();" class="pixel-box bg-slate-900 border-2 ${isSelected ? 'border-amber-400 scale-105 shadow-2xl bg-amber-950/40' : 'border-slate-700 opacity-70 hover:opacity-100'} p-3 flex flex-col items-center gap-2 cursor-pointer transition-all">
-                        <img src="${imgSrc}" alt="${c.id}" class="w-20 h-20 sm:w-24 sm:h-24 object-contain">
-                        <span class="text-amber-300 font-pixel font-bold text-xs truncate max-w-full">${c.name}</span>
-                        <span class="text-[9px] ${isSelected ? 'text-emerald-400 font-bold' : 'text-slate-400'}">${isSelected ? '✨ 選択中' : '選択する'}</span>
+                let statDisplay = '';
+                if (sortOrder === 'hp') statDisplay = `<span class="text-[9px] sm:text-[10px] text-emerald-400 font-bold">HP: ${c.hp}</span>`;
+                else if (sortOrder === 'atk') statDisplay = `<span class="text-[9px] sm:text-[10px] text-amber-400 font-bold">攻: ${c.atk}</span>`;
+                else if (sortOrder === 'def') statDisplay = `<span class="text-[9px] sm:text-[10px] text-cyan-400 font-bold">防: ${c.def}</span>`;
+                else if (sortOrder === 'critRate') statDisplay = `<span class="text-[9px] sm:text-[10px] text-purple-400 font-bold">クリ: ${Math.round(c.critRate * 100)}%</span>`;
+                else if (sortOrder === 'eva') statDisplay = `<span class="text-[9px] sm:text-[10px] text-blue-400 font-bold">避: ${c.eva}%</span>`;
+
+                html += `
+                    <div onclick="window.selectedNewBattleChar = '${c.id}'; renderNewBattleCharSelectScreen('${sortOrder}', '${sortDir}');" 
+                         class="pixel-box p-2 sm:p-3 bg-slate-900 cursor-pointer flex flex-col items-center justify-between border-2 transition-all ${isSelected ? 'border-amber-400 bg-amber-950/40 scale-105 shadow-lg' : 'border-slate-700 hover:border-slate-400'}">
+                        <canvas id="new-select-cvs-${c.id}" width="95" height="95" class="pixel-box bg-slate-950 mb-1 w-16 h-16 sm:w-24 sm:h-24"></canvas>
+                        <span class="text-[11px] sm:text-xs font-bold ${isSelected ? 'text-amber-300 font-pixel' : 'text-slate-200'} truncate max-w-full">${c.name}</span>
+                        <span class="text-[9px] text-slate-400 truncate max-w-full">${c.title}</span>
+                        ${statDisplay}
+                        ${isSelected ? '<span class="text-[9px] text-amber-400 font-pixel font-bold mt-0.5">✨ 選択中</span>' : '<span class="text-[9px] text-slate-400 font-bold mt-0.5">選択する</span>'}
                     </div>
                 `;
             });
 
-            container.innerHTML = `
-                <div class="relative w-full h-full flex flex-col justify-between p-4 sm:p-6 select-none overflow-hidden bg-slate-950 text-white">
-                    <div class="flex items-center justify-between relative z-10 w-full mb-3 flex-shrink-0">
-                        <button onclick="renderBotModesScreen()" class="pixel-btn pixel-btn-danger px-3 py-1.5 text-xs font-bold">
-                            ◀ モード選択に戻る
-                        </button>
-                        <h2 class="text-amber-400 font-pixel text-base sm:text-xl font-bold tracking-wider">✨ 新規バトルモード - キャラクター選択</h2>
-                        <div class="w-20"></div>
+            html += `
                     </div>
-
-                    <div class="flex-1 flex flex-col items-center justify-center gap-3 relative z-10 my-auto overflow-y-auto max-h-[72vh] p-2">
-                        <p class="text-xs text-amber-300 font-mono">バトルで使用するキャラクターを選択してください</p>
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-4xl w-full">
-                            ${gridHtml}
-                        </div>
-                    </div>
-
-                    <div class="text-center relative z-10 pb-2 flex-shrink-0">
+                    <div class="flex gap-3 w-full justify-center pb-2 flex-shrink-0">
                         <button onclick="
                             const pChar = window.selectedNewBattleChar || 'asaiomizu';
                             const otherIds = Object.keys(CHARACTER_DATA).filter(id => id !== pChar);
                             const eChar = otherIds[Math.floor(Math.random() * otherIds.length)] || 'pasha';
                             startNewBattleMode(pChar, eChar);
-                        " class="pixel-btn pixel-btn-primary px-8 py-3 text-sm sm:text-base font-bold font-pixel shadow-lg">
+                        " class="pixel-btn pixel-btn-primary px-8 py-2.5 sm:py-3 text-xs sm:text-sm font-bold font-pixel shadow-lg">
                             このキャラクターで出陣！ ▶
                         </button>
                     </div>
                 </div>
             `;
+
+            container.innerHTML = html;
+
+            setTimeout(() => {
+                Object.keys(CHARACTER_DATA).forEach(id => {
+                    const cvs = document.getElementById(`new-select-cvs-${id}`);
+                    if (cvs) CharacterRenderer.drawCharacter(cvs, id);
+                });
+            }, 50);
         }
+
+        function onNewCharSelectSortChange(currentDir) {
+            const select = document.getElementById('new-char-select-sort-order');
+            if (select) {
+                renderNewBattleCharSelectScreen(select.value, currentDir);
+            }
+        }
+
+        function toggleNewCharSelectSortDir(currentOrder, currentDir) {
+            const newDir = currentDir === 'desc' ? 'asc' : 'desc';
+            renderNewBattleCharSelectScreen(currentOrder, newDir);
+        }
+
+        window.renderNewBattleCharSelectScreen = renderNewBattleCharSelectScreen;
+        window.onNewCharSelectSortChange = onNewCharSelectSortChange;
+        window.toggleNewCharSelectSortDir = toggleNewCharSelectSortDir;
 
         function executeNewBattleCourtneyCharge() {
             if (!activeNewBattle || activeNewBattle.battleEnded || activeNewBattle.waitingForOpponent || activeNewBattle.p1.isResting) return;
