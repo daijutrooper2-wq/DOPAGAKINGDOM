@@ -3494,6 +3494,7 @@ case 'dopa_juggler_skill':
         function startNewBattleMode(playerCharId = 'asaiomizu', enemyCharId = 'asaiomizu') {
             audioSystem.playSelect();
             newBattleViewMode = 'main';
+            isNewBattleSkillModalOpen = false;
 
             if (activeNewBattle) {
                 activeNewBattle.stopTimer();
@@ -3643,41 +3644,6 @@ case 'dopa_juggler_skill':
                         </button>
                     </div>
                 `;
-            } else if (newBattleViewMode === 'skill_select') {
-                const skills = p1.skills.filter(s => !s.isNormalAttack);
-                let skillsHtml = skills.map(s => {
-                    const cd = p1.cooldowns[s.id] || 0;
-                    const isCd = cd > 0;
-                    const disabled = isCd || (p1.id === 'dopagaking' && s.id === 'dopa_inheritance' && (p1.dopaChargeCount || 0) < 5);
-                    return `
-                        <button onclick="${disabled ? '' : `executeNewBattleAction('${s.id}')`}" class="pixel-box bg-slate-900 border ${disabled ? 'border-slate-700 opacity-60 cursor-not-allowed' : 'border-emerald-400 hover:border-emerald-300 cursor-pointer'} p-2 text-left shadow flex flex-col justify-between w-full">
-                            <div class="flex justify-between items-center w-full">
-                                <span class="font-pixel text-[11px] sm:text-xs text-emerald-300 font-bold flex items-center gap-1.5">
-                                    <span>✨</span>
-                                    <span>${s.name}</span>
-                                    ${isCd ? `<span class="text-amber-400 text-[10px] font-mono">(CT:${cd})</span>` : ''}
-                                </span>
-                                ${disabled && isCd ? `<span class="text-[10px] text-red-400 font-mono font-bold">CT</span>` : ''}
-                            </div>
-                            <div class="text-[9px] sm:text-[10px] text-slate-300 font-mono mt-0.5 line-clamp-1">${s.desc}</div>
-                        </button>
-                    `;
-                }).join('');
-
-                commandAreaContent = `
-                    <div class="flex flex-col gap-1.5 w-full h-full overflow-hidden">
-                        <div class="text-[10px] text-emerald-400 font-pixel font-bold mb-0.5 shrink-0 flex items-center gap-1">
-                            <span>✨</span>
-                            <span>スキル一覧</span>
-                        </div>
-                        <div class="space-y-1.5 flex-1 overflow-y-auto pr-1">
-                            ${skillsHtml}
-                        </div>
-                        <button onclick="executeNewBattleAction('back_to_main')" class="pixel-btn pixel-btn-warning py-1.5 px-3 text-[11px] font-bold font-pixel mt-1 shrink-0">
-                            ◀ 戻る
-                        </button>
-                    </div>
-                `;
             } else {
                 commandAreaContent = `
                     <div class="grid grid-cols-2 gap-1 w-full h-full">
@@ -3697,8 +3663,54 @@ case 'dopa_juggler_skill':
                 `;
             }
 
+            let skillModalHtml = '';
+            if (isNewBattleSkillModalOpen) {
+                const skills = p1.skills.filter(s => !s.isNormalAttack);
+                let skillsHtml = skills.map(s => {
+                    const cd = p1.cooldowns[s.id] || 0;
+                    const isCd = cd > 0;
+                    const disabled = isCd || (p1.id === 'dopagaking' && s.id === 'dopa_inheritance' && (p1.dopaChargeCount || 0) < 5);
+                    return `
+                        <button onclick="${disabled ? '' : `executeNewBattleAction('${s.id}')`}" class="pixel-box bg-slate-900 border ${disabled ? 'border-slate-700 opacity-60 cursor-not-allowed' : 'border-emerald-400 hover:border-emerald-300 cursor-pointer'} p-3 text-left shadow flex flex-col justify-between w-full transition-all">
+                            <div class="flex justify-between items-center w-full mb-1">
+                                <span class="font-pixel text-xs sm:text-sm text-emerald-300 font-bold flex items-center gap-2">
+                                    <span>✨</span>
+                                    <span>${s.name}</span>
+                                    ${isCd ? `<span class="text-amber-400 text-xs font-mono">(CT:${cd})</span>` : ''}
+                                </span>
+                                ${disabled && isCd ? `<span class="text-xs text-red-400 font-mono font-bold">CT:${cd}</span>` : ''}
+                            </div>
+                            <div class="text-[11px] sm:text-xs text-slate-200 font-mono leading-relaxed">${s.desc}</div>
+                        </button>
+                    `;
+                }).join('');
+
+                skillModalHtml = `
+                    <div class="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4 animate-fadeIn" onclick="if(event.target === this) { isNewBattleSkillModalOpen = false; renderNewBattleScreen(); }">
+                        <div class="pixel-box bg-slate-900 border-emerald-400 max-w-lg w-full p-4 sm:p-6 text-center relative shadow-2xl flex flex-col max-h-[85vh]">
+                            <div class="flex justify-between items-center border-b border-emerald-600/50 pb-3 mb-4">
+                                <h3 class="text-base sm:text-lg font-bold text-emerald-300 font-pixel flex items-center gap-2">
+                                    <span>✨</span>
+                                    <span>バトルスキル一覧</span>
+                                </h3>
+                                <button onclick="isNewBattleSkillModalOpen = false; renderNewBattleScreen();" class="pixel-btn pixel-btn-danger px-3 py-1 text-xs font-bold">✕ 閉じる</button>
+                            </div>
+                            <div class="space-y-2.5 flex-1 overflow-y-auto pr-1 text-left">
+                                ${skillsHtml}
+                            </div>
+                            <div class="mt-4 pt-2 border-t border-slate-800 flex justify-center">
+                                <button onclick="isNewBattleSkillModalOpen = false; renderNewBattleScreen();" class="pixel-btn pixel-btn-warning px-6 py-2 text-xs font-bold font-pixel">
+                                    ◀ もどる
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
             container.innerHTML = `
                 <div class="w-full h-full flex flex-col justify-between bg-slate-950 text-white relative select-none p-1.5 sm:p-2 overflow-hidden">
+                    ${skillModalHtml}
                     <!-- 1. 上部エリア（ターン・制限時間・HPの高さ同一の横一列） -->
                     <div class="w-full flex items-center justify-between gap-2 px-3 py-2 bg-slate-900/95 rounded-lg border border-slate-700 shadow-md z-20 shrink-0">
                         <!-- 左：自分 HP & 名前 -->
@@ -3813,16 +3825,18 @@ case 'dopa_juggler_skill':
 
             if (actionType === 'normal_attack_click') {
                 newBattleViewMode = 'attack_select';
+                isNewBattleSkillModalOpen = false;
                 renderNewBattleScreen();
                 return;
             }
             if (actionType === 'skill_click') {
-                newBattleViewMode = 'skill_select';
+                isNewBattleSkillModalOpen = true;
                 renderNewBattleScreen();
                 return;
             }
             if (actionType === 'back_to_main') {
                 newBattleViewMode = 'main';
+                isNewBattleSkillModalOpen = false;
                 renderNewBattleScreen();
                 return;
             }
@@ -3842,6 +3856,7 @@ case 'dopa_juggler_skill':
                 return;
             }
 
+            isNewBattleSkillModalOpen = false;
             newBattleViewMode = 'main';
             activeNewBattle.submitAction(1, actionType);
             renderNewBattleScreen();
