@@ -3649,22 +3649,30 @@ case 'dopa_juggler_skill':
                     const isCd = cd > 0;
                     const disabled = isCd || (p1.id === 'dopagaking' && s.id === 'dopa_inheritance' && (p1.dopaChargeCount || 0) < 5);
                     return `
-                        <button onclick="${disabled ? '' : `executeNewBattleAction('${s.id}')`}" class="pixel-box bg-slate-900 border ${disabled ? 'border-slate-700 opacity-60 cursor-not-allowed' : 'border-emerald-400 hover:border-emerald-300 cursor-pointer'} p-1.5 text-left shadow flex flex-col justify-between">
+                        <button onclick="${disabled ? '' : `executeNewBattleAction('${s.id}')`}" class="pixel-box bg-slate-900 border ${disabled ? 'border-slate-700 opacity-60 cursor-not-allowed' : 'border-emerald-400 hover:border-emerald-300 cursor-pointer'} p-2 text-left shadow flex flex-col justify-between w-full">
                             <div class="flex justify-between items-center w-full">
-                                <span class="font-pixel text-[10px] text-emerald-300 font-bold truncate">${s.name} ${isCd ? `(CT:${cd})` : ''}</span>
-                                ${disabled && isCd ? `<span class="text-[9px] text-red-400 font-mono">CT</span>` : ''}
+                                <span class="font-pixel text-[11px] sm:text-xs text-emerald-300 font-bold flex items-center gap-1.5">
+                                    <span>✨</span>
+                                    <span>${s.name}</span>
+                                    ${isCd ? `<span class="text-amber-400 text-[10px] font-mono">(CT:${cd})</span>` : ''}
+                                </span>
+                                ${disabled && isCd ? `<span class="text-[10px] text-red-400 font-mono font-bold">CT</span>` : ''}
                             </div>
+                            <div class="text-[9px] sm:text-[10px] text-slate-300 font-mono mt-0.5 line-clamp-1">${s.desc}</div>
                         </button>
                     `;
                 }).join('');
 
                 commandAreaContent = `
-                    <div class="flex flex-col gap-1 w-full h-full overflow-hidden">
-                        <div class="text-[9px] text-emerald-400 font-pixel font-bold mb-0.5 shrink-0">✨ スキル一覧</div>
-                        <div class="space-y-1 flex-1 overflow-y-auto pr-0.5">
+                    <div class="flex flex-col gap-1.5 w-full h-full overflow-hidden">
+                        <div class="text-[10px] text-emerald-400 font-pixel font-bold mb-0.5 shrink-0 flex items-center gap-1">
+                            <span>✨</span>
+                            <span>スキル一覧</span>
+                        </div>
+                        <div class="space-y-1.5 flex-1 overflow-y-auto pr-1">
                             ${skillsHtml}
                         </div>
-                        <button onclick="executeNewBattleAction('back_to_main')" class="pixel-btn pixel-btn-warning py-1 px-2 text-[10px] font-bold font-pixel mt-1 shrink-0">
+                        <button onclick="executeNewBattleAction('back_to_main')" class="pixel-btn pixel-btn-warning py-1.5 px-3 text-[11px] font-bold font-pixel mt-1 shrink-0">
                             ◀ 戻る
                         </button>
                     </div>
@@ -3689,11 +3697,11 @@ case 'dopa_juggler_skill':
             }
 
             container.innerHTML = `
-                <div class="w-full h-full flex flex-col justify-between bg-slate-950 text-white relative select-none p-2 sm:p-3 overflow-hidden">
+                <div class="w-full h-full flex flex-col justify-between bg-slate-950 text-white relative select-none p-1.5 sm:p-2 overflow-hidden">
                     <!-- 1. 上部エリア（ターン・制限時間・HPの高さ同一の横一列） -->
-                    <div class="w-full flex items-center justify-between gap-2 px-3 py-1.5 bg-slate-900/95 rounded-lg border border-slate-700 shadow-md z-20 shrink-0">
+                    <div class="w-full flex items-center justify-between gap-2 px-3 py-2 bg-slate-900/95 rounded-lg border border-slate-700 shadow-md z-20 shrink-0">
                         <!-- 左：自分 HP & 名前 -->
-                        <div class="flex flex-col gap-1 w-40 sm:w-56">
+                        <div class="flex flex-col gap-1 w-36 sm:w-48">
                             <div class="flex justify-between text-[11px] sm:text-xs font-bold">
                                 <span id="new-player-name" class="font-pixel text-emerald-400 truncate">${p1.charName}</span>
                                 <span class="font-mono"><span id="new-player-hp">${p1.hp}</span>/<span id="new-player-maxhp">${p1.maxHp}</span></span>
@@ -3704,25 +3712,25 @@ case 'dopa_juggler_skill':
                         </div>
 
                         <!-- 中央：ターン・制限時間・ステータス -->
-                        <div class="flex flex-col items-center gap-0.5">
-                            <div class="flex items-center gap-2 text-xs font-mono">
+                        <div class="flex flex-col items-center gap-1 px-2">
+                            <div class="flex items-center gap-2.5 text-xs sm:text-sm font-mono whitespace-nowrap">
                                 <div class="flex items-center gap-1">
-                                    <span class="text-slate-400">T</span>
-                                    <strong id="new-battle-turn" class="text-amber-400 font-pixel">${activeNewBattle.turn}</strong>
+                                    <span class="text-slate-400 font-bold">T</span>
+                                    <strong id="new-battle-turn" class="text-amber-400 font-pixel text-xs sm:text-sm">${activeNewBattle.turn}</strong>
                                 </div>
                                 <span class="text-slate-600">|</span>
                                 <div class="flex items-center gap-1">
-                                    <span class="text-slate-400">制限:</span>
-                                    <strong id="new-battle-timer" class="text-emerald-400 font-pixel">${activeNewBattle.turnTimer}</strong>s
+                                    <span class="text-slate-400 font-bold">制限:</span>
+                                    <strong id="new-battle-timer" class="text-emerald-400 font-pixel text-xs sm:text-sm">${activeNewBattle.turnTimer}</strong><span class="text-[10px] sm:text-xs">s</span>
                                 </div>
                             </div>
-                            <div class="px-2 py-0.2 rounded text-[9px] sm:text-[10px] font-bold ${isMyTurn ? 'bg-emerald-950 text-emerald-300 border border-emerald-500 animate-pulse' : 'bg-slate-800 text-slate-400 border border-slate-600'}">
+                            <div class="px-2 py-0.5 rounded text-[10px] sm:text-xs font-bold whitespace-nowrap ${isMyTurn ? 'bg-emerald-950 text-emerald-300 border border-emerald-500 animate-pulse' : 'bg-slate-800 text-slate-400 border border-slate-600'}">
                                 ${isMyTurn ? '🟢 自分のターン' : '⏳ 相手のターン'}
                             </div>
                         </div>
 
                         <!-- 右：敵 HP & 名前 -->
-                        <div class="flex flex-col gap-1 w-40 sm:w-56">
+                        <div class="flex flex-col gap-1 w-36 sm:w-48">
                             <div class="flex justify-between text-[11px] sm:text-xs font-bold">
                                 <span id="new-enemy-name" class="font-pixel text-amber-400 truncate">${p2.charName}</span>
                                 <span class="font-mono"><span id="new-enemy-hp">${p2.hp}</span>/<span id="new-enemy-maxhp">${p2.maxHp}</span></span>
@@ -3746,8 +3754,8 @@ case 'dopa_juggler_skill':
                         </div>
                     </div>
 
-                    <!-- 3. 画面下部エリア（サイズコンパクト・少し下方に配置） -->
-                    <div class="w-full grid grid-cols-1 md:grid-cols-12 gap-2 h-20 sm:h-24 shrink-0 z-10 pb-1 mt-1">
+                    <!-- 3. 画面下部エリア（サイズコンパクト・さらに下へ移動・端側に寄せる） -->
+                    <div class="w-full grid grid-cols-1 md:grid-cols-12 gap-1.5 h-20 sm:h-24 shrink-0 z-10 pb-0 mb-0 mt-auto">
                         <!-- ① 画面の一番左側：プレイヤープロフィール枠 -->
                         <div class="md:col-span-3 bg-slate-900/95 border-2 border-slate-700 rounded-lg p-1.5 flex items-center gap-2 shadow-md h-full overflow-hidden">
                             <canvas id="new-battle-profile-icon" width="40" height="40" class="pixel-box bg-slate-950 rounded shrink-0 w-9 h-9 sm:w-11 sm:h-11"></canvas>
