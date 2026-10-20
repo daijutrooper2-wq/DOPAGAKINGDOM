@@ -3539,13 +3539,13 @@ case 'dopa_juggler_skill':
                 eImg = CHARACTER_DATA[p2.id]?.image || p2.image;
             }
 
-            let leftAreaContent = '';
-
+            let centerContent = '';
             if (newBattleViewMode === 'attack_select') {
                 const normalSkill = p1.skills.find(s => s.isNormalAttack) || p1.skills[0];
-                leftAreaContent = `
-                    <div class="w-full h-full flex flex-col justify-center items-center p-3">
-                        <div class="w-full max-w-md flex flex-col justify-center items-center gap-3">
+                centerContent = `
+                    <div class="absolute inset-0 bg-slate-950/90 z-20 flex flex-col items-center justify-center p-4">
+                        <div class="w-full max-w-md flex flex-col items-center gap-3">
+                            <div class="text-amber-400 font-pixel text-xs sm:text-sm mb-1">⚔️ 通常攻撃の選択</div>
                             <button onclick="executeNewBattleAction('${normalSkill.id}')" class="pixel-box bg-slate-900 border-2 border-amber-400 hover:border-amber-300 p-4 w-full flex flex-col items-center text-center cursor-pointer shadow-lg group">
                                 <span class="font-pixel text-sm text-amber-300 font-bold mb-1">${normalSkill.name}</span>
                                 <div class="w-full bg-slate-950 border border-slate-800 rounded p-2 text-xs text-slate-300 font-mono mt-1">
@@ -3574,50 +3574,11 @@ case 'dopa_juggler_skill':
                     `;
                 }).join('');
 
-                leftAreaContent = `
-                    <div class="w-full h-full flex flex-col justify-start p-3 overflow-y-auto">
-                        <div class="w-full max-w-md mx-auto space-y-2">
+                centerContent = `
+                    <div class="absolute inset-0 bg-slate-950/90 z-20 flex flex-col items-center justify-center p-4 overflow-y-auto">
+                        <div class="w-full max-w-md space-y-2">
+                            <div class="text-emerald-400 font-pixel text-xs sm:text-sm mb-1 text-center">✨ スキルの選択</div>
                             ${skillsHtml}
-                        </div>
-                    </div>
-                `;
-            } else {
-                leftAreaContent = `
-                    <div class="w-full h-full flex flex-col justify-around items-center py-4 px-2">
-                        <!-- 敵キャラクター（相手） + 敵のHPゲージ -->
-                        <div class="flex flex-col items-center">
-                            <div class="flex items-center gap-4 px-4 py-2.5 bg-slate-900/60 border border-slate-800 rounded-lg shadow-md">
-                                <div class="w-24 h-24 sm:w-32 sm:h-32 flex items-center justify-center overflow-hidden">
-                                    <img id="new-enemy-img" src="${eImg}" alt="Enemy" class="w-full h-full object-contain">
-                                </div>
-                                <div class="flex flex-col gap-1.5 w-40 sm:w-52">
-                                    <div class="flex justify-between text-xs sm:text-sm text-slate-300 font-bold">
-                                        <span id="new-enemy-name" class="font-pixel text-amber-400">${p2.charName}</span>
-                                        <span><span id="new-enemy-hp">${p2.hp}</span> / <span id="new-enemy-maxhp">${p2.maxHp}</span></span>
-                                    </div>
-                                    <div class="w-full bg-slate-950 h-3 border border-slate-700 rounded-full overflow-hidden shadow-inner">
-                                        <div id="new-enemy-hp-bar" class="bg-red-500 h-full hp-bar-fill transition-all duration-300" style="width: ${ePercent}%;"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- プレイヤーキャラクター（自分） + 自分のHP -->
-                        <div class="flex flex-col items-center">
-                            <div class="flex items-center gap-4 px-4 py-2.5 bg-slate-900/60 border border-slate-800 rounded-lg shadow-md">
-                                <div class="flex flex-col gap-1.5 w-40 sm:w-52">
-                                    <div class="flex justify-between text-xs sm:text-sm text-slate-300 font-bold">
-                                        <span id="new-player-name" class="font-pixel text-emerald-400">${p1.charName}</span>
-                                        <span><span id="new-player-hp">${p1.hp}</span> / <span id="new-player-maxhp">${p1.maxHp}</span></span>
-                                    </div>
-                                    <div class="w-full bg-slate-950 h-3 border border-slate-700 rounded-full overflow-hidden shadow-inner">
-                                        <div id="new-player-hp-bar" class="bg-emerald-500 h-full hp-bar-fill transition-all duration-300" style="width: ${pPercent}%;"></div>
-                                    </div>
-                                </div>
-                                <div onclick="if(activeNewBattle && activeNewBattle.p1.id === 'courtney') { executeNewBattleCourtneyCharge(); }" class="w-32 h-32 sm:w-40 sm:h-40 flex items-center justify-center overflow-hidden ${p1.id === 'courtney' ? 'cursor-pointer hover:scale-105 transition-transform' : ''}" title="${p1.id === 'courtney' ? 'タップしてチャージ！' : ''}">
-                                    <img id="new-player-img" src="${pImg}" alt="Player" class="w-full h-full object-contain">
-                                </div>
-                            </div>
                         </div>
                     </div>
                 `;
@@ -3625,61 +3586,128 @@ case 'dopa_juggler_skill':
 
             const isMyTurn = !activeNewBattle.battleEnded && !activeNewBattle.waitingForOpponent && !p1.isResting;
 
+            let commandAreaContent = '';
+            if (newBattleViewMode === 'attack_select' || newBattleViewMode === 'skill_select') {
+                commandAreaContent = `
+                    <div class="w-full h-full flex items-center justify-center p-1">
+                        <button onclick="executeNewBattleAction('back_to_main')" class="w-full py-3 px-4 pixel-btn pixel-btn-warning text-xs sm:text-sm font-bold font-pixel shadow-md flex items-center justify-center gap-2 cursor-pointer">
+                            <span>◀ コマンドに戻る</span>
+                        </button>
+                    </div>
+                `;
+            } else {
+                commandAreaContent = `
+                    <div class="grid grid-cols-2 gap-1.5 w-full h-full">
+                        <button onclick="executeNewBattleAction('normal_attack_click')" class="pixel-btn pixel-btn-primary py-2 px-2 text-[11px] sm:text-xs font-bold flex flex-col items-center justify-center text-center shadow cursor-pointer">
+                            <span>⚔️ 通常攻撃</span>
+                        </button>
+                        <button onclick="executeNewBattleAction('run')" class="pixel-btn pixel-btn-danger py-2 px-2 text-[11px] sm:text-xs font-bold flex flex-col items-center justify-center text-center shadow cursor-pointer">
+                            <span>🏃 逃げる</span>
+                        </button>
+                        <button onclick="executeNewBattleAction('skill_click')" class="pixel-btn pixel-btn-success py-2 px-2 text-[11px] sm:text-xs font-bold flex flex-col items-center justify-center text-center shadow cursor-pointer">
+                            <span>✨ スキル</span>
+                        </button>
+                        <button onclick="executeNewBattleAction('setting')" class="pixel-btn pixel-btn-warning py-2 px-2 text-[11px] sm:text-xs font-bold flex flex-col items-center justify-center text-center shadow cursor-pointer">
+                            <span>⚙️ 設定</span>
+                        </button>
+                    </div>
+                `;
+            }
+
             container.innerHTML = `
-                <div class="w-full h-full flex flex-row overflow-hidden bg-slate-950 text-white relative select-none">
-                    <!-- 画面左側：バトル環境描画エリア -->
-                    <div class="flex-1 flex flex-col justify-between p-3 pt-14 relative border-r-4 border-slate-700">
-                        <!-- 上部情報ヘッダーエリア（ターン数・自分の/相手のターン・制限時間） -->
-                        <div class="absolute top-2 left-2 right-2 z-10 flex items-center justify-between gap-2 text-xs font-mono bg-slate-900/95 px-3 py-1.5 rounded border border-slate-700 shadow-md">
-                            <div class="flex items-center gap-1.5">
-                                <span>ターン:</span>
+                <div class="w-full h-full flex flex-col justify-between bg-slate-950 text-white relative select-none p-2 sm:p-4 overflow-hidden">
+                    <!-- 1. 画面中央上部：バトルステータス表示（小さめ・中央揃え） -->
+                    <div class="absolute top-2 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1 bg-slate-900/95 px-4 py-1.5 rounded-lg border border-slate-700 shadow-md font-mono">
+                        <div class="flex items-center gap-3 text-xs">
+                            <div class="flex items-center gap-1">
+                                <span class="font-bold text-slate-400">T</span>
                                 <strong id="new-battle-turn" class="text-amber-400 font-pixel">${activeNewBattle.turn}</strong>
                             </div>
-                            <div class="px-2 py-0.5 rounded text-[11px] font-bold ${isMyTurn ? 'bg-emerald-950 text-emerald-300 border border-emerald-500 animate-pulse' : 'bg-slate-800 text-slate-400 border border-slate-600'}">
-                                ${isMyTurn ? '🟢 自分のターン' : '⏳ 相手のターン'}
-                            </div>
+                            <span class="text-slate-600">|</span>
                             <div class="flex items-center gap-1">
-                                <span>制限:</span>
+                                <span class="text-slate-400">制限:</span>
                                 <strong id="new-battle-timer" class="text-emerald-400 font-pixel">${activeNewBattle.turnTimer}</strong>s
                             </div>
                         </div>
-
-                        ${leftAreaContent}
+                        <div class="px-2.5 py-0.5 rounded text-[10px] font-bold ${isMyTurn ? 'bg-emerald-950 text-emerald-300 border border-emerald-500 animate-pulse' : 'bg-slate-800 text-slate-400 border border-slate-600'}">
+                            ${isMyTurn ? '🟢 自分のターン' : '⏳ 相手のターン'}
+                        </div>
                     </div>
 
-                    <!-- 画面右側：操作パネルエリア -->
-                    <div class="w-72 sm:w-80 flex flex-col justify-between p-3 bg-slate-900/98">
-                        <!-- 上部：コマンド選択パネル -->
-                        <div class="flex-1 overflow-y-auto space-y-2 pr-1 mb-2">
-                            <div class="text-[10px] text-amber-400 font-bold font-pixel mb-1">COMMANDS</div>
-                            <button onclick="executeNewBattleAction('normal_attack_click')" class="w-full pixel-btn pixel-btn-primary py-2 px-3 text-xs font-bold text-left flex items-center justify-between">
-                                <span>⚔️ 通常攻撃</span>
-                                <span class="text-[10px] text-blue-200">選択</span>
-                            </button>
-                            <button onclick="executeNewBattleAction('skill_click')" class="w-full pixel-btn pixel-btn-success py-2 px-3 text-xs font-bold text-left flex items-center justify-between">
-                                <span>✨ スキル</span>
-                                <span class="text-[10px] text-emerald-200">選択</span>
-                            </button>
-                            <button onclick="executeNewBattleAction('run')" class="w-full pixel-btn pixel-btn-danger py-2 px-3 text-xs font-bold text-left flex items-center justify-between">
-                                <span>🏃 逃げる</span>
-                                <span class="text-[10px] text-red-200">撤退</span>
-                            </button>
-                            <button onclick="executeNewBattleAction('setting')" class="w-full pixel-btn pixel-btn-warning py-2 px-3 text-xs font-bold text-left flex items-center justify-between">
-                                <span>⚙️ セッティング</span>
-                                <span class="text-[10px] text-amber-200">設定</span>
-                            </button>
+                    <!-- 2. キャラクター情報・立ち絵エリア（左右配置） -->
+                    <div class="flex-1 flex flex-row items-center justify-between px-2 sm:px-10 pt-14 pb-2 relative z-10 overflow-hidden">
+                        ${centerContent}
+                        <!-- 左側：自分 -->
+                        <div class="flex flex-col items-center gap-2 w-36 sm:w-56">
+                            <!-- 上側：キャラクターの名前 ＆ HPバー -->
+                            <div class="w-full bg-slate-900/80 border border-slate-800 rounded p-2 shadow-md flex flex-col gap-1">
+                                <div class="flex justify-between text-xs font-bold">
+                                    <span id="new-player-name" class="font-pixel text-emerald-400 truncate">${p1.charName}</span>
+                                    <span class="text-[10px] sm:text-xs font-mono"><span id="new-player-hp">${p1.hp}</span>/<span id="new-player-maxhp">${p1.maxHp}</span></span>
+                                </div>
+                                <div class="w-full bg-slate-950 h-2 sm:h-2.5 border border-slate-700 rounded-full overflow-hidden shadow-inner">
+                                    <div id="new-player-hp-bar" class="bg-emerald-500 h-full hp-bar-fill transition-all duration-300" style="width: ${pPercent}%;"></div>
+                                </div>
+                            </div>
+                            <!-- 下側：キャラクターの立ち絵（画像） -->
+                            <div onclick="if(activeNewBattle && activeNewBattle.p1.id === 'courtney') { executeNewBattleCourtneyCharge(); }" class="w-28 h-28 sm:w-40 sm:h-40 flex items-center justify-center overflow-hidden ${p1.id === 'courtney' ? 'cursor-pointer hover:scale-105 transition-transform' : ''}" title="${p1.id === 'courtney' ? 'タップしてチャージ！' : ''}">
+                                <img id="new-player-img" src="${pImg}" alt="Player" class="w-full h-full object-contain drop-shadow-lg">
+                            </div>
                         </div>
 
-                        <!-- 下部：バトルログエリア -->
-                        <div class="flex flex-col space-y-1 border-t-2 border-amber-500/60 pt-2">
-                            <div class="text-[10px] text-amber-400 font-bold font-pixel">BATTLE LOG</div>
-                            <div class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-[11px] sm:text-xs font-mono text-slate-200 h-20 sm:h-28 overflow-y-auto shadow-inner" id="new-battle-log">
+                        <!-- 右側：敵 -->
+                        <div class="flex flex-col items-center gap-2 w-36 sm:w-56">
+                            <!-- 上側：キャラクターの名前 ＆ HPバー -->
+                            <div class="w-full bg-slate-900/80 border border-slate-800 rounded p-2 shadow-md flex flex-col gap-1">
+                                <div class="flex justify-between text-xs font-bold">
+                                    <span id="new-enemy-name" class="font-pixel text-amber-400 truncate">${p2.charName}</span>
+                                    <span class="text-[10px] sm:text-xs font-mono"><span id="new-enemy-hp">${p2.hp}</span>/<span id="new-enemy-maxhp">${p2.maxHp}</span></span>
+                                </div>
+                                <div class="w-full bg-slate-950 h-2 sm:h-2.5 border border-slate-700 rounded-full overflow-hidden shadow-inner">
+                                    <div id="new-enemy-hp-bar" class="bg-red-500 h-full hp-bar-fill transition-all duration-300" style="width: ${ePercent}%;"></div>
+                                </div>
+                            </div>
+                            <!-- 下側：キャラクターの立ち絵（画像） -->
+                            <div class="w-28 h-28 sm:w-40 sm:h-40 flex items-center justify-center overflow-hidden">
+                                <img id="new-enemy-img" src="${eImg}" alt="Enemy" class="w-full h-full object-contain drop-shadow-lg">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. 画面下部エリア（高さ・ボトムラインを統一して3分割配置） -->
+                    <div class="w-full grid grid-cols-1 md:grid-cols-12 gap-2 h-24 sm:h-28 shrink-0 z-10">
+                        <!-- ① 画面の一番左側：プレイヤープロフィール枠 -->
+                        <div class="md:col-span-3 bg-slate-900/95 border-2 border-slate-700 rounded-lg p-2 flex items-center gap-2.5 shadow-md h-full overflow-hidden">
+                            <canvas id="new-battle-profile-icon" width="48" height="48" class="pixel-box bg-slate-950 rounded shrink-0 w-10 h-10 sm:w-12 sm:h-12"></canvas>
+                            <div class="flex flex-col justify-center overflow-hidden">
+                                <div id="new-battle-profile-name" class="text-xs font-bold text-amber-300 font-pixel truncate">${playerState.playerName || '名無しファイター'}</div>
+                                <div class="text-[10px] sm:text-xs text-slate-300 font-mono mt-0.5 truncate">DOPA: <span class="text-amber-400 font-bold">${formatDopa(playerState.dopa)}</span></div>
+                            </div>
+                        </div>
+
+                        <!-- ③ 中央（プレイヤー枠とコマンド枠の間）：バトルログ枠 -->
+                        <div class="md:col-span-5 bg-slate-900/95 border-2 border-slate-700 rounded-lg p-2 flex flex-col h-full shadow-md overflow-hidden">
+                            <div class="text-[10px] text-amber-400 font-bold font-pixel mb-1 flex items-center justify-between shrink-0">
+                                <span>📜 BATTLE LOG</span>
+                            </div>
+                            <div class="w-full flex-1 bg-slate-950 border border-slate-800 rounded p-1.5 text-[10px] sm:text-xs font-mono text-slate-200 overflow-y-auto shadow-inner" id="new-battle-log">
                                 ${(activeNewBattle.battleLogs && activeNewBattle.battleLogs.length > 0) ? activeNewBattle.battleLogs.map(l => `<div class="${l.colorClass || 'text-slate-200'}">${l.msg}</div>`).join('') : "新規バトルモードが開始しました！コマンドを選択してください。"}
                             </div>
+                        </div>
+
+                        <!-- ② 画面の右下：コマンド枠 -->
+                        <div class="md:col-span-4 bg-slate-900/95 border-2 border-slate-700 rounded-lg p-1.5 flex flex-col justify-center h-full shadow-md">
+                            ${commandAreaContent}
                         </div>
                     </div>
                 </div>
             `;
+
+            const profileIconCvs = document.getElementById('new-battle-profile-icon');
+            if (profileIconCvs) {
+                CharacterRenderer.drawCharacter(profileIconCvs, playerState.selectedIcon || 'dopagaking');
+            }
+
             const logEl = document.getElementById('new-battle-log');
             if (logEl) {
                 logEl.scrollTop = logEl.scrollHeight;
