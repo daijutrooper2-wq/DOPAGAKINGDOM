@@ -300,3 +300,16 @@
         .animate-endless-scroll {
             animation: endless-scroll 45s linear infinite;
         }
+
+        @keyframes asaiomizu-breath {
+            0%, 100% {
+                transform: translateY(0) scaleY(1);
+            }
+            50% {
+                transform: translateY(-2.5px) scaleY(1.025);
+            }
+        }
+        .animate-asaiomizu-breath {
+            transform-origin: bottom center;
+            animation: asaiomizu-breath 3.2s ease-in-out infinite;
+        }
