@@ -120,7 +120,7 @@
                 const h = canvas.height;
 
                 const canvasId = canvas && canvas.id ? canvas.id : '';
-                const isCharSelect = canvasId.startsWith('select-cvs-') || canvasId.startsWith('new-select-cvs-');
+                const isBattleCanvas = (canvasId === 'p1-canvas' || canvasId === 'p2-canvas');
 
                 // 7. 特殊状態（王冠、チャージ、ミニぞう等）に応じた画像パスの判定
                 let targetCharId = charId;
@@ -129,7 +129,7 @@
                 const charData = CHARACTER_DATA[targetCharId] || CHARACTER_DATA[charId] || EXTRA_ICONS[targetCharId] || EXTRA_ICONS[charId];
                 let imagePath = null;
                 if (charData) {
-                    if (isCharSelect) {
+                    if (!isBattleCanvas) {
                         if (charId === 'courtney') {
                             imagePath = 'courtney/ALT.webp';
                         } else if (charId === 'dopagaking') {
@@ -145,10 +145,6 @@
                             imagePath = charData.image;
                         }
                     }
-                }
-                if (charId === 'dopagaking_crown') {
-                    imagePath = CHARACTER_DATA['dopagaking']?.chargedImage || CHARACTER_DATA['dopagaking']?.image;
-                }
                 }
                 if (charId === 'dopagaking_crown') {
                     imagePath = CHARACTER_DATA['dopagaking']?.chargedImage || CHARACTER_DATA['dopagaking']?.image;
