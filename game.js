@@ -119,6 +119,9 @@
                 const w = canvas.width;
                 const h = canvas.height;
 
+                const canvasId = canvas && canvas.id ? canvas.id : '';
+                const isCharSelect = canvasId.startsWith('select-cvs-') || canvasId.startsWith('new-select-cvs-');
+
                 // 7. 特殊状態（王冠、チャージ、ミニぞう等）に応じた画像パスの判定
                 let targetCharId = charId;
                 if (isMiniZou && !(CHARACTER_DATA[charId] && CHARACTER_DATA[charId].chargedImage)) targetCharId = 'minizou';
@@ -126,12 +129,26 @@
                 const charData = CHARACTER_DATA[targetCharId] || CHARACTER_DATA[charId] || EXTRA_ICONS[targetCharId] || EXTRA_ICONS[charId];
                 let imagePath = null;
                 if (charData) {
-                    // 特殊状態の専用画像（chargedImage）があり、かつチャージ状態(isMiniZou, isCharged等)の場合のみ優先、それ以外は image を使用
-                    if ((isMiniZou || isCharged || charId.includes('charged') || charId === 'dopagaking_crown') && charData.chargedImage) {
-                        imagePath = charData.chargedImage;
+                    if (isCharSelect) {
+                        if (charId === 'courtney') {
+                            imagePath = 'courtney/ALT.webp';
+                        } else if (charId === 'dopagaking') {
+                            imagePath = 'dopagaking/dopagaking.webp';
+                        } else {
+                            imagePath = charData.image;
+                        }
                     } else {
-                        imagePath = charData.image;
+                        // 特殊状態の専用画像（chargedImage）があり、かつチャージ状態(isMiniZou, isCharged等)の場合のみ優先、それ以外は image を使用
+                        if ((isMiniZou || isCharged || charId.includes('charged') || charId === 'dopagaking_crown') && charData.chargedImage) {
+                            imagePath = charData.chargedImage;
+                        } else {
+                            imagePath = charData.image;
+                        }
                     }
+                }
+                if (charId === 'dopagaking_crown') {
+                    imagePath = CHARACTER_DATA['dopagaking']?.chargedImage || CHARACTER_DATA['dopagaking']?.image;
+                }
                 }
                 if (charId === 'dopagaking_crown') {
                     imagePath = CHARACTER_DATA['dopagaking']?.chargedImage || CHARACTER_DATA['dopagaking']?.image;
