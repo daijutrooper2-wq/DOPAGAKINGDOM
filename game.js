@@ -4335,16 +4335,16 @@ case 'dopa_juggler_skill':
                                      let sizeClasses = '';
                                      if (posIdx === 0) {
                                          // 先頭（一番手前・中央）へシャッフル＆前面強調
-                                         posClasses = 'absolute left-1/2 -translate-x-1/2 top-[52%] -translate-y-1/2 z-30 scale-115';
-                                         sizeClasses = 'w-38 h-52 sm:w-46 sm:h-60';
+                                         posClasses = 'absolute left-1/2 -translate-x-1/2 top-[55%] -translate-y-1/2 z-30 scale-110';
+                                         sizeClasses = 'w-34 h-48 sm:w-42 sm:h-56';
                                      } else if (posIdx === 1) {
-                                         // 2番目（左側密着・少し手前へ引き出し＆サイズアップ）
-                                         posClasses = 'absolute left-2 sm:left-5 top-[44%] -translate-y-1/2 z-25 opacity-90 scale-100';
-                                         sizeClasses = 'w-26 h-36 sm:w-32 sm:h-44';
+                                         // 2番目（左側密着・少し下＆サイズアップ）
+                                         posClasses = 'absolute left-2 sm:left-5 top-[48%] -translate-y-1/2 z-25 opacity-90 scale-105';
+                                         sizeClasses = 'w-28 h-38 sm:w-34 sm:h-46';
                                      } else {
-                                         // 3番目（右側密着・少し手前へ引き出し＆サイズアップ）
-                                         posClasses = 'absolute right-2 sm:right-5 top-[44%] -translate-y-1/2 z-25 opacity-90 scale-100';
-                                         sizeClasses = 'w-26 h-36 sm:w-32 sm:h-44';
+                                         // 3番目（右側密着・少し下＆サイズアップ）
+                                         posClasses = 'absolute right-2 sm:right-5 top-[48%] -translate-y-1/2 z-25 opacity-90 scale-105';
+                                         sizeClasses = 'w-28 h-38 sm:w-34 sm:h-46';
                                      }
 
                                     const interactiveStyle = isSelectable ? 'cursor-pointer ring-4 ring-amber-400 bg-amber-950/40 rounded-xl' : '';
@@ -4411,14 +4411,14 @@ case 'dopa_juggler_skill':
                                      let posClasses = '';
                                      let sizeClasses = '';
                                      if (posIdx === 0) {
-                                         posClasses = 'absolute left-1/2 -translate-x-1/2 top-[52%] -translate-y-1/2 z-30 scale-115';
-                                         sizeClasses = 'w-38 h-52 sm:w-46 sm:h-60';
+                                         posClasses = 'absolute left-1/2 -translate-x-1/2 top-[55%] -translate-y-1/2 z-30 scale-110';
+                                         sizeClasses = 'w-34 h-48 sm:w-42 sm:h-56';
                                      } else if (posIdx === 1) {
-                                         posClasses = 'absolute right-2 sm:right-5 top-[44%] -translate-y-1/2 z-25 opacity-90 scale-100';
-                                         sizeClasses = 'w-26 h-36 sm:w-32 sm:h-44';
+                                         posClasses = 'absolute right-2 sm:right-5 top-[48%] -translate-y-1/2 z-25 opacity-90 scale-105';
+                                         sizeClasses = 'w-28 h-38 sm:w-34 sm:h-46';
                                      } else {
-                                         posClasses = 'absolute left-2 sm:left-5 top-[44%] -translate-y-1/2 z-25 opacity-90 scale-100';
-                                         sizeClasses = 'w-26 h-36 sm:w-32 sm:h-44';
+                                         posClasses = 'absolute left-2 sm:left-5 top-[48%] -translate-y-1/2 z-25 opacity-90 scale-105';
+                                         sizeClasses = 'w-28 h-38 sm:w-34 sm:h-46';
                                      }
 
                                     const interactiveStyle = isSelectable ? 'cursor-pointer ring-4 ring-amber-400 bg-amber-950/40 rounded-xl' : '';
