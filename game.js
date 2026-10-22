@@ -1966,7 +1966,7 @@ dopagaking: {
     image: 'dopagaking/dopagaking.webp',
     allImage: 'dopagaking/dopagakingALL.webp',
     dieImage: 'dopagaking/dopagakingDIE.webp',
-    chargedImage: 'dopagaking/dopagakingchange.webp',
+    chargedImage: 'dopagaking/dopagakingcharge.webp',
     desc: 'すべてを運に任せる完全ランダム型の国王。アイコンタップで「王位継承」をチャージし、他キャラの力の4倍ダメージを叩き込む！',
     skills: [
         { id: 'dopa_juggler', name: 'ジャグラー', type: 'dopa_juggler_skill', power: 1.0, isNormalAttack: false, cooldown: 0, desc: '0～50の完全ランダムダメージを与える通常攻撃！' },
@@ -1986,9 +1986,9 @@ dopagaking: {
                 type: '恋属性 / 溜め・爆発型',
                 hp: 190, atk: 18, def: 15, critRate: 0.04, eva: 18,
                 courtneyChargeCount: 0,
-                image: 'courtney/courtney11.webp',
-                allImage: 'courtney/courtneyALL.webp',
-                dieImage: 'courtney/courtneyDIE.webp',
+                image: 'courtney/ALT.webp',
+                allImage: 'courtney/ALT11.webp',
+                dieImage: 'courtney/ALT3.webp',
                 chargedImage: 'courtney/ALTchange2.webp',
                 desc: '相手をメロメロにして戦う海外ガール。王国初となる「溜め技」を駆使し、最大8回までチャージして一撃の爆発力を高める！',
                 skills: [
