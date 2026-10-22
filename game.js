@@ -2165,6 +2165,9 @@ pasha_dark: {
                 this.battleEnded = false;
                 this.isSuddenDeath = false;
                 this.waitingForOpponent = false;
+                this.isProcessing = false;
+                this.currentAttacker = null;
+                this.turnJustStarted = true;
 
                 this.p1 = this.createBattlePlayer(p1CharId, isOnline ? 'Player 1' : 'Player 1', 1);
                 this.p2 = this.createBattlePlayer(p2CharId, isOnline ? 'Player 2' : 'BOT (CPU)', 2);
@@ -2645,7 +2648,17 @@ pasha_dark: {
                         this.fallbackToBotMode();
                     }
                 } else {
-                    if (pNum === 1) this.p1Action = skillId;
+                    if (pNum === 1) {
+                        this.p1Action = skillId;
+                        if (this.isNewBattle) {
+                            this.stopTimer();
+                            this.isProcessing = true;
+                            this.turnJustStarted = false;
+                            if (this.onStateChange) this.onStateChange(this);
+                            this.processTurn();
+                            return;
+                        }
+                    }
                     if (pNum === 2) this.p2Action = skillId;
 
                     if (this.p1Action && !this.p2Action) {
@@ -2662,6 +2675,8 @@ pasha_dark: {
             }
 
             async processTurn() {
+                this.isProcessing = true;
+                this.turnJustStarted = false;
                 this.currentTurnLogs = [];
 
                 if (this.isSuddenDeath) {
@@ -2679,6 +2694,9 @@ pasha_dark: {
                         for (let i = 0; i < teamList.length; i++) {
                             const attacker = teamList[i];
                             if (attacker.hp <= 0) continue;
+
+                            this.currentAttacker = attacker;
+                            if (this.onStateChange) this.onStateChange(this);
 
                             // 1アクションごとに1.5秒〜2秒のウェイトを挟んで思考・演出の溜めを作る
                             await new Promise(resolve => setTimeout(resolve, BOT_ACTION_DELAY));
@@ -2769,12 +2787,20 @@ pasha_dark: {
                     }
                 }
 
+                this.currentAttacker = null;
+                this.isProcessing = false;
+                this.turnJustStarted = true;
                 this.p1Action = null;
                 this.p2Action = null;
                 this.waitingForOpponent = false;
 
                 if (this.onStateChange) this.onStateChange(this);
-                if (!this.battleEnded) this.startTimer();
+                if (!this.battleEnded) {
+                    this.startTimer();
+                    if (this.isNewBattle && this.onCutin) {
+                        this.onCutin("🟢 自分のターンです！", `ターン ${this.turn} - 味方チームの行動を選択してください`);
+                    }
+                }
             }
 
           executePlayerAction(attacker, defender, skillId) {
@@ -3971,7 +3997,7 @@ case 'dopa_juggler_skill':
         window.toggleNewCharSelectOwnedFilter = toggleNewCharSelectOwnedFilter;
 
         function executeNewBattleCourtneyCharge() {
-            if (!activeNewBattle || activeNewBattle.battleEnded || activeNewBattle.waitingForOpponent || activeNewBattle.p1.isResting) return;
+            if (!activeNewBattle || activeNewBattle.battleEnded || activeNewBattle.isProcessing || activeNewBattle.p1Action !== null || activeNewBattle.waitingForOpponent || activeNewBattle.p1.isResting) return;
             if (activeNewBattle.p1.id !== 'courtney') return;
             if ((activeNewBattle.p1.courtneyChargeCount || 0) < 8) {
                 activeNewBattle.submitAction(1, 'courtney_charge_only');
@@ -4119,7 +4145,30 @@ case 'dopa_juggler_skill':
             const p1IsCharging = (p1.id === 'courtney' && (p1.courtneyChargeCount || 0) > 0 && p1.hp > 0) || (p1.id === 'dopagaking' && (p1.dopaChargeCount || 0) > 0 && (p1.dopaChargeCount || 0) < 5 && p1.hp > 0);
             const p2IsCharging = (p2.id === 'courtney' && (p2.courtneyChargeCount || 0) > 0 && p2.hp > 0) || (p2.id === 'dopagaking' && (p2.dopaChargeCount || 0) > 0 && (p2.dopaChargeCount || 0) < 5 && p2.hp > 0);
 
-            const isMyTurn = !activeNewBattle.battleEnded && !activeNewBattle.waitingForOpponent && !p1.isResting;
+            const isMyTurn = !activeNewBattle.battleEnded && !activeNewBattle.isProcessing && activeNewBattle.p1Action === null && !activeNewBattle.waitingForOpponent && !p1.isResting;
+
+            let actorIndicator = '';
+            if (activeNewBattle.isProcessing && activeNewBattle.currentAttacker) {
+                const actor = activeNewBattle.currentAttacker;
+                const isAlly = activeNewBattle.getCharacterTeam(actor) === 'ally';
+                actorIndicator = `
+                    <div class="px-3 py-1 rounded-md border text-xs sm:text-sm font-bold font-pixel animate-pulse shadow-lg ${isAlly ? 'bg-emerald-950/90 border-emerald-500 text-emerald-300' : 'bg-red-950/90 border-red-500 text-red-300'}">
+                        ⚡ 現在行動中：${isAlly ? '【味方】' : '【敵】'} ${actor.charName}
+                    </div>
+                `;
+            } else if (isMyTurn) {
+                actorIndicator = `
+                    <div class="px-3 py-1 rounded-md border border-emerald-400 bg-emerald-950/90 text-emerald-300 text-xs sm:text-sm font-bold font-pixel animate-pulse shadow-lg">
+                        🟢 自分のターン (${p1.charName}の指令を選べ)
+                    </div>
+                `;
+            } else {
+                actorIndicator = `
+                    <div class="px-3 py-1 rounded-md border border-slate-700 bg-slate-900 text-slate-400 text-xs sm:text-sm font-bold font-pixel">
+                        ⏳ 処理中...
+                    </div>
+                `;
+            }
 
             let commandAreaContent = '';
             if (newBattleViewMode === 'target_select') {
@@ -4145,8 +4194,9 @@ case 'dopa_juggler_skill':
                     </div>
                 `;
             } else {
+                const disabledClass = !isMyTurn ? 'opacity-50 pointer-events-none filter grayscale' : '';
                 commandAreaContent = `
-                    <div class="grid grid-cols-2 gap-1 w-full h-full">
+                    <div class="grid grid-cols-2 gap-1 w-full h-full ${disabledClass}">
                         <button onclick="executeNewBattleAction('normal_attack_click')" class="pixel-btn pixel-btn-primary py-1 px-1 text-[11px] font-bold flex flex-col items-center justify-center text-center shadow cursor-pointer">
                             <span>⚔️ 通常攻撃</span>
                         </button>
@@ -4235,6 +4285,9 @@ case 'dopa_juggler_skill':
                             ${isMyTurn ? '🟢 自分のターン' : '⏳ 相手のターン'}
                         </div>
                     </div>
+                    <div class="w-full flex justify-center z-20 shrink-0 my-0.5">
+                        ${actorIndicator}
+                    </div>
 
                     <!-- 2. 中央エリア：味方3体（左側）と 敵3体（右側）の合計6体レイアウト -->
                     <div class="flex-1 grid grid-cols-12 gap-2 px-2 py-1 items-center justify-center relative z-10 overflow-hidden">
@@ -4249,7 +4302,8 @@ case 'dopa_juggler_skill':
                                 const isAllyTargetMode = isTargetSelecting && newBattleTargetSelectType === 'single_ally';
                                 const isSelectable = isAllyTargetMode && ally.hp > 0;
                                 const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${idx}, true)"` : '';
-                                const borderClass = isSelectable ? 'border-amber-400 animate-pulse ring-2 ring-amber-400 cursor-pointer bg-amber-950/30' : (isLeader ? 'border-emerald-400 ring-1 ring-emerald-500/40' : 'border-slate-700');
+                                 const isCurrentActor = activeNewBattle.currentAttacker === ally;
+                                 const borderClass = isSelectable ? 'border-amber-400 animate-pulse ring-2 ring-amber-400 cursor-pointer bg-amber-950/30' : (isCurrentActor ? 'border-amber-400 ring-4 ring-amber-400 animate-bounce bg-amber-950/50 shadow-2xl z-25' : (isLeader ? 'border-emerald-400 ring-1 ring-emerald-500/40' : 'border-slate-700'));
                                 return `
                                     <div ${clickableAttr} class="pixel-box p-1.5 bg-slate-900/90 flex items-center gap-2 border ${borderClass} ${ally.hp <= 0 ? 'opacity-40 grayscale' : ''}">
                                         <div class="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center shrink-0 overflow-hidden bg-slate-950 border border-slate-700">
@@ -4288,7 +4342,8 @@ case 'dopa_juggler_skill':
                                 const isEnemyTargetMode = isTargetSelecting && newBattleTargetSelectType === 'single_enemy';
                                 const isSelectable = isEnemyTargetMode && enemy.hp > 0;
                                 const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${idx}, false)"` : '';
-                                const borderClass = isSelectable ? 'border-amber-400 animate-pulse ring-2 ring-amber-400 cursor-pointer bg-amber-950/30' : 'border-red-500/60';
+                                 const isCurrentActor = activeNewBattle.currentAttacker === enemy;
+                                 const borderClass = isSelectable ? 'border-amber-400 animate-pulse ring-2 ring-amber-400 cursor-pointer bg-amber-950/30' : (isCurrentActor ? 'border-amber-400 ring-4 ring-amber-400 animate-bounce bg-amber-950/50 shadow-2xl z-25' : 'border-red-500/60');
                                 return `
                                     <div ${clickableAttr} class="pixel-box p-1.5 bg-slate-900/90 flex items-center gap-2 border ${borderClass} ${enemy.hp <= 0 ? 'opacity-40 grayscale' : ''}">
                                         <div class="flex flex-col flex-1 min-w-0 text-right">
@@ -4423,7 +4478,7 @@ case 'dopa_juggler_skill':
         }
 
         function executeNewBattleAction(actionType) {
-            if (!activeNewBattle) return;
+            if (!activeNewBattle || activeNewBattle.battleEnded || activeNewBattle.isProcessing || activeNewBattle.p1Action !== null || activeNewBattle.waitingForOpponent || activeNewBattle.p1.isResting) return;
             audioSystem.playSelect();
 
             if (actionType === 'normal_attack_click') {
