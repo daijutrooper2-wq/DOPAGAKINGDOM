@@ -2215,6 +2215,12 @@ pasha_dark: {
             logTeam(actor, msg, colorClass = 'text-slate-200') {
                 const teamType = this.getCharacterTeam(actor);
                 const prefix = teamType === 'ally' ? '【味方】' : (teamType === 'enemy' ? '【敵】' : '');
+                if (actor && actor.id === 'asaiomizu' && (msg.includes('ディグ') || msg.includes('dig'))) {
+                    if (teamType === 'enemy') {
+                        this.log(`${prefix}${actor.charName} の 「髪をかきあげる」！`, 'text-slate-200', teamType);
+                        return;
+                    }
+                }
                 this.log(`${prefix}${actor ? actor.charName : ''} ${msg}`, colorClass, teamType);
             }
 
@@ -3070,11 +3076,12 @@ case 'dopa_juggler_skill':
                             this.logTeam(attacker, `はディグを発動！（通常攻撃に偽装しつつ相手の攻撃を待ち構える）`, 'text-cyan-300 font-bold');
                             this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'buff', 'ディグ構え');
                         } else {
-                            // 敵側のディグ：敵チームには通常の髪をかきあげるとして偽装して表示
+                            // 敵側のディグ：敵チームには通常の髪をかきあげるとして完全に偽装して表示（一切の特殊表示・ログを出さない）
                             this.applyDamageSkill(attacker, defender, dummyAttack);
                             attacker.digActive = true;
                             attacker.digUsedTurn = this.turn;
-                            this.logTeam(attacker, `の 「髪をかきあげる」！`, 'text-red-300 font-bold');
+                            this.logTeam(attacker, `の 「髪をかきあげる」！`, 'text-slate-200 font-bold');
+                            this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'damage', 'ヒット');
                         }
                         break;
                     case 'asaiomizu_club_skill':
@@ -4243,8 +4250,11 @@ case 'dopa_juggler_skill':
                                             <div class="w-full bg-slate-950 h-2 border border-slate-700 rounded-full overflow-hidden my-0.5">
                                                 <div class="bg-emerald-500 h-full hp-bar-fill" style="width: ${pct}%;"></div>
                                             </div>
-                                            <div class="text-[9px] text-slate-400 font-mono truncate">攻:${ally.atk} 防:${ally.def}</div>
-                                        </div>
+                                             <div class="text-[9px] text-slate-400 font-mono truncate">攻:${ally.atk} 防:${ally.def}</div>
+                                             <div class="flex flex-wrap gap-1 mt-0.5">
+                                                 ${getStatusBadgesHtml(ally, true)}
+                                             </div>
+                                         </div>
                                     </div>
                                 `;
                             }).join('')}
@@ -4276,8 +4286,11 @@ case 'dopa_juggler_skill':
                                             <div class="w-full bg-slate-950 h-2 border border-slate-700 rounded-full overflow-hidden my-0.5">
                                                 <div class="bg-red-500 h-full hp-bar-fill" style="width: ${pct}%;"></div>
                                             </div>
-                                            <div class="text-[9px] text-slate-400 font-mono truncate">攻:${enemy.atk} 防:${enemy.def}</div>
-                                        </div>
+                                             <div class="text-[9px] text-slate-400 font-mono truncate">攻:${enemy.atk} 防:${enemy.def}</div>
+                                             <div class="flex flex-wrap gap-1 mt-0.5 justify-end">
+                                                 ${getStatusBadgesHtml(enemy, false)}
+                                             </div>
+                                         </div>
                                         <div class="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center shrink-0 overflow-hidden bg-slate-950 border border-slate-700">
                                             <img src="${img}" alt="${enemy.charName}" class="w-full h-full object-contain" style="transform: scaleX(-1);">
                                         </div>
@@ -4320,6 +4333,52 @@ case 'dopa_juggler_skill':
             if (logEl) {
                 logEl.scrollTop = logEl.scrollHeight;
             }
+        }
+
+        function getStatusBadgesHtml(p, isAlly = true) {
+            let badges = '';
+            if (p.buffAtk && p.buffAtk !== 1.0) {
+                if (p.buffAtk > 1.0) {
+                    badges += `<span class="bg-emerald-950 text-emerald-300 border border-emerald-600 px-1 py-0.5 rounded text-[9px] font-mono font-bold">攻撃UP [${p.buffAtkTurns || 1}T]</span>`;
+                } else {
+                    badges += `<span class="bg-red-950 text-red-300 border border-red-600 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold">攻撃DOWN [${p.buffAtkTurns || 1}T]</span>`;
+                }
+            }
+            if (p.buffDef && p.buffDef !== 1.0) {
+                if (p.buffDef > 1.0) {
+                    badges += `<span class="bg-emerald-950 text-emerald-300 border border-emerald-600 px-1 py-0.5 rounded text-[9px] font-mono font-bold">防御UP</span>`;
+                } else {
+                    badges += `<span class="bg-red-950 text-red-300 border border-red-600 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold">防御DOWN</span>`;
+                }
+            }
+            if (p.defendBuffTurns && p.defendBuffTurns > 0) {
+                badges += `<span class="bg-amber-950 text-amber-300 border border-amber-600 px-1 py-0.5 rounded text-[9px] font-mono font-bold">鉄壁 [${p.defendBuffTurns}T]</span>`;
+            }
+            if (p.critBuffTurns && p.critBuffTurns > 0) {
+                badges += `<span class="bg-emerald-950 text-emerald-300 border border-emerald-600 px-1 py-0.5 rounded text-[9px] font-mono font-bold">会+ [${p.critBuffTurns}T]</span>`;
+            }
+            if (p.asaiomizuCritTurns && p.asaiomizuCritTurns > 0) {
+                badges += `<span class="bg-emerald-950 text-emerald-300 border border-emerald-600 px-1 py-0.5 rounded text-[9px] font-mono font-bold">会+ [${p.asaiomizuCritTurns}T]</span>`;
+            }
+            if (p.tempEvadeNext) {
+                badges += `<span class="bg-cyan-950 text-cyan-300 border border-cyan-600 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold">完全回避</span>`;
+            }
+            if (p.digActive && isAlly) {
+                badges += `<span class="bg-cyan-950 text-cyan-300 border border-cyan-600 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold">ディグ中</span>`;
+            }
+            if (p.isResting) {
+                badges += `<span class="bg-slate-800 text-slate-300 border border-slate-600 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold">休み</span>`;
+            }
+            if (p.eggplantReady) {
+                badges += `<span class="bg-purple-950 text-purple-300 border border-purple-600 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold">ゾウ変身</span>`;
+            }
+            if (p.courtneyChargeCount && p.courtneyChargeCount > 0) {
+                badges += `<span class="bg-pink-950 text-pink-300 border border-pink-600 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold">溜め(${p.courtneyChargeCount}回)</span>`;
+            }
+            if (p.dopaChargeCount && p.dopaChargeCount > 0) {
+                badges += `<span class="bg-amber-950 text-amber-300 border border-amber-600 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold">チャージ(${p.dopaChargeCount}/5)</span>`;
+            }
+            return badges || '<span class="text-slate-500 text-[9px]">通常</span>';
         }
 
         function renderLogItem(l) {
@@ -5138,46 +5197,50 @@ case 'dopa_juggler_skill':
             const p1Badges = document.getElementById('p1-status-badges');
             const p2Badges = document.getElementById('p2-status-badges');
 
-            function getStatusBadgesHtml(p) {
+            function getStatusBadgesHtml(p, isAlly = true) {
                 let badges = '';
                 if (p.buffAtk && p.buffAtk !== 1.0) {
                     if (p.buffAtk > 1.0) {
-                        const pct = Math.round((p.buffAtk - 1) * 100);
-                        badges += `<span class="bg-red-950 text-red-300 border border-red-600 px-1 py-0.5 rounded">攻撃力↑(${pct > 0 ? '+' + pct + '%' : ''})</span>`;
+                        badges += `<span class="bg-emerald-950 text-emerald-300 border border-emerald-600 px-1 py-0.5 rounded text-[9px] font-mono font-bold">攻撃UP [${p.buffAtkTurns || 1}T]</span>`;
                     } else {
-                        const pct = Math.round((1 - p.buffAtk) * 100);
-                        badges += `<span class="bg-blue-950 text-blue-300 border border-blue-600 px-1 py-0.5 rounded">攻撃力低下(-${pct}%)</span>`;
+                        badges += `<span class="bg-red-950 text-red-300 border border-red-600 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold">攻撃DOWN [${p.buffAtkTurns || 1}T]</span>`;
                     }
                 }
                 if (p.buffDef && p.buffDef !== 1.0) {
                     if (p.buffDef > 1.0) {
-                        badges += `<span class="bg-emerald-950 text-emerald-300 border border-emerald-600 px-1 py-0.5 rounded">防御力↑</span>`;
+                        badges += `<span class="bg-emerald-950 text-emerald-300 border border-emerald-600 px-1 py-0.5 rounded text-[9px] font-mono font-bold">防御UP</span>`;
                     } else {
-                        badges += `<span class="bg-purple-950 text-purple-300 border border-purple-600 px-1 py-0.5 rounded">防御力低下</span>`;
+                        badges += `<span class="bg-red-950 text-red-300 border border-red-600 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold">防御DOWN</span>`;
                     }
                 }
                 if (p.defendBuffTurns && p.defendBuffTurns > 0) {
-                    badges += `<span class="bg-amber-950 text-amber-300 border border-amber-600 px-1 py-0.5 rounded">鉄壁(${p.defendBuffTurns}T)</span>`;
+                    badges += `<span class="bg-amber-950 text-amber-300 border border-amber-600 px-1 py-0.5 rounded text-[9px] font-mono font-bold">鉄壁 [${p.defendBuffTurns}T]</span>`;
+                }
+                if (p.critBuffTurns && p.critBuffTurns > 0) {
+                    badges += `<span class="bg-emerald-950 text-emerald-300 border border-emerald-600 px-1 py-0.5 rounded text-[9px] font-mono font-bold">会+ [${p.critBuffTurns}T]</span>`;
+                }
+                if (p.asaiomizuCritTurns && p.asaiomizuCritTurns > 0) {
+                    badges += `<span class="bg-emerald-950 text-emerald-300 border border-emerald-600 px-1 py-0.5 rounded text-[9px] font-mono font-bold">会+ [${p.asaiomizuCritTurns}T]</span>`;
                 }
                 if (p.tempEvadeNext) {
-                    badges += `<span class="bg-cyan-950 text-cyan-300 border border-cyan-600 px-1 py-0.5 rounded">完全回避準備中</span>`;
+                    badges += `<span class="bg-cyan-950 text-cyan-300 border border-cyan-600 px-1 py-0.5 rounded text-[9px] font-mono font-bold">完全回避</span>`;
                 }
-                if (p.digActive) {
-                    badges += `<span class="bg-amber-950 text-amber-300 border border-amber-600 px-1 py-0.5 rounded">ディグ中</span>`;
+                if (p.digActive && isAlly) {
+                    badges += `<span class="bg-cyan-950 text-cyan-300 border border-cyan-600 px-1 py-0.5 rounded text-[9px] font-mono font-bold">ディグ中</span>`;
                 }
                 if (p.isResting) {
-                    badges += `<span class="bg-slate-800 text-slate-300 border border-slate-600 px-1 py-0.5 rounded">休み</span>`;
+                    badges += `<span class="bg-slate-800 text-slate-300 border border-slate-600 px-1 py-0.5 rounded text-[9px] font-mono font-bold">休み</span>`;
                 }
                 if (p.eggplantReady) {
-                    badges += `<span class="bg-pink-950 text-pink-300 border border-pink-600 px-1 py-0.5 rounded">ゾウ変身中</span>`;
+                    badges += `<span class="bg-purple-950 text-purple-300 border border-purple-600 px-1 py-0.5 rounded text-[9px] font-mono font-bold">ゾウ変身</span>`;
                 }
                 if (p.courtneyChargeCount && p.courtneyChargeCount > 0) {
-                    badges += `<span class="bg-pink-950 text-pink-300 border border-pink-600 px-1 py-0.5 rounded">溜め(${p.courtneyChargeCount}回)</span>`;
+                    badges += `<span class="bg-pink-950 text-pink-300 border border-pink-600 px-1 py-0.5 rounded text-[9px] font-mono font-bold">溜め(${p.courtneyChargeCount}回)</span>`;
                 }
                 if (p.dopaChargeCount && p.dopaChargeCount > 0) {
-                    badges += `<span class="bg-amber-950 text-amber-300 border border-amber-600 px-1 py-0.5 rounded">チャージ(${p.dopaChargeCount}/5)</span>`;
+                    badges += `<span class="bg-amber-950 text-amber-300 border border-amber-600 px-1 py-0.5 rounded text-[9px] font-mono font-bold">チャージ(${p.dopaChargeCount}/5)</span>`;
                 }
-                return badges || '<span class="text-slate-500">通常状態</span>';
+                return badges || '<span class="text-slate-500 text-[9px]">通常</span>';
             }
 
             if (p1Badges) p1Badges.innerHTML = getStatusBadgesHtml(p1);
