@@ -603,7 +603,8 @@ static drawDopagaking(p, isCharged) {
             charUsage: {},
             battleHistory: [],
             lastDailyBonusDate: null,
-            volume: 0.5
+            volume: 0.5,
+            newBattleCustomStats: {}
         };
 
         // 経済システム・DOPA管理用変数
@@ -1596,6 +1597,67 @@ static drawDopagaking(p, isCharged) {
             renderZukanScreen(currentOrder, newDir);
         }
 
+        function getNewBattleCustomStats(charId) {
+            if (!playerState.newBattleCustomStats) {
+                playerState.newBattleCustomStats = {};
+            }
+            const master = CHARACTER_DATA[charId];
+            if (!master) return null;
+
+            if (!playerState.newBattleCustomStats[charId]) {
+                const baseHp = master.hp;
+                const baseAtk = master.atk;
+                const baseDef = master.def;
+                const baseCrit = Math.round((master.critRate || 0.05) * 100);
+                const baseEva = master.eva;
+                const baseSum = baseHp + baseAtk + baseDef + baseCrit + baseEva;
+                const diff = 250 - baseSum;
+                playerState.newBattleCustomStats[charId] = {
+                    hp: baseHp + diff,
+                    atk: baseAtk,
+                    def: baseDef,
+                    critRate: baseCrit,
+                    eva: baseEva
+                };
+            }
+            return playerState.newBattleCustomStats[charId];
+        }
+
+        function adjustNewBattleStat(charId, statKey, delta, sortOrder, sortDir, onlyOwned) {
+            const stats = getNewBattleCustomStats(charId);
+            if (!stats) return;
+
+            const currentTotal = stats.hp + stats.atk + stats.def + stats.critRate + stats.eva;
+            
+            let minVal = 1;
+            let maxVal = 300;
+            if (statKey === 'hp') { minVal = 50; maxVal = 300; }
+            else if (statKey === 'atk') { minVal = 5; maxVal = 80; }
+            else if (statKey === 'def') { minVal = 5; maxVal = 80; }
+            else if (statKey === 'critRate') { minVal = 1; maxVal = 40; }
+            else if (statKey === 'eva') { minVal = 1; maxVal = 60; }
+
+            const newVal = stats[statKey] + delta;
+            if (newVal < minVal || newVal > maxVal) return;
+
+            const newTotal = currentTotal + delta;
+            if (newTotal > 250) return;
+
+            stats[statKey] = newVal;
+            savePlayerState();
+
+            renderZukanDetailScreen(charId, 'new_select', sortOrder, sortDir, onlyOwned);
+        }
+
+        function resetNewBattleStats(charId, sortOrder, sortDir, onlyOwned) {
+            if (playerState.newBattleCustomStats) {
+                delete playerState.newBattleCustomStats[charId];
+            }
+            getNewBattleCustomStats(charId);
+            savePlayerState();
+            renderZukanDetailScreen(charId, 'new_select', sortOrder, sortDir, onlyOwned);
+        }
+
         function renderZukanDetailScreen(charId, returnSource = 'zukan', arg1 = 'default', arg2 = 'desc', arg3 = 'desc', arg4 = false) {
             audioSystem.playSelect();
             const container = document.getElementById('screen-container');
@@ -1631,16 +1693,16 @@ static drawDopagaking(p, isCharged) {
             }
 
             let html = `
-                <div id="zukan-detail-wrapper" class="w-full flex flex-col items-center max-w-5xl mx-auto py-2 px-3 h-full max-h-[88vh]">
-                    <div class="flex justify-between items-center w-full mb-2 flex-shrink-0">
+                <div id="zukan-detail-wrapper" class="w-full flex flex-col items-center max-w-5xl mx-auto py-1 px-2 h-full max-h-[92vh] sm:max-h-[88vh]">
+                    <div class="flex justify-between items-center w-full mb-1 flex-shrink-0">
                         <button onclick="${backAction}" class="pixel-btn px-3 py-1 text-xs">${backLabel}</button>
                         <span class="text-xs font-bold text-amber-300 font-pixel">📖 キャラクター詳細図鑑</span>
                         <div></div>
                     </div>
 
-                    <div class="pixel-box-gold p-4 sm:p-6 bg-amber-950/90 w-full flex-1 flex flex-col md:flex-row gap-6 relative min-h-0 overflow-hidden">
+                    <div class="pixel-box-gold p-3 sm:p-5 bg-amber-950/90 w-full flex-1 flex flex-col md:flex-row gap-4 relative min-h-0 overflow-hidden">
                         <!-- Left Column: Icon, Basic Info & Select Button (Fixed Display Area) -->
-                        <div class="w-full md:w-[320px] lg:w-[360px] flex flex-col items-center flex-shrink-0 relative">
+                        <div class="w-full md:w-[280px] lg:w-[320px] flex flex-col items-center flex-shrink-0 relative overflow-y-auto pr-1">
                             <div class="absolute top-0 right-0 text-xs font-mono font-bold px-2.5 py-1 rounded border ${isUnlocked ? 'bg-emerald-950 text-emerald-300 border-emerald-600' : 'bg-red-950 text-red-300 border-red-600'}">
                                 ${isUnlocked ? '✨ 所持済み' : '🔒 未所持'}
                             </div>
@@ -1679,11 +1741,29 @@ static drawDopagaking(p, isCharged) {
                 const onlyOwned = !!arg3;
                 if (isUnlocked) {
                     const isSelected = window.selectedNewBattleChar === c.id;
-                    html += `
-                        <button onclick="window.selectedNewBattleChar = '${c.id}'; renderNewBattleCharSelectScreen('${sortOrder}', '${sortDir}', ${onlyOwned});" class="pixel-btn ${isSelected ? 'pixel-btn-success' : 'pixel-btn-primary'} w-full py-2.5 font-bold text-xs sm:text-sm shadow-lg mt-auto">
-                            ${isSelected ? '✨ 選択中 (戻る)' : '⚔ このキャラで出陣'}
-                        </button>
-                    `;
+                    const isEligibleCustom = !['dopagaking', 'courtney', 'pasha_dark'].includes(c.id);
+                    if (isEligibleCustom) {
+                        html += `
+                            <button onclick="
+                                const cust = getNewBattleCustomStats('${c.id}');
+                                const total = cust.hp + cust.atk + cust.def + cust.critRate + cust.eva;
+                                if (total !== 250) {
+                                    showModal('ポイント未調整', 'ステータスポイントの合計が250ポイントになっていません（現在: ' + total + 'Pt）。250ポイントに調整してください！');
+                                } else {
+                                    window.selectedNewBattleChar = '${c.id}';
+                                    renderNewBattleCharSelectScreen('${sortOrder}', '${sortDir}', ${onlyOwned});
+                                }
+                            " class="pixel-btn ${isSelected ? 'pixel-btn-success' : 'pixel-btn-primary'} w-full py-2.5 font-bold text-xs sm:text-sm shadow-lg mt-auto">
+                                ${isSelected ? '✨ 選択中 (戻る)' : '⚔ このキャラで出陣'}
+                            </button>
+                        `;
+                    } else {
+                        html += `
+                            <button onclick="window.selectedNewBattleChar = '${c.id}'; renderNewBattleCharSelectScreen('${sortOrder}', '${sortDir}', ${onlyOwned});" class="pixel-btn ${isSelected ? 'pixel-btn-success' : 'pixel-btn-primary'} w-full py-2.5 font-bold text-xs sm:text-sm shadow-lg mt-auto">
+                                ${isSelected ? '✨ 選択中 (戻る)' : '⚔ このキャラで出陣'}
+                            </button>
+                        `;
+                    }
                 } else {
                     html += `
                         <div class="w-full text-center py-2 text-xs text-red-400 font-bold bg-slate-950 rounded border border-red-900 mt-auto">
@@ -1701,18 +1781,89 @@ static drawDopagaking(p, isCharged) {
             `;
 
             if (!isExtra) {
-                html += `
-                            <div class="w-full bg-slate-950 p-3.5 rounded border border-amber-800 space-y-2 text-xs font-mono flex-shrink-0">
-                                <div class="text-amber-300 font-bold mb-1.5 border-b border-amber-900 pb-1">📊 ステータス</div>
-                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                                    <div class="flex justify-between bg-slate-900 p-1.5 rounded"><span class="text-slate-400">HP:</span><span class="text-emerald-400 font-bold">${c.hp}</span></div>
-                                    <div class="flex justify-between bg-slate-900 p-1.5 rounded"><span class="text-slate-400">攻撃力:</span><span class="text-red-400 font-bold">${c.atk}</span></div>
-                                    <div class="flex justify-between bg-slate-900 p-1.5 rounded"><span class="text-slate-400">防御力:</span><span class="text-blue-400 font-bold">${c.def}</span></div>
-                                    <div class="flex justify-between bg-slate-900 p-1.5 rounded"><span class="text-slate-400">クリ率:</span><span class="text-yellow-400 font-bold">${Math.round(c.critRate * 100)}%</span></div>
-                                    <div class="flex justify-between bg-slate-900 p-1.5 rounded col-span-2 sm:col-span-2"><span class="text-slate-400">回避率:</span><span class="text-purple-400 font-bold">${c.eva}%</span></div>
-                                </div>
-                            </div>
+                const isEligibleCustom = (returnSource === 'new_select') && !['dopagaking', 'courtney', 'pasha_dark'].includes(c.id);
+                if (isEligibleCustom) {
+                    const custStats = getNewBattleCustomStats(c.id);
+                    const totalUsed = custStats.hp + custStats.atk + custStats.def + custStats.critRate + custStats.eva;
+                    const remPts = 250 - totalUsed;
+                    const sortOrder = arg1 || 'default';
+                    const sortDir = arg2 || 'desc';
+                    const onlyOwned = !!arg3;
 
+                    html += `
+                                <div class="w-full bg-slate-950 p-3.5 rounded border border-amber-800 space-y-2.5 text-xs font-mono flex-shrink-0">
+                                    <div class="flex justify-between items-center border-b border-amber-900 pb-1">
+                                        <span class="text-amber-300 font-bold">📊 ステータス自由割り当て (250Pt)</span>
+                                        <span class="text-xs">残り: <span id="rem-pts" class="${remPts < 0 ? 'text-red-400' : (remPts === 0 ? 'text-emerald-400' : 'text-amber-300')} font-bold">${remPts}</span> Pt</span>
+                                    </div>
+                                    <div class="space-y-1.5">
+                                        <!-- HP -->
+                                        <div class="flex items-center justify-between bg-slate-900 p-2 rounded">
+                                            <span class="text-slate-300 font-bold">HP</span>
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-emerald-400 font-bold w-10 text-right">${custStats.hp}</span>
+                                                <button onclick="adjustNewBattleStat('${c.id}', 'hp', -5, '${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-0.5 text-xs bg-slate-800">-5</button>
+                                                <button onclick="adjustNewBattleStat('${c.id}', 'hp', 5, '${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-0.5 text-xs bg-slate-800">+5</button>
+                                            </div>
+                                        </div>
+                                        <!-- 攻撃力 -->
+                                        <div class="flex items-center justify-between bg-slate-900 p-2 rounded">
+                                            <span class="text-slate-300 font-bold">攻撃力</span>
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-red-400 font-bold w-10 text-right">${custStats.atk}</span>
+                                                <button onclick="adjustNewBattleStat('${c.id}', 'atk', -1, '${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-0.5 text-xs bg-slate-800">-1</button>
+                                                <button onclick="adjustNewBattleStat('${c.id}', 'atk', 1, '${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-0.5 text-xs bg-slate-800">+1</button>
+                                            </div>
+                                        </div>
+                                        <!-- 防御力 -->
+                                        <div class="flex items-center justify-between bg-slate-900 p-2 rounded">
+                                            <span class="text-slate-300 font-bold">防御力</span>
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-blue-400 font-bold w-10 text-right">${custStats.def}</span>
+                                                <button onclick="adjustNewBattleStat('${c.id}', 'def', -1, '${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-0.5 text-xs bg-slate-800">-1</button>
+                                                <button onclick="adjustNewBattleStat('${c.id}', 'def', 1, '${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-0.5 text-xs bg-slate-800">+1</button>
+                                            </div>
+                                        </div>
+                                        <!-- クリティカル率 -->
+                                        <div class="flex items-center justify-between bg-slate-900 p-2 rounded">
+                                            <span class="text-slate-300 font-bold">クリティカル率</span>
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-yellow-400 font-bold w-10 text-right">${custStats.critRate}%</span>
+                                                <button onclick="adjustNewBattleStat('${c.id}', 'critRate', -1, '${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-0.5 text-xs bg-slate-800">-1</button>
+                                                <button onclick="adjustNewBattleStat('${c.id}', 'critRate', 1, '${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-0.5 text-xs bg-slate-800">+1</button>
+                                            </div>
+                                        </div>
+                                        <!-- 回避率 -->
+                                        <div class="flex items-center justify-between bg-slate-900 p-2 rounded">
+                                            <span class="text-slate-300 font-bold">回避率</span>
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-purple-400 font-bold w-10 text-right">${custStats.eva}%</span>
+                                                <button onclick="adjustNewBattleStat('${c.id}', 'eva', -1, '${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-0.5 text-xs bg-slate-800">-1</button>
+                                                <button onclick="adjustNewBattleStat('${c.id}', 'eva', 1, '${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-0.5 text-xs bg-slate-800">+1</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-end pt-1">
+                                        <button onclick="resetNewBattleStats('${c.id}', '${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2.5 py-1 text-[11px] bg-slate-800 text-slate-300 border-slate-600">初期値に戻す</button>
+                                    </div>
+                                </div>
+                    `;
+                } else {
+                    html += `
+                                <div class="w-full bg-slate-950 p-3.5 rounded border border-amber-800 space-y-2 text-xs font-mono flex-shrink-0">
+                                    <div class="text-amber-300 font-bold mb-1.5 border-b border-amber-900 pb-1">📊 ステータス ${!['dopagaking', 'courtney', 'pasha_dark'].includes(c.id) ? '' : '(※カスタマイズ対象外)'}</div>
+                                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                                        <div class="flex justify-between bg-slate-900 p-1.5 rounded"><span class="text-slate-400">HP:</span><span class="text-emerald-400 font-bold">${c.hp}</span></div>
+                                        <div class="flex justify-between bg-slate-900 p-1.5 rounded"><span class="text-slate-400">攻撃力:</span><span class="text-red-400 font-bold">${c.atk}</span></div>
+                                        <div class="flex justify-between bg-slate-900 p-1.5 rounded"><span class="text-slate-400">防御力:</span><span class="text-blue-400 font-bold">${c.def}</span></div>
+                                        <div class="flex justify-between bg-slate-900 p-1.5 rounded"><span class="text-slate-400">クリ率:</span><span class="text-yellow-400 font-bold">${Math.round(c.critRate * 100)}%</span></div>
+                                        <div class="flex justify-between bg-slate-900 p-1.5 rounded col-span-2 sm:col-span-2"><span class="text-slate-400">回避率:</span><span class="text-purple-400 font-bold">${c.eva}%</span></div>
+                                    </div>
+                                </div>
+                    `;
+                }
+
+                html += `
                             <div class="w-full bg-slate-950 p-3.5 rounded border border-amber-800 space-y-2 text-xs font-mono flex-shrink-0">
                                 <div class="text-amber-300 font-bold mb-1.5 border-b border-amber-900 pb-1">📖 キャラクター解説</div>
                                 <p class="text-slate-200 leading-relaxed whitespace-pre-line">${c.zukanDesc || c.desc}</p>
@@ -1990,10 +2141,11 @@ pasha_dark: {
         }
 
         class BattleEngine {
-            constructor(p1CharId, p2CharId, isOnline = false, myPlayerNum = 1, roomId = null) {
+            constructor(p1CharId, p2CharId, isOnline = false, myPlayerNum = 1, roomId = null, isNewBattle = false) {
                 this.isOnline = isOnline;
                 this.myPlayerNum = myPlayerNum;
                 this.roomId = roomId;
+                this.isNewBattle = isNewBattle;
                 this.turn = 1;
                 this.turnTimer = 15;
                 this.timerId = null;
@@ -2001,8 +2153,8 @@ pasha_dark: {
                 this.isSuddenDeath = false;
                 this.waitingForOpponent = false;
 
-                this.p1 = this.createBattlePlayer(p1CharId, isOnline ? 'Player 1' : 'Player 1');
-                this.p2 = this.createBattlePlayer(p2CharId, isOnline ? 'Player 2' : 'BOT (CPU)');
+                this.p1 = this.createBattlePlayer(p1CharId, isOnline ? 'Player 1' : 'Player 1', 1);
+                this.p2 = this.createBattlePlayer(p2CharId, isOnline ? 'Player 2' : 'BOT (CPU)', 2);
 
                 this.p1Action = null;
                 this.p2Action = null;
@@ -2049,7 +2201,7 @@ pasha_dark: {
 
 
 
-            createBattlePlayer(charId, displayName) {
+            createBattlePlayer(charId, displayName, playerNum = 1) {
                 const master = CHARACTER_DATA[charId] || CHARACTER_DATA.pasha;
 
                 let hp = master.hp;
@@ -2058,7 +2210,16 @@ pasha_dark: {
                 let critRate = master.critRate || 0.05;
                 let eva = master.eva;
 
-                if (charId === 'dopagaking') {
+                if (this.isNewBattle && playerNum === 1 && !['dopagaking', 'courtney', 'pasha_dark'].includes(charId)) {
+                    const custom = playerState.newBattleCustomStats && playerState.newBattleCustomStats[charId];
+                    if (custom) {
+                        hp = custom.hp;
+                        atk = custom.atk;
+                        def = custom.def;
+                        critRate = custom.critRate / 100;
+                        eva = custom.eva;
+                    }
+                } else if (charId === 'dopagaking') {
                     hp = Math.floor(Math.random() * (250 - 130 + 1)) + 130;
                     atk = Math.floor(Math.random() * (28 - 7 + 1)) + 7;
                     def = Math.floor(Math.random() * (17 - 7 + 1)) + 7;
@@ -3551,7 +3712,7 @@ case 'dopa_juggler_skill':
                 activeNewBattle = null;
             }
 
-            activeNewBattle = new BattleEngine(playerCharId, enemyCharId, false);
+            activeNewBattle = new BattleEngine(playerCharId, enemyCharId, false, 1, null, true);
 
             activeNewBattle.onLogUpdate = (msg, colorClass) => {
                 appendNewBattleLog(msg, colorClass);
@@ -5641,3 +5802,6 @@ case 'dopa_juggler_skill':
         window.renderBotModesScreen = renderBotModesScreen;
         window.renderNewBattleCharSelectScreen = renderNewBattleCharSelectScreen;
         window.forceReloadApp = forceReloadApp;
+        window.getNewBattleCustomStats = getNewBattleCustomStats;
+        window.adjustNewBattleStat = adjustNewBattleStat;
+        window.resetNewBattleStats = resetNewBattleStats;
