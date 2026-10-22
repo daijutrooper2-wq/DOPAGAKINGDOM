@@ -2622,26 +2622,66 @@ pasha_dark: {
                     this.log(`--- [ ターン ${this.turn} ] ---`, 'text-slate-400 font-bold text-center');
                 }
 
-                // 2ターン目以降は完全交互ターン制で進行（奇数ターン:先攻が先、偶数ターン:後攻が先）
-                const isP1FirstThisTurn = (this.turn % 2 === 1) ? (this.firstStrikerPlayerNum === 1) : (this.firstStrikerPlayerNum !== 1);
+                if (this.isNewBattle) {
+                    // 3v3チーム交互ターン制＆スロット固定行動順 (左・中・右)
+                    const isAlliesFirst = (this.turn % 2 === 1) ? (this.firstStrikerPlayerNum === 1) : (this.firstStrikerPlayerNum !== 1);
+                    const ally1Action = this.p1Action || (this.p1.isResting ? 'rest' : this.p1.skills[0].id);
 
-                let first, second, firstAction, secondAction;
-                if (isP1FirstThisTurn) {
-                    first = this.p1; firstAction = this.p1Action;
-                    second = this.p2; secondAction = this.p2Action;
-                } else {
-                    first = this.p2; firstAction = this.p2Action;
-                    second = this.p1; secondAction = this.p1Action;
-                }
+                    const executeTeam = async (teamList, isAllyTeam) => {
+                        for (let i = 0; i < teamList.length; i++) {
+                            const attacker = teamList[i];
+                            if (attacker.hp <= 0) continue;
 
-                this.executePlayerAction(first, second, firstAction);
-                if (!await this.checkWinner()) {
-                    if (firstAction === 'pasha_dark_nightmare' && first.id === 'pasha_dark') {
-                        this.endTurnPhase();
+                            let skillId;
+                            if (isAllyTeam && attacker === this.p1) {
+                                skillId = ally1Action;
+                            } else {
+                                const targetPool = isAllyTeam ? this.enemies.filter(e => e.hp > 0) : this.allies.filter(a => a.hp > 0);
+                                const defaultOpponent = targetPool[0] || (isAllyTeam ? this.enemies[0] : this.allies[0]);
+                                skillId = this.botAdapter.getDecision(attacker, defaultOpponent);
+                            }
+
+                            const opponents = isAllyTeam ? this.enemies.filter(e => e.hp > 0) : this.allies.filter(a => a.hp > 0);
+                            if (opponents.length === 0) break;
+                            const defender = opponents[Math.floor(Math.random() * opponents.length)];
+
+                            this.executePlayerAction(attacker, defender, skillId);
+                            if (await this.checkWinner()) return true;
+                        }
+                        return false;
+                    };
+
+                    if (isAlliesFirst) {
+                        if (await executeTeam(this.allies, true)) return;
+                        if (await executeTeam(this.enemies, false)) return;
                     } else {
-                        this.executePlayerAction(second, first, secondAction);
-                        if (!await this.checkWinner()) {
+                        if (await executeTeam(this.enemies, false)) return;
+                        if (await executeTeam(this.allies, true)) return;
+                    }
+
+                    this.endTurnPhase();
+                } else {
+                    // 2ターン目以降は完全交互ターン制で進行（奇数ターン:先攻が先、偶数ターン:後攻が先）
+                    const isP1FirstThisTurn = (this.turn % 2 === 1) ? (this.firstStrikerPlayerNum === 1) : (this.firstStrikerPlayerNum !== 1);
+
+                    let first, second, firstAction, secondAction;
+                    if (isP1FirstThisTurn) {
+                        first = this.p1; firstAction = this.p1Action;
+                        second = this.p2; secondAction = this.p2Action;
+                    } else {
+                        first = this.p2; firstAction = this.p2Action;
+                        second = this.p1; secondAction = this.p1Action;
+                    }
+
+                    this.executePlayerAction(first, second, firstAction);
+                    if (!await this.checkWinner()) {
+                        if (firstAction === 'pasha_dark_nightmare' && first.id === 'pasha_dark') {
                             this.endTurnPhase();
+                        } else {
+                            this.executePlayerAction(second, first, secondAction);
+                            if (!await this.checkWinner()) {
+                                this.endTurnPhase();
+                            }
                         }
                     }
                 }
@@ -3185,7 +3225,8 @@ case 'dopa_juggler_skill':
             }
 
             endTurnPhase() {
-                [this.p1, this.p2].forEach(p => {
+                const allFighters = [...(this.allies || [this.p1]), ...(this.enemies || [this.p2])];
+                allFighters.forEach(p => {
                     if (p.tempEvadeNext) {
                         this.log(`✨ ${p.charName} の完全回避体制は、相手がそのターン中に攻撃してこなかったため効果が切れた。`, 'text-slate-400 text-[11px]');
                         p.tempEvadeNext = false;
@@ -3194,7 +3235,7 @@ case 'dopa_juggler_skill':
 
                 this.turn++;
 
-                [this.p1, this.p2].forEach(p => {
+                allFighters.forEach(p => {
                     Object.keys(p.cooldowns).forEach(key => {
                         if (p.cooldowns[key] > 0) p.cooldowns[key]--;
                     });
