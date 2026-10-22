@@ -1963,7 +1963,7 @@ dopagaking: {
     dopaChargeCount: 0,
     selectedInheritChar: null,
     maxHpRandom: 200,
-    image: 'dopagaking/dopakaking11.webp',
+    image: 'dopagaking/dopagaking.webp',
     allImage: 'dopagaking/dopagakingALL.webp',
     dieImage: 'dopagaking/dopagakingDIE.webp',
     chargedImage: 'dopagaking/dopagakingchange.webp',
