@@ -95,11 +95,11 @@
                             } else if (id === 'p1-canvas' && typeof activeBattle !== 'undefined' && activeBattle && activeBattle.p1) {
                                 const isCharged = (activeBattle.p1.id === 'courtney' && (activeBattle.p1.courtneyChargeCount || 0) > 0) || (activeBattle.p1.id === 'dopagaking' && (activeBattle.p1.dopaChargeCount || 0) > 0 && (activeBattle.p1.dopaChargeCount || 0) < 5);
                                 const renderId = (activeBattle.p1.id === 'dopagaking' && (activeBattle.p1.dopaChargeCount || 0) >= 5 && activeBattle.p1.selectedInheritChar) ? activeBattle.p1.selectedInheritChar : ((activeBattle.p1.id === 'pasha' && activeBattle.p1.isDarkMode) ? 'pasha_dark' : activeBattle.p1.id);
-                                CharacterRenderer.drawCharacter(cvs, renderId, activeBattle.p1.isMiniZou, isCharged);
+                                CharacterRenderer.drawCharacter(cvs, renderId, activeBattle.p1.isMiniZou, isCharged, activeBattle.p1.hp <= 0);
                             } else if (id === 'p2-canvas' && typeof activeBattle !== 'undefined' && activeBattle && activeBattle.p2) {
                                 const isCharged = (activeBattle.p2.id === 'courtney' && (activeBattle.p2.courtneyChargeCount || 0) > 0) || (activeBattle.p2.id === 'dopagaking' && (activeBattle.p2.dopaChargeCount || 0) > 0 && (activeBattle.p2.dopaChargeCount || 0) < 5);
                                 const renderId = (activeBattle.p2.id === 'dopagaking' && (activeBattle.p2.dopaChargeCount || 0) >= 5 && activeBattle.p2.selectedInheritChar) ? activeBattle.p2.selectedInheritChar : ((activeBattle.p2.id === 'pasha' && activeBattle.p2.isDarkMode) ? 'pasha_dark' : activeBattle.p2.id);
-                                CharacterRenderer.drawCharacter(cvs, renderId, activeBattle.p2.isMiniZou, isCharged);
+                                CharacterRenderer.drawCharacter(cvs, renderId, activeBattle.p2.isMiniZou, isCharged, activeBattle.p2.hp <= 0);
                             }
                         });
                     };
@@ -113,7 +113,7 @@
                 return this.imageCache[src];
             }
 
-            static drawCharacter(canvas, charId, isMiniZou = false, isCharged = false) {
+            static drawCharacter(canvas, charId, isMiniZou = false, isCharged = false, isDead = false) {
                 if (!canvas) return;
                 const ctx = canvas.getContext('2d');
                 const w = canvas.width;
@@ -131,18 +131,33 @@
                 if (charData) {
                     if (!isBattleCanvas) {
                         if (charId === 'courtney') {
-                            imagePath = 'courtney/ALT.webp';
+                            imagePath = 'courtney/ALT11.webp';
                         } else if (charId === 'dopagaking') {
-                            imagePath = 'dopagaking/dopagaking.webp';
+                            imagePath = 'dopagaking/dopagaking11.webp';
                         } else {
-                            imagePath = charData.allImage || charData.image;
+                            imagePath = charData.image || charData.allImage;
                         }
                     } else {
-                        // 特殊状態の専用画像（chargedImage）があり、かつチャージ状態(isMiniZou, isCharged等)の場合のみ優先、それ以外は allImage / image を使用
-                        if ((isMiniZou || isCharged || charId.includes('charged') || charId === 'dopagaking_crown') && charData.chargedImage) {
+                        if (isDead) {
+                            if (charData.dieImage) {
+                                imagePath = charData.dieImage;
+                            } else if (charId === 'courtney') {
+                                imagePath = 'courtney/ALT3.webp';
+                            } else if (charId === 'asaiomizu') {
+                                imagePath = 'asaiomizu/asaiomizu3.webp';
+                            } else {
+                                imagePath = charData.image;
+                            }
+                        } else if ((isMiniZou || isCharged || charId.includes('charged') || charId === 'dopagaking_crown') && charData.chargedImage) {
                             imagePath = charData.chargedImage;
                         } else {
-                            imagePath = charData.allImage || charData.image;
+                            if (charId === 'courtney') {
+                                imagePath = 'courtney/ALT.webp';
+                            } else if (charId === 'dopagaking') {
+                                imagePath = 'dopagaking/dopagaking.webp';
+                            } else {
+                                imagePath = charData.allImage || charData.image;
+                            }
                         }
                     }
                 }
@@ -4147,9 +4162,9 @@ case 'dopa_juggler_skill':
                     return charData.chargedImage;
                 }
 
-                if (isC) return 'courtney/ALT11.webp';
+                if (isC) return 'courtney/ALT.webp';
                 if (isA) return isPlayerSide ? 'asaiomizu/asaiomizu2.webp' : 'asaiomizu/asaiomizu1.webp';
-                if (isD) return 'dopagaking/dopagaking11.webp';
+                if (isD) return 'dopagaking/dopagaking.webp';
 
                 return charData.allImage || charData.image || player.image;
             };
@@ -5407,38 +5422,38 @@ case 'dopa_juggler_skill':
             if (p1Cvs) {
                 if (p1.id === 'dopagaking' && (p1.dopaChargeCount || 0) > 0 && (p1.dopaChargeCount || 0) < 5) {
                     p1Cvs.classList.remove('animate-courtney-shake');
-                    CharacterRenderer.drawCharacter(p1Cvs, p1.id, false, true);
+                    CharacterRenderer.drawCharacter(p1Cvs, p1.id, false, true, p1.hp <= 0);
                 } else if (p1.id === 'dopagaking' && (p1.dopaChargeCount || 0) >= 5 && p1.selectedInheritChar) {
                     p1Cvs.classList.remove('animate-courtney-shake');
-                    CharacterRenderer.drawCharacter(p1Cvs, p1.selectedInheritChar, false, false);
+                    CharacterRenderer.drawCharacter(p1Cvs, p1.selectedInheritChar, false, false, p1.hp <= 0);
                 } else if (p1.id === 'courtney' && (p1.courtneyChargeCount || 0) > 0) {
                     p1Cvs.classList.add('animate-courtney-shake');
-                    CharacterRenderer.drawCharacter(p1Cvs, p1.id, false, true);
+                    CharacterRenderer.drawCharacter(p1Cvs, p1.id, false, true, p1.hp <= 0);
                 } else if (p1.id === 'pasha' && p1.isDarkMode) {
                     p1Cvs.classList.remove('animate-courtney-shake');
-                    CharacterRenderer.drawCharacter(p1Cvs, 'pasha_dark', p1.isMiniZou, false);
+                    CharacterRenderer.drawCharacter(p1Cvs, 'pasha_dark', p1.isMiniZou, false, p1.hp <= 0);
                 } else {
                     p1Cvs.classList.remove('animate-courtney-shake');
-                    CharacterRenderer.drawCharacter(p1Cvs, p1.id, p1.isMiniZou, false);
+                    CharacterRenderer.drawCharacter(p1Cvs, p1.id, p1.isMiniZou, false, p1.hp <= 0);
                 }
             }
 
             if (p2Cvs) {
                 if (p2.id === 'dopagaking' && (p2.dopaChargeCount || 0) > 0 && (p2.dopaChargeCount || 0) < 5) {
                     p2Cvs.classList.remove('animate-courtney-shake');
-                    CharacterRenderer.drawCharacter(p2Cvs, p2.id, false, true);
+                    CharacterRenderer.drawCharacter(p2Cvs, p2.id, false, true, p2.hp <= 0);
                 } else if (p2.id === 'dopagaking' && (p2.dopaChargeCount || 0) >= 5 && p2.selectedInheritChar) {
                     p2Cvs.classList.remove('animate-courtney-shake');
-                    CharacterRenderer.drawCharacter(p2Cvs, p2.selectedInheritChar, false, false);
+                    CharacterRenderer.drawCharacter(p2Cvs, p2.selectedInheritChar, false, false, p2.hp <= 0);
                 } else if (p2.id === 'courtney' && (p2.courtneyChargeCount || 0) > 0) {
                     p2Cvs.classList.add('animate-courtney-shake');
-                    CharacterRenderer.drawCharacter(p2Cvs, p2.id, false, true);
+                    CharacterRenderer.drawCharacter(p2Cvs, p2.id, false, true, p2.hp <= 0);
                 } else if (p2.id === 'pasha' && p2.isDarkMode) {
                     p2Cvs.classList.remove('animate-courtney-shake');
-                    CharacterRenderer.drawCharacter(p2Cvs, 'pasha_dark', p2.isMiniZou, false);
+                    CharacterRenderer.drawCharacter(p2Cvs, 'pasha_dark', p2.isMiniZou, false, p2.hp <= 0);
                 } else {
                     p2Cvs.classList.remove('animate-courtney-shake');
-                    CharacterRenderer.drawCharacter(p2Cvs, p2.id, p2.isMiniZou, false);
+                    CharacterRenderer.drawCharacter(p2Cvs, p2.id, p2.isMiniZou, false, p2.hp <= 0);
                 }
             }
 
