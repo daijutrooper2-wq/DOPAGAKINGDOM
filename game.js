@@ -3499,7 +3499,7 @@ case 'dopa_juggler_skill':
                     <div class="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-3 relative z-10 my-auto items-center justify-center max-w-4xl mx-auto w-full">
                         <button onclick="renderCharacterSelectScreen(false)" class="pixel-box bg-slate-900 border-amber-400 hover:border-amber-300 p-4 flex flex-col items-center justify-center gap-2 cursor-pointer transform hover:scale-105 transition-all shadow-xl h-28 sm:h-36 group">
                             <span class="text-2xl sm:text-3xl">⚔️</span>
-                            <span class="text-amber-300 font-pixel font-bold text-xs sm:text-sm text-center">！元祖1v1コマンドバトル</span>
+                            <span class="text-amber-300 font-pixel font-bold text-xs sm:text-sm text-center">元祖コマンドバトル</span>
                             <span class="text-[9px] text-slate-400 text-center">おなじみの本格バトル！</span>
                         </button>
 
