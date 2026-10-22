@@ -1963,6 +1963,7 @@ dopagaking: {
     selectedInheritChar: null,
     maxHpRandom: 200,
     image: 'dopagaking/dopagaking11.webp',
+    allImage: 'dopagaking/dopagaking.webp',
     chargedImage: 'dopagaking/dopagakingchange.webp',
     desc: 'すべてを運に任せる完全ランダム型の国王。アイコンタップで「王位継承」をチャージし、他キャラの力の4倍ダメージを叩き込む！',
     skills: [
@@ -1984,6 +1985,7 @@ dopagaking: {
                 hp: 190, atk: 18, def: 15, critRate: 0.04, eva: 18,
                 courtneyChargeCount: 0,
                 image: 'courtney/ALT11.webp',
+                allImage: 'courtney/ALT.webp',
                 chargedImage: 'courtney/ALTchange2.webp',
                 desc: '相手をメロメロにして戦う海外ガール。王国初となる「溜め技」を駆使し、最大8回までチャージして一撃の爆発力を高める！',
                 skills: [
@@ -2686,41 +2688,50 @@ pasha_dark: {
                 }
 
                 if (this.isNewBattle) {
-                    // 3v3チーム交互ターン制＆スロット固定行動順 (左・中・右)
-                    const isAlliesFirst = (this.turn % 2 === 1) ? (this.firstStrikerPlayerNum === 1) : (this.firstStrikerPlayerNum !== 1);
                     const ally1Action = this.p1Action || (this.p1.isResting ? 'rest' : this.p1.skills[0].id);
 
-                    const executeTeam = async (teamList, isAllyTeam) => {
+                    // 1. プレイヤーのキャラクター (p1) はボタンを押した瞬間に遅延なく即座に行動を実行・ダメージ反映・HPバー更新を行う
+                    if (this.p1.hp > 0) {
+                        this.currentAttacker = this.p1;
+                        if (this.onStateChange) this.onStateChange(this);
+
+                        const opponents = this.enemies.filter(e => e.hp > 0);
+                        if (opponents.length > 0) {
+                            let defender = opponents[0];
+                            const skill = this.p1.skills.find(s => s.id === ally1Action) || this.p1.skills[0];
+                            const targetList = (skill.targetType === 'single_ally') ? this.allies.filter(a => a.hp > 0) : opponents;
+                            if (this.p1TargetIndex !== null && targetList[this.p1TargetIndex]) {
+                                defender = targetList[this.p1TargetIndex];
+                            } else if (targetList.length > 0) {
+                                defender = targetList[Math.floor(Math.random() * targetList.length)];
+                            }
+
+                            this.executePlayerAction(this.p1, defender, ally1Action);
+                            if (this.onStateChange) this.onStateChange(this);
+
+                            if (await this.checkWinner()) return;
+                        }
+                    }
+
+                    // 2. 残りの味方 (ally2, ally3) と敵チームの行動を処理
+                    const executeTeamRest = async (teamList, isAllyTeam) => {
                         for (let i = 0; i < teamList.length; i++) {
                             const attacker = teamList[i];
+                            if (isAllyTeam && attacker === this.p1) continue;
                             if (attacker.hp <= 0) continue;
 
                             this.currentAttacker = attacker;
                             if (this.onStateChange) this.onStateChange(this);
 
-                            // 1アクションごとに1.5秒〜2秒のウェイトを挟んで思考・演出の溜めを作る
                             await new Promise(resolve => setTimeout(resolve, BOT_ACTION_DELAY));
 
-                            let skillId;
-                            if (isAllyTeam && attacker === this.p1) {
-                                skillId = ally1Action;
-                            } else {
-                                const targetPool = isAllyTeam ? this.enemies.filter(e => e.hp > 0) : this.allies.filter(a => a.hp > 0);
-                                const defaultOpponent = targetPool[0] || (isAllyTeam ? this.enemies[0] : this.allies[0]);
-                                skillId = this.botAdapter.getDecision(attacker, defaultOpponent);
-                            }
+                            const targetPool = isAllyTeam ? this.enemies.filter(e => e.hp > 0) : this.allies.filter(a => a.hp > 0);
+                            const defaultOpponent = targetPool[0] || (isAllyTeam ? this.enemies[0] : this.allies[0]);
+                            const skillId = this.botAdapter.getDecision(attacker, defaultOpponent);
 
                             const opponents = isAllyTeam ? this.enemies.filter(e => e.hp > 0) : this.allies.filter(a => a.hp > 0);
                             if (opponents.length === 0) break;
                             let defender = opponents[Math.floor(Math.random() * opponents.length)];
-
-                            if (isAllyTeam && attacker === this.p1 && this.p1TargetIndex !== null) {
-                                const skill = attacker.skills.find(s => s.id === skillId) || attacker.skills[0];
-                                const targetList = (skill.targetType === 'single_ally') ? this.allies.filter(a => a.hp > 0) : opponents;
-                                if (targetList[this.p1TargetIndex]) {
-                                    defender = targetList[this.p1TargetIndex];
-                                }
-                            }
 
                             this.executePlayerAction(attacker, defender, skillId);
                             if (this.onStateChange) this.onStateChange(this);
@@ -2730,14 +2741,17 @@ pasha_dark: {
                         return false;
                     };
 
+                    const isAlliesFirst = (this.turn % 2 === 1) ? (this.firstStrikerPlayerNum === 1) : (this.firstStrikerPlayerNum !== 1);
+
                     if (isAlliesFirst) {
-                        if (await executeTeam(this.allies, true)) return;
-                        if (await executeTeam(this.enemies, false)) return;
+                        if (await executeTeamRest(this.allies, true)) return;
+                        if (await executeTeamRest(this.enemies, false)) return;
                     } else {
-                        if (await executeTeam(this.enemies, false)) return;
-                        if (await executeTeam(this.allies, true)) return;
+                        if (await executeTeamRest(this.enemies, false)) return;
+                        if (await executeTeamRest(this.allies, true)) return;
                     }
 
+                    this.p1TargetIndex = null;
                     this.endTurnPhase();
                 } else {
                     // 2ターン目以降は完全交互ターン制で進行（奇数ターン:先攻が先、偶数ターン:後攻が先）
@@ -2792,6 +2806,7 @@ pasha_dark: {
                 this.turnJustStarted = true;
                 this.p1Action = null;
                 this.p2Action = null;
+                this.p1TargetIndex = null;
                 this.waitingForOpponent = false;
 
                 if (this.onStateChange) this.onStateChange(this);
@@ -4289,82 +4304,154 @@ case 'dopa_juggler_skill':
                         ${actorIndicator}
                     </div>
 
-                    <!-- 2. 中央エリア：味方3体（左側）と 敵3体（右側）の合計6体レイアウト -->
-                    <div class="flex-1 grid grid-cols-12 gap-2 px-2 py-1 items-center justify-center relative z-10 overflow-hidden">
-                        <!-- 左側：味方3体 -->
-                        <div class="col-span-5 flex flex-col gap-1.5 justify-center h-full">
-                            <div class="text-[10px] text-emerald-400 font-pixel font-bold mb-0.5">🛡️ 味方チーム (3体)</div>
-                            ${allies.map((ally, idx) => {
-                                const pct = Math.max(0, Math.min(100, Math.round((ally.hp / ally.maxHp) * 100)));
-                                const img = getCharImg(ally, true);
-                                const isLeader = idx === 0;
-                                const isTargetSelecting = (newBattleViewMode === 'target_select');
-                                const isAllyTargetMode = isTargetSelecting && newBattleTargetSelectType === 'single_ally';
-                                const isSelectable = isAllyTargetMode && ally.hp > 0;
-                                const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${idx}, true)"` : '';
-                                 const isCurrentActor = activeNewBattle.currentAttacker === ally;
-                                 const borderClass = isSelectable ? 'border-amber-400 animate-pulse ring-2 ring-amber-400 cursor-pointer bg-amber-950/30' : (isCurrentActor ? 'border-amber-400 ring-4 ring-amber-400 animate-bounce bg-amber-950/50 shadow-2xl z-25' : (isLeader ? 'border-emerald-400 ring-1 ring-emerald-500/40' : 'border-slate-700'));
-                                return `
-                                    <div ${clickableAttr} class="pixel-box p-1.5 bg-slate-900/90 flex items-center gap-2 border ${borderClass} ${ally.hp <= 0 ? 'opacity-40 grayscale' : ''}">
-                                        <div class="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center shrink-0 overflow-hidden bg-slate-950 border border-slate-700">
-                                            <img src="${img}" alt="${ally.charName}" class="w-full h-full object-contain">
+                    <!-- 2. 中央エリア：味方3体と敵3体の密着隊列バトルステージ (シャッフル・前面移動 & 枠線撤去) -->
+                    <div class="flex-1 flex items-center justify-between px-4 py-2 relative z-10 overflow-hidden w-full max-w-6xl mx-auto">
+                        <!-- 左側：味方チーム -->
+                        <div class="relative w-[48%] h-full flex items-center justify-center">
+                            <div class="absolute left-1 top-1 text-[9px] text-emerald-400 font-pixel font-bold z-30">🛡️ 味方チーム (隊列)</div>
+                            ${(() => {
+                                const currentActor = activeNewBattle.currentAttacker;
+                                // 味方3体の中で、現在行動中のキャラが先頭(index 0)になるようにシャッフル
+                                let ordered = [...allies];
+                                if (currentActor && ordered.includes(currentActor)) {
+                                    const idx = ordered.indexOf(currentActor);
+                                    if (idx !== 0) {
+                                        const [target] = ordered.splice(idx, 1);
+                                        ordered.unshift(target);
+                                    }
+                                }
+
+                                return ordered.map((c, posIdx) => {
+                                    const origIdx = allies.indexOf(c);
+                                    const pct = Math.max(0, Math.min(100, Math.round((c.hp / c.maxHp) * 100)));
+                                    const img = getCharImg(c, true);
+                                    const isLeader = origIdx === 0;
+                                    const isTargetSelecting = (newBattleViewMode === 'target_select');
+                                    const isSelectable = isTargetSelecting && newBattleTargetSelectType === 'single_ally' && c.hp > 0;
+                                    const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${origIdx}, true)"` : '';
+                                    const isCurrentActor = currentActor === c;
+
+                                    let posClasses = '';
+                                    let sizeClasses = '';
+                                    if (posIdx === 0) {
+                                        // 先頭（一番手前・中央）へシャッフル＆前面移動
+                                        posClasses = 'absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 z-30 scale-105';
+                                        sizeClasses = 'w-32 h-44 sm:w-40 sm:h-52';
+                                    } else if (posIdx === 1) {
+                                        // 2番目（左側密着・後ろ）
+                                        posClasses = 'absolute left-2 sm:left-6 top-1/3 -translate-y-1/2 z-20 opacity-85 scale-90';
+                                        sizeClasses = 'w-20 h-28 sm:w-24 sm:h-34';
+                                    } else {
+                                        // 3番目（右側密着・後ろ）
+                                        posClasses = 'absolute right-2 sm:right-6 top-1/3 -translate-y-1/2 z-20 opacity-85 scale-90';
+                                        sizeClasses = 'w-20 h-28 sm:w-24 sm:h-34';
+                                    }
+
+                                    const interactiveStyle = isSelectable ? 'cursor-pointer ring-4 ring-amber-400 bg-amber-950/40 rounded-xl' : '';
+                                    const deadStyle = c.hp <= 0 ? 'opacity-40 grayscale' : '';
+
+                                    return `
+                                        <div ${clickableAttr} class="${posClasses} ${sizeClasses} flex flex-col items-center justify-end transition-all duration-500 ${interactiveStyle} ${deadStyle}">
+                                            ${isCurrentActor ? '<div class="absolute -top-7 left-1/2 -translate-x-1/2 text-amber-400 font-bold text-base sm:text-xl animate-arrow-float z-50 drop-shadow-md">▼</div>' : ''}
+                                            
+                                            <!-- 全身スプライト（四角い枠線なし・背景直接配置） -->
+                                            <div class="w-full flex-1 flex items-center justify-center relative drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)]">
+                                                <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain">
+                                                ${isLeader && posIdx === 0 ? '<div class="absolute bottom-0 right-0 bg-emerald-600 text-white px-1.5 py-0.5 rounded text-[8px] font-pixel shadow">LEADER</div>' : ''}
+                                            </div>
+
+                                            <!-- キャラクター情報（枠線なし・クリーン表示） -->
+                                            <div class="w-full flex flex-col items-center bg-black/60 backdrop-blur-sm px-1.5 py-1 rounded-md border border-white/10 mt-1 shadow-md">
+                                                <div class="flex justify-between items-center w-full text-[9px] sm:text-[10px] font-bold text-emerald-300 px-0.5">
+                                                    <span class="truncate">${c.charName}</span>
+                                                    <span class="font-mono">${c.hp}/${c.maxHp}</span>
+                                                </div>
+                                                <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden my-0.5 border border-white/20">
+                                                    <div class="bg-emerald-400 h-full hp-bar-fill shadow-[0_0_6px_rgba(52,211,153,0.8)]" style="width: ${pct}%;"></div>
+                                                </div>
+                                                <div class="flex flex-wrap gap-0.5 justify-center max-h-4 overflow-hidden">
+                                                    ${getStatusBadgesHtml(c, true)}
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="flex flex-col flex-1 min-w-0">
-                                            <div class="flex justify-between items-center text-[11px] font-bold truncate">
-                                                <span class="text-emerald-300 truncate">${ally.charName} ${isLeader ? '(L)' : ''}</span>
-                                                <span class="font-mono text-[10px]">${ally.hp}/${ally.maxHp}</span>
-                                            </div>
-                                            <div class="w-full bg-slate-950 h-2 border border-slate-700 rounded-full overflow-hidden my-0.5">
-                                                <div class="bg-emerald-500 h-full hp-bar-fill" style="width: ${pct}%;"></div>
-                                            </div>
-                                             <div class="text-[9px] text-slate-400 font-mono truncate">攻:${ally.atk} 防:${ally.def}</div>
-                                             <div class="flex flex-wrap gap-1 mt-0.5">
-                                                 ${getStatusBadgesHtml(ally, true)}
-                                             </div>
-                                         </div>
-                                    </div>
-                                `;
-                            }).join('')}
+                                    `;
+                                }).join('');
+                            })()}
                         </div>
 
                         <!-- 中央：VS -->
-                        <div class="col-span-2 flex flex-col items-center justify-center text-center">
-                            <div class="text-amber-400 font-pixel font-black text-sm sm:text-xl drop-shadow-lg animate-pulse">VS</div>
+                        <div class="w-[4%] flex flex-col items-center justify-center text-center z-20">
+                            <div class="text-amber-400 font-pixel font-black text-lg sm:text-2xl drop-shadow-[0_0_10px_rgba(251,191,36,0.8)] animate-pulse">VS</div>
                         </div>
 
-                        <!-- 右側：敵3体 -->
-                        <div class="col-span-5 flex flex-col gap-1.5 justify-center h-full">
-                            <div class="text-[10px] text-red-400 font-pixel font-bold mb-0.5 text-right">⚔️ 敵チーム (3体)</div>
-                            ${enemies.map((enemy, idx) => {
-                                const pct = Math.max(0, Math.min(100, Math.round((enemy.hp / enemy.maxHp) * 100)));
-                                const img = getCharImg(enemy, false);
-                                const isTargetSelecting = (newBattleViewMode === 'target_select');
-                                const isEnemyTargetMode = isTargetSelecting && newBattleTargetSelectType === 'single_enemy';
-                                const isSelectable = isEnemyTargetMode && enemy.hp > 0;
-                                const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${idx}, false)"` : '';
-                                 const isCurrentActor = activeNewBattle.currentAttacker === enemy;
-                                 const borderClass = isSelectable ? 'border-amber-400 animate-pulse ring-2 ring-amber-400 cursor-pointer bg-amber-950/30' : (isCurrentActor ? 'border-amber-400 ring-4 ring-amber-400 animate-bounce bg-amber-950/50 shadow-2xl z-25' : 'border-red-500/60');
-                                return `
-                                    <div ${clickableAttr} class="pixel-box p-1.5 bg-slate-900/90 flex items-center gap-2 border ${borderClass} ${enemy.hp <= 0 ? 'opacity-40 grayscale' : ''}">
-                                        <div class="flex flex-col flex-1 min-w-0 text-right">
-                                            <div class="flex justify-between items-center text-[11px] font-bold truncate">
-                                                <span class="font-mono text-[10px]">${enemy.hp}/${enemy.maxHp}</span>
-                                                <span class="text-red-300 truncate">${enemy.charName}</span>
+                        <!-- 右側：敵チーム -->
+                        <div class="relative w-[48%] h-full flex items-center justify-center">
+                            <div class="absolute right-1 top-1 text-[9px] text-red-400 font-pixel font-bold z-30 text-right">⚔️ 敵チーム</div>
+                            ${(() => {
+                                const currentActor = activeNewBattle.currentAttacker;
+                                let ordered = [...enemies];
+                                if (currentActor && ordered.includes(currentActor)) {
+                                    const idx = ordered.indexOf(currentActor);
+                                    if (idx !== 0) {
+                                        const [target] = ordered.splice(idx, 1);
+                                        ordered.unshift(target);
+                                    }
+                                }
+
+                                return ordered.map((c, posIdx) => {
+                                    const origIdx = enemies.indexOf(c);
+                                    const pct = Math.max(0, Math.min(100, Math.round((c.hp / c.maxHp) * 100)));
+                                    const img = getCharImg(c, false);
+                                    const isLeader = origIdx === 0;
+                                    const isTargetSelecting = (newBattleViewMode === 'target_select');
+                                    const isSelectable = isTargetSelecting && newBattleTargetSelectType === 'single_enemy' && c.hp > 0;
+                                    const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${origIdx}, false)"` : '';
+                                    const isCurrentActor = currentActor === c;
+
+                                    let posClasses = '';
+                                    let sizeClasses = '';
+                                    if (posIdx === 0) {
+                                        posClasses = 'absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 z-30 scale-105';
+                                        sizeClasses = 'w-32 h-44 sm:w-40 sm:h-52';
+                                    } else if (posIdx === 1) {
+                                        posClasses = 'absolute right-2 sm:right-6 top-1/3 -translate-y-1/2 z-20 opacity-85 scale-90';
+                                        sizeClasses = 'w-20 h-28 sm:w-24 sm:h-34';
+                                    } else {
+                                        posClasses = 'absolute left-2 sm:left-6 top-1/3 -translate-y-1/2 z-20 opacity-85 scale-90';
+                                        sizeClasses = 'w-20 h-28 sm:w-24 sm:h-34';
+                                    }
+
+                                    const interactiveStyle = isSelectable ? 'cursor-pointer ring-4 ring-amber-400 bg-amber-950/40 rounded-xl' : '';
+                                    const deadStyle = c.hp <= 0 ? 'opacity-40 grayscale' : '';
+                                    const flipStyle = 'transform: scaleX(-1);';
+
+                                    return `
+                                        <div ${clickableAttr} class="${posClasses} ${sizeClasses} flex flex-col items-center justify-end transition-all duration-500 ${interactiveStyle} ${deadStyle}">
+                                            ${isCurrentActor ? '<div class="absolute -top-7 left-1/2 -translate-x-1/2 text-amber-400 font-bold text-base sm:text-xl animate-arrow-float z-50 drop-shadow-md">▼</div>' : ''}
+                                            
+                                            <!-- 全身スプライト（四角い枠線なし・背景直接配置） -->
+                                            <div class="w-full flex-1 flex items-center justify-center relative drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)]">
+                                                <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain" style="${flipStyle}">
+                                                ${isLeader && posIdx === 0 ? '<div class="absolute bottom-0 left-0 bg-red-600 text-white px-1.5 py-0.5 rounded text-[8px] font-pixel shadow">BOSS</div>' : ''}
                                             </div>
-                                            <div class="w-full bg-slate-950 h-2 border border-slate-700 rounded-full overflow-hidden my-0.5">
-                                                <div class="bg-red-500 h-full hp-bar-fill" style="width: ${pct}%;"></div>
+
+                                            <!-- キャラクター情報（枠線なし・クリーン表示） -->
+                                            <div class="w-full flex flex-col items-center bg-black/60 backdrop-blur-sm px-1.5 py-1 rounded-md border border-white/10 mt-1 shadow-md">
+                                                <div class="flex justify-between items-center w-full text-[9px] sm:text-[10px] font-bold text-red-300 px-0.5">
+                                                    <span class="truncate">${c.charName}</span>
+                                                    <span class="font-mono">${c.hp}/${c.maxHp}</span>
+                                                </div>
+                                                <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden my-0.5 border border-white/20">
+                                                    <div class="bg-red-500 h-full hp-bar-fill shadow-[0_0_6px_rgba(239,68,68,0.8)]" style="width: ${pct}%;"></div>
+                                                </div>
+                                                <div class="flex flex-wrap gap-0.5 justify-center max-h-4 overflow-hidden">
+                                                    ${getStatusBadgesHtml(c, false)}
+                                                </div>
                                             </div>
-                                             <div class="text-[9px] text-slate-400 font-mono truncate">攻:${enemy.atk} 防:${enemy.def}</div>
-                                             <div class="flex flex-wrap gap-1 mt-0.5 justify-end">
-                                                 ${getStatusBadgesHtml(enemy, false)}
-                                             </div>
-                                         </div>
-                                        <div class="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center shrink-0 overflow-hidden bg-slate-950 border border-slate-700">
-                                            <img src="${img}" alt="${enemy.charName}" class="w-full h-full object-contain" style="transform: scaleX(-1);">
                                         </div>
-                                    </div>
-                                `;
-                            }).join('')}
+                                    `;
+                                }).join('');
+                            })()}
                         </div>
                     </div>
 

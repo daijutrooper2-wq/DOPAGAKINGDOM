@@ -311,4 +311,21 @@
             animation: endless-scroll 45s linear infinite;
         }
 
+        @keyframes triangle-rotate {
+            0% { transform: scale(0.98); opacity: 0.9; }
+            50% { transform: scale(1.01); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-triangle-rot {
+            animation: triangle-rotate 0.4s ease-out;
+        }
+
+        @keyframes arrow-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        .animate-arrow-float {
+            animation: arrow-float 0.8s ease-in-out infinite;
+        }
+
 
