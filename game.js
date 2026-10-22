@@ -4443,20 +4443,25 @@ case 'dopa_juggler_skill':
                                       const deadStyle = c.hp <= 0 ? 'opacity-40 grayscale' : '';
                                       const flipStyle = 'transform: scaleX(-1);';
 
-                                      return `
-                                          <div ${clickableAttr} class="${posClasses} ${sizeClasses} flex flex-col items-center justify-end transition-all duration-500 ${interactiveStyle} ${deadStyle}">
-                                              ${isCurrentActor ? '<div class="absolute bottom-full mb-7 left-1/2 -translate-x-1/2 text-amber-400 font-bold text-sm sm:text-lg animate-arrow-float z-50 drop-shadow-md">▼</div>' : ''}
-                                              
-                                               <!-- 頭上のステータスUI（完全頭上固定・フロート表示） -->
-                                               <div class="absolute bottom-full mb-0.5 left-1/2 -translate-x-1/2 w-[110%] min-w-[90px] sm:w-[120%] z-40 flex flex-col items-center bg-black/85 backdrop-blur-md px-1 py-0.5 rounded border border-white/20 shadow-lg">
-                                                   <div class="flex justify-between items-center w-full text-[8px] sm:text-[9px] font-bold text-red-300 px-0.5">
-                                                       <span class="truncate">${c.charName}</span>
-                                                       <span class="font-mono">${c.hp}/${c.maxHp}</span>
-                                                   </div>
-                                                   <div class="w-full bg-slate-900 h-1 rounded-full overflow-hidden my-0.5 border border-white/20">
-                                                       <div class="bg-red-500 h-full hp-bar-fill shadow-[0_0_4px_rgba(239,68,68,0.8)]" style="width: ${pct}%;"></div>
-                                                   </div>
-                                               </div>
+                                       const hpBarWidthClass = 'w-[80%] min-w-[70px] sm:w-[85%]';
+                                       const hpBarPosClass = posIdx === 0 
+                                           ? `absolute top-1.5 left-1/2 -translate-x-1/2 ${hpBarWidthClass} z-40 flex flex-col items-center bg-black/85 backdrop-blur-md px-1 py-0.5 rounded border border-white/20 shadow-lg` 
+                                           : `absolute bottom-full mb-0.5 left-1/2 -translate-x-1/2 ${hpBarWidthClass} z-40 flex flex-col items-center bg-black/85 backdrop-blur-md px-1 py-0.5 rounded border border-white/20 shadow-lg`;
+
+                                       return `
+                                           <div ${clickableAttr} class="${posClasses} ${sizeClasses} flex flex-col items-center justify-end transition-all duration-500 ${interactiveStyle} ${deadStyle}">
+                                               ${isCurrentActor ? '<div class="absolute bottom-full mb-7 left-1/2 -translate-x-1/2 text-amber-400 font-bold text-sm sm:text-lg animate-arrow-float z-50 drop-shadow-md">▼</div>' : ''}
+                                               
+                                                <!-- 頭上のステータスUI（完全頭上固定・フロート表示） -->
+                                                <div class="${hpBarPosClass}">
+                                                    <div class="flex justify-between items-center w-full text-[8px] sm:text-[9px] font-bold text-red-300 px-0.5">
+                                                        <span class="truncate">${c.charName}</span>
+                                                        <span class="font-mono">${c.hp}/${c.maxHp}</span>
+                                                    </div>
+                                                    <div class="w-full bg-slate-900 h-1 rounded-full overflow-hidden my-0.5 border border-white/20">
+                                                        <div class="bg-red-500 h-full hp-bar-fill shadow-[0_0_4px_rgba(239,68,68,0.8)]" style="width: ${pct}%;"></div>
+                                                    </div>
+                                                </div>
 
                                               <!-- 全身スプライト（四角い枠線なし・背景直接配置） -->
                                               <div class="w-full flex-1 flex items-center justify-center relative drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)]">
