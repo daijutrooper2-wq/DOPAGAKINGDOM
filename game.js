@@ -4289,7 +4289,7 @@ case 'dopa_juggler_skill':
             }
 
             container.innerHTML = `
-                <div class="w-full h-full flex flex-col justify-between bg-slate-950 text-white relative select-none p-1 sm:p-2 overflow-hidden">
+                <div class="w-full h-full flex flex-col justify-between bg-slate-950 text-white relative select-none pt-0 px-1 pb-0 sm:pt-0 sm:px-2 sm:pb-0 overflow-hidden">
                     ${skillModalHtml}
                     <!-- 背景画像 -->
                     <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
