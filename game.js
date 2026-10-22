@@ -2808,6 +2808,69 @@ pasha_dark: {
                 this.log(`💥 ${attacker.charName} の 「${skill.name}」！`, 'text-emerald-300 font-bold');
                 audioSystem.playCharacterSound(attacker.id);
 
+                if (skill.id === 'ndaihyo_analysis') {
+                    this.applyDamageSkill(attacker, defender, skill);
+                    defender.buffAtk *= 0.86;
+                    defender.buffDef *= 0.86;
+                    this.log(`N高代表 は【弱点分析】を行った！ ${defender.charName} の攻撃力と防御力が低下！`, 'text-cyan-300 font-bold');
+                    return;
+                }
+                if (skill.id === 'ndaihyo_tactics') {
+                    if (['pasha', 'pasha_dark'].includes(defender.id)) {
+                        defender.buffAtk *= 0.3;
+                        this.log(`【特効発動！】 ${defender.charName}は激怒され、攻撃力が大幅に激減した！`, 'text-yellow-300 font-bold text-base');
+                        this.triggerCutin('🎯 特効発動！', 'パシャ憎へのムカつきが極限に達した！');
+                    } else {
+                        defender.buffAtk *= 0.80;
+                        defender.buffDef *= 0.80;
+                        this.log(`N高代表 はパシャ憎へのムカつきを放った！ ${defender.charName} の攻撃力と防御力が低下！`, 'text-cyan-300 font-bold');
+                    }
+                    return;
+                }
+                if (skill.id === 'ndaihyo_mind') {
+                    const hCleanseAmt = Math.floor(attacker.maxHp * 0.20);
+                    attacker.hp = Math.min(attacker.maxHp, attacker.hp + hCleanseAmt);
+                    attacker.buffAtk = Math.max(1.0, attacker.buffAtk);
+                    attacker.buffDef = Math.max(1.0, attacker.buffDef);
+                    this.log(`N高代表 は消しゴムを食った！ 味方全員のHPが回復し、対象のデバフが解除された！`, 'text-emerald-400 font-bold');
+                    return;
+                }
+                if (skill.id === 'pasha_flash') {
+                    this.applyDamageSkill(attacker, defender, skill);
+                    if (Math.random() < 0.5) {
+                        this.log(`強烈な光で ${defender.charName} は目を眩まされ、1ターン行動不能になった！`, 'text-purple-300 font-bold');
+                    }
+                    return;
+                }
+                if (skill.id === 'pasha_roll') {
+                    const healAmt = Math.floor(attacker.maxHp * 0.40);
+                    attacker.hp = Math.min(attacker.maxHp, attacker.hp + healAmt);
+                    this.log(`パシャ僧 は思い出の写真を見た！ 味方全員のHPが大きく回復！`, 'text-emerald-400 font-bold');
+                    return;
+                }
+                if (skill.id === 'pasha_darkness') {
+                    this.log(`パシャ僧 は右手の封印を解除！ ${defender.charName} に暗黒の自動回復効果が付与された！`, 'text-purple-300 font-bold');
+                    return;
+                }
+                if (skill.id === 'iwaba_rap') {
+                    attacker.buffDef *= 1.40;
+                    attacker.defendBuffTurns = 3;
+                    this.log(`岩盤星人 は【フリースタイル】をかました！ 3ターンの間、味方全員の防御力が大幅UP！`, 'text-emerald-300 font-bold');
+                    return;
+                }
+                if (skill.id === 'iwaba_song') {
+                    attacker.tempEvadeNext = true;
+                    this.log(`岩盤星人 の【ソウルソング】！ ${defender.charName} に攻撃1回無効化バリアが付与された！`, 'text-emerald-300 font-bold');
+                    return;
+                }
+                if (skill.id === 'iwaba_bath') {
+                    const hAmt = Math.floor(attacker.maxHp * 0.20);
+                    attacker.hp = Math.min(attacker.maxHp, attacker.hp + hAmt);
+                    attacker.eva = Math.min(60, (attacker.eva || 10) + 10);
+                    this.log(`岩盤星人 は【岩盤浴ブースト】で温まった！ 味方全員のHPが持続回復＆回避率が上昇！`, 'text-emerald-300 font-bold');
+                    return;
+                }
+
                if (attacker.id === 'dopagaking' && skill.id === 'dopa_inheritance') {
                     if ((attacker.dopaChargeCount || 0) < 5 || !attacker.selectedInheritChar) {
                         this.log(`👑 チャージが完了していないか、キャラクターが選択されていません！`, 'text-amber-300 font-bold');
@@ -3125,7 +3188,21 @@ case 'dopa_juggler_skill':
 
                 defender.hp = Math.max(0, defender.hp - damage);
                 const side = defender === this.p1 ? 'Player' : 'Enemy';
-                this.log(`⚔ ${defender.charName} に ${damage} のダメージ！${isCrit ? ' (🔥会心)' : ''}${this.isSuddenDeath ? ' (🔥サドンデスUP)' : ''}`, 'text-red-400 font-bold');
+                let damageLog = `⚔ ${defender.charName} に ${damage} のダメージ！`;
+                if (attacker.id === 'ndaihyo' && skill.isNormalAttack) {
+                    damageLog = `N高代表 の【バッティング】！ ${defender.charName} に ${damage} のダメージ！`;
+                } else if (attacker.id === 'pasha' && skill.isNormalAttack) {
+                    damageLog = `パシャ僧 の【睨みつける】！ ${defender.charName} に ${damage} のダメージ！`;
+                } else if (attacker.id === 'iwaba' && skill.isNormalAttack) {
+                    damageLog = `岩盤星人 の【ブレイクダンス】！ ${defender.charName} に ${damage} のダメージ！`;
+                    if (Math.random() < 0.2) {
+                        this.log(`【連動発動！】 岩盤星人 のノリノリな連続ダンス攻撃がヒット！`, 'text-emerald-300 font-bold');
+                        let extraDmg = Math.floor(damage * 0.6);
+                        defender.hp = Math.max(0, defender.hp - extraDmg);
+                        damage += extraDmg;
+                    }
+                }
+                this.log(`${damageLog}${isCrit ? ' (🔥会心)' : ''}${this.isSuddenDeath ? ' (🔥サドンデスUP)' : ''}`, 'text-red-400 font-bold');
                 this.triggerEffect(side, 'damage', `-${damage}`);
                 audioSystem.playHit();
 
