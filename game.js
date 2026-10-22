@@ -4366,26 +4366,27 @@ case 'dopa_juggler_skill':
                                           <div ${clickableAttr} class="${posClasses} ${sizeClasses} flex flex-col items-center justify-end transition-all duration-500 ${interactiveStyle} ${deadStyle}">
                                               ${isCurrentActor ? '<div class="absolute bottom-full mb-12 left-1/2 -translate-x-1/2 text-amber-400 font-bold text-base sm:text-xl animate-arrow-float z-50 drop-shadow-md">▼</div>' : ''}
                                               
-                                              <!-- 頭上のステータスUI（完全頭上固定・フロート表示） -->
-                                              <div class="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 w-[130%] min-w-[120px] sm:w-[140%] z-40 flex flex-col items-center bg-black/85 backdrop-blur-md px-1.5 py-1 rounded-md border border-white/20 shadow-xl">
-                                                  <div class="flex justify-between items-center w-full text-[9px] sm:text-[10px] font-bold text-emerald-300 px-0.5 gap-1">
-                                                      <span class="truncate">${c.charName}</span>
-                                                      <span class="font-mono text-[9px] text-amber-300">ATK:${c.atk}</span>
-                                                      <span class="font-mono">${c.hp}/${c.maxHp}</span>
-                                                  </div>
-                                                  <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden my-0.5 border border-white/20">
-                                                      <div class="bg-emerald-400 h-full hp-bar-fill shadow-[0_0_6px_rgba(52,211,153,0.8)]" style="width: ${pct}%;"></div>
-                                                  </div>
-                                                  <div class="flex flex-wrap gap-0.5 justify-center max-h-8 overflow-hidden">
-                                                      ${getStatusBadgesHtml(c, true)}
-                                                  </div>
-                                              </div>
+                                               <!-- 頭上のステータスUI（完全頭上固定・フロート表示） -->
+                                               <div class="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 w-[130%] min-w-[120px] sm:w-[140%] z-40 flex flex-col items-center bg-black/85 backdrop-blur-md px-1.5 py-1 rounded-md border border-white/20 shadow-xl">
+                                                   <div class="flex justify-between items-center w-full text-[9px] sm:text-[10px] font-bold text-emerald-300 px-0.5 gap-1">
+                                                       <span class="truncate">${c.charName}</span>
+                                                       <span class="font-mono text-[9px] text-amber-300">ATK:${c.atk}</span>
+                                                       <span class="font-mono">${c.hp}/${c.maxHp}</span>
+                                                   </div>
+                                                   <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden my-0.5 border border-white/20">
+                                                       <div class="bg-emerald-400 h-full hp-bar-fill shadow-[0_0_6px_rgba(52,211,153,0.8)]" style="width: ${pct}%;"></div>
+                                                   </div>
+                                               </div>
 
-                                              <!-- 全身スプライト（四角い枠線なし・背景直接配置） -->
-                                              <div class="w-full flex-1 flex items-center justify-center relative drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)]">
-                                                  <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain">
-                                                  ${isLeader && posIdx === 0 ? '<div class="absolute bottom-0 right-0 bg-emerald-600 text-white px-1.5 py-0.5 rounded text-[8px] font-pixel shadow">LEADER</div>' : ''}
-                                              </div>
+                                               <!-- 全身スプライト（四角い枠線なし・背景直接配置） -->
+                                               <div class="w-full flex-1 flex items-center justify-center relative drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)]">
+                                                   <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain">
+                                                   ${isLeader && posIdx === 0 ? '<div class="absolute bottom-0 right-0 bg-emerald-600 text-white px-1.5 py-0.5 rounded text-[8px] font-pixel shadow">LEADER</div>' : ''}
+                                                   <!-- スタンプ風バッジ（左下あたり） -->
+                                                   <div class="absolute bottom-1 left-1 z-30 flex flex-col gap-0.5 items-start pointer-events-none">
+                                                       ${getStatusBadgesHtml(c, true)}
+                                                   </div>
+                                               </div>
                                           </div>
                                       `;
                                   }).join('');
@@ -4442,26 +4443,27 @@ case 'dopa_juggler_skill':
                                          <div ${clickableAttr} class="${posClasses} ${sizeClasses} flex flex-col items-center justify-end transition-all duration-500 ${interactiveStyle} ${deadStyle}">
                                              ${isCurrentActor ? '<div class="absolute bottom-full mb-12 left-1/2 -translate-x-1/2 text-amber-400 font-bold text-base sm:text-xl animate-arrow-float z-50 drop-shadow-md">▼</div>' : ''}
                                              
-                                             <!-- 頭上のステータスUI（完全頭上固定・フロート表示） -->
-                                             <div class="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 w-[130%] min-w-[120px] sm:w-[140%] z-40 flex flex-col items-center bg-black/85 backdrop-blur-md px-1.5 py-1 rounded-md border border-white/20 shadow-xl">
-                                                 <div class="flex justify-between items-center w-full text-[9px] sm:text-[10px] font-bold text-red-300 px-0.5 gap-1">
-                                                     <span class="truncate">${c.charName}</span>
-                                                     <span class="font-mono text-[9px] text-amber-300">ATK:${c.atk}</span>
-                                                     <span class="font-mono">${c.hp}/${c.maxHp}</span>
-                                                 </div>
-                                                 <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden my-0.5 border border-white/20">
-                                                     <div class="bg-red-500 h-full hp-bar-fill shadow-[0_0_6px_rgba(239,68,68,0.8)]" style="width: ${pct}%;"></div>
-                                                 </div>
-                                                 <div class="flex flex-wrap gap-0.5 justify-center max-h-8 overflow-hidden">
-                                                     ${getStatusBadgesHtml(c, false)}
-                                                 </div>
-                                             </div>
+                                              <!-- 頭上のステータスUI（完全頭上固定・フロート表示） -->
+                                              <div class="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 w-[130%] min-w-[120px] sm:w-[140%] z-40 flex flex-col items-center bg-black/85 backdrop-blur-md px-1.5 py-1 rounded-md border border-white/20 shadow-xl">
+                                                  <div class="flex justify-between items-center w-full text-[9px] sm:text-[10px] font-bold text-red-300 px-0.5 gap-1">
+                                                      <span class="truncate">${c.charName}</span>
+                                                      <span class="font-mono text-[9px] text-amber-300">ATK:${c.atk}</span>
+                                                      <span class="font-mono">${c.hp}/${c.maxHp}</span>
+                                                  </div>
+                                                  <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden my-0.5 border border-white/20">
+                                                      <div class="bg-red-500 h-full hp-bar-fill shadow-[0_0_6px_rgba(239,68,68,0.8)]" style="width: ${pct}%;"></div>
+                                                  </div>
+                                              </div>
 
-                                             <!-- 全身スプライト（四角い枠線なし・背景直接配置） -->
-                                             <div class="w-full flex-1 flex items-center justify-center relative drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)]">
-                                                 <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain" style="${flipStyle}">
-                                                 ${isLeader && posIdx === 0 ? '<div class="absolute bottom-0 left-0 bg-red-600 text-white px-1.5 py-0.5 rounded text-[8px] font-pixel shadow">BOSS</div>' : ''}
-                                             </div>
+                                              <!-- 全身スプライト（四角い枠線なし・背景直接配置） -->
+                                              <div class="w-full flex-1 flex items-center justify-center relative drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)]">
+                                                  <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain" style="${flipStyle}">
+                                                  ${isLeader && posIdx === 0 ? '<div class="absolute bottom-0 left-0 bg-red-600 text-white px-1.5 py-0.5 rounded text-[8px] font-pixel shadow">BOSS</div>' : ''}
+                                                  <!-- スタンプ風バッジ（左下あたり） -->
+                                                  <div class="absolute bottom-1 left-1 z-30 flex flex-col gap-0.5 items-start pointer-events-none">
+                                                      ${getStatusBadgesHtml(c, false)}
+                                                  </div>
+                                              </div>
                                          </div>
                                      `;
                                  }).join('');
@@ -4508,46 +4510,46 @@ case 'dopa_juggler_skill':
             let badges = '';
             if (p.buffAtk && p.buffAtk !== 1.0) {
                 if (p.buffAtk > 1.0) {
-                    badges += `<span class="bg-emerald-950 text-emerald-300 border border-emerald-600 px-1 py-0.5 rounded text-[9px] font-mono font-bold">攻撃UP [${p.buffAtkTurns || 1}T]</span>`;
+                    badges += `<span class="bg-emerald-950/95 text-emerald-300 border-2 border-emerald-400 px-1 py-0.5 rounded text-[8px] font-mono font-bold shadow-md transform -rotate-3 inline-block">攻撃UP [${p.buffAtkTurns || 1}T]</span>`;
                 } else {
-                    badges += `<span class="bg-red-950 text-red-300 border border-red-600 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold">攻撃DOWN [${p.buffAtkTurns || 1}T]</span>`;
+                    badges += `<span class="bg-red-950/95 text-red-300 border-2 border-red-400 px-1 py-0.5 rounded text-[8px] font-mono font-bold shadow-md transform -rotate-3 inline-block">攻撃DOWN [${p.buffAtkTurns || 1}T]</span>`;
                 }
             }
             if (p.buffDef && p.buffDef !== 1.0) {
                 if (p.buffDef > 1.0) {
-                    badges += `<span class="bg-emerald-950 text-emerald-300 border border-emerald-600 px-1 py-0.5 rounded text-[9px] font-mono font-bold">防御UP</span>`;
+                    badges += `<span class="bg-emerald-950/95 text-emerald-300 border-2 border-emerald-400 px-1 py-0.5 rounded text-[8px] font-mono font-bold shadow-md transform rotate-2 inline-block">防御UP</span>`;
                 } else {
-                    badges += `<span class="bg-red-950 text-red-300 border border-red-600 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold">防御DOWN</span>`;
+                    badges += `<span class="bg-red-950/95 text-red-300 border-2 border-red-400 px-1 py-0.5 rounded text-[8px] font-mono font-bold shadow-md transform rotate-2 inline-block">防御DOWN</span>`;
                 }
             }
             if (p.defendBuffTurns && p.defendBuffTurns > 0) {
-                badges += `<span class="bg-amber-950 text-amber-300 border border-amber-600 px-1 py-0.5 rounded text-[9px] font-mono font-bold">鉄壁 [${p.defendBuffTurns}T]</span>`;
+                badges += `<span class="bg-amber-950/95 text-amber-300 border-2 border-amber-400 px-1 py-0.5 rounded text-[8px] font-mono font-bold shadow-md transform -rotate-2 inline-block">鉄壁 [${p.defendBuffTurns}T]</span>`;
             }
             if (p.critBuffTurns && p.critBuffTurns > 0) {
-                badges += `<span class="bg-emerald-950 text-emerald-300 border border-emerald-600 px-1 py-0.5 rounded text-[9px] font-mono font-bold">会+ [${p.critBuffTurns}T]</span>`;
+                badges += `<span class="bg-emerald-950/95 text-emerald-300 border-2 border-emerald-400 px-1 py-0.5 rounded text-[8px] font-mono font-bold shadow-md transform rotate-3 inline-block">会+ [${p.critBuffTurns}T]</span>`;
             }
             if (p.asaiomizuCritTurns && p.asaiomizuCritTurns > 0) {
-                badges += `<span class="bg-emerald-950 text-emerald-300 border border-emerald-600 px-1 py-0.5 rounded text-[9px] font-mono font-bold">会+ [${p.asaiomizuCritTurns}T]</span>`;
+                badges += `<span class="bg-emerald-950/95 text-emerald-300 border-2 border-emerald-400 px-1 py-0.5 rounded text-[8px] font-mono font-bold shadow-md transform rotate-3 inline-block">会+ [${p.asaiomizuCritTurns}T]</span>`;
             }
             if (p.tempEvadeNext) {
-                badges += `<span class="bg-cyan-950 text-cyan-300 border border-cyan-600 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold">完全回避</span>`;
+                badges += `<span class="bg-cyan-950/95 text-cyan-300 border-2 border-cyan-400 px-1 py-0.5 rounded text-[8px] font-mono font-bold shadow-md transform -rotate-4 inline-block">完全回避</span>`;
             }
             if (p.digActive && isAlly) {
-                badges += `<span class="bg-cyan-950 text-cyan-300 border border-cyan-600 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold">ディグ中</span>`;
+                badges += `<span class="bg-cyan-950/95 text-cyan-300 border-2 border-cyan-400 px-1 py-0.5 rounded text-[8px] font-mono font-bold shadow-md transform -rotate-3 inline-block">ディグ中</span>`;
             }
             if (p.isResting) {
-                badges += `<span class="bg-slate-800 text-slate-300 border border-slate-600 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold">休み</span>`;
+                badges += `<span class="bg-slate-800/95 text-slate-300 border-2 border-slate-500 px-1 py-0.5 rounded text-[8px] font-mono font-bold shadow-md transform rotate-1 inline-block">休み</span>`;
             }
             if (p.eggplantReady) {
-                badges += `<span class="bg-purple-950 text-purple-300 border border-purple-600 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold">ゾウ変身</span>`;
+                badges += `<span class="bg-purple-950/95 text-purple-300 border-2 border-purple-400 px-1 py-0.5 rounded text-[8px] font-mono font-bold shadow-md transform -rotate-3 inline-block">ゾウ変身</span>`;
             }
             if (p.courtneyChargeCount && p.courtneyChargeCount > 0) {
-                badges += `<span class="bg-pink-950 text-pink-300 border border-pink-600 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold">溜め(${p.courtneyChargeCount}回)</span>`;
+                badges += `<span class="bg-pink-950/95 text-pink-300 border-2 border-pink-400 px-1 py-0.5 rounded text-[8px] font-mono font-bold shadow-md transform rotate-2 inline-block">溜め(${p.courtneyChargeCount}回)</span>`;
             }
             if (p.dopaChargeCount && p.dopaChargeCount > 0) {
-                badges += `<span class="bg-amber-950 text-amber-300 border border-amber-600 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold">チャージ(${p.dopaChargeCount}/5)</span>`;
+                badges += `<span class="bg-amber-950/95 text-amber-300 border-2 border-amber-400 px-1 py-0.5 rounded text-[8px] font-mono font-bold shadow-md transform -rotate-2 inline-block">チャージ(${p.dopaChargeCount}/5)</span>`;
             }
-            return badges || '<span class="text-slate-500 text-[9px]">通常</span>';
+            return badges;
         }
 
         function renderLogItem(l) {
