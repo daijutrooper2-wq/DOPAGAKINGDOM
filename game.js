@@ -4348,35 +4348,34 @@ case 'dopa_juggler_skill':
                                       if (posIdx === 0) {
                                           // 先頭（一番手前・中央）へシャッフル＆前面強調（少し下へずらして後ろの仲間との重なりを防止）
                                           posClasses = 'absolute left-1/2 -translate-x-1/2 top-[62%] -translate-y-1/2 z-30 scale-110';
-                                          sizeClasses = 'w-32 h-44 sm:w-40 sm:h-52 md:w-46 md:h-60';
+                                          sizeClasses = 'w-24 h-32 sm:w-30 sm:h-40 md:w-36 md:h-48';
                                       } else if (posIdx === 1) {
                                           // 2番目（左側密着・少し下＆サイズアップ）
                                           posClasses = 'absolute left-1 sm:left-4 md:left-8 top-[48%] -translate-y-1/2 z-25 opacity-95 scale-105';
-                                          sizeClasses = 'w-26 h-36 sm:w-32 sm:h-44 md:w-36 md:h-48';
+                                          sizeClasses = 'w-20 h-28 sm:w-24 sm:h-34 md:w-28 md:h-38';
                                       } else {
                                           // 3番目（右側密着・少し下＆サイズアップ）
                                           posClasses = 'absolute right-1 sm:right-4 md:right-8 top-[48%] -translate-y-1/2 z-25 opacity-95 scale-105';
-                                          sizeClasses = 'w-26 h-36 sm:w-32 sm:h-44 md:w-36 md:h-48';
+                                          sizeClasses = 'w-20 h-28 sm:w-24 sm:h-34 md:w-28 md:h-38';
                                       }
 
-                                      const interactiveStyle = isSelectable ? 'cursor-pointer ring-4 ring-amber-400 bg-amber-950/40 rounded-xl' : '';
-                                      const deadStyle = c.hp <= 0 ? 'opacity-40 grayscale' : '';
+                                       const interactiveStyle = isSelectable ? 'cursor-pointer ring-4 ring-amber-400 bg-amber-950/40 rounded-xl' : '';
+                                       const deadStyle = c.hp <= 0 ? 'opacity-40 grayscale' : '';
 
-                                      return `
-                                          <div ${clickableAttr} class="${posClasses} ${sizeClasses} flex flex-col items-center justify-end transition-all duration-500 ${interactiveStyle} ${deadStyle}">
-                                              ${isCurrentActor ? '<div class="absolute bottom-full mb-12 left-1/2 -translate-x-1/2 text-amber-400 font-bold text-base sm:text-xl animate-arrow-float z-50 drop-shadow-md">▼</div>' : ''}
-                                              
-                                               <!-- 頭上のステータスUI（完全頭上固定・フロート表示） -->
-                                               <div class="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 w-[130%] min-w-[120px] sm:w-[140%] z-40 flex flex-col items-center bg-black/85 backdrop-blur-md px-1.5 py-1 rounded-md border border-white/20 shadow-xl">
-                                                   <div class="flex justify-between items-center w-full text-[9px] sm:text-[10px] font-bold text-emerald-300 px-0.5 gap-1">
-                                                       <span class="truncate">${c.charName}</span>
-                                                       <span class="font-mono text-[9px] text-amber-300">ATK:${c.atk}</span>
-                                                       <span class="font-mono">${c.hp}/${c.maxHp}</span>
-                                                   </div>
-                                                   <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden my-0.5 border border-white/20">
-                                                       <div class="bg-emerald-400 h-full hp-bar-fill shadow-[0_0_6px_rgba(52,211,153,0.8)]" style="width: ${pct}%;"></div>
-                                                   </div>
-                                               </div>
+                                       return `
+                                           <div ${clickableAttr} class="${posClasses} ${sizeClasses} flex flex-col items-center justify-end transition-all duration-500 ${interactiveStyle} ${deadStyle}">
+                                               ${isCurrentActor ? '<div class="absolute bottom-full mb-7 left-1/2 -translate-x-1/2 text-amber-400 font-bold text-sm sm:text-lg animate-arrow-float z-50 drop-shadow-md">▼</div>' : ''}
+                                               
+                                                <!-- 頭上のステータスUI（完全頭上固定・フロート表示） -->
+                                                <div class="absolute bottom-full mb-0.5 left-1/2 -translate-x-1/2 w-[110%] min-w-[90px] sm:w-[120%] z-40 flex flex-col items-center bg-black/85 backdrop-blur-md px-1 py-0.5 rounded border border-white/20 shadow-lg">
+                                                    <div class="flex justify-between items-center w-full text-[8px] sm:text-[9px] font-bold text-emerald-300 px-0.5">
+                                                        <span class="truncate">${c.charName}</span>
+                                                        <span class="font-mono">${c.hp}/${c.maxHp}</span>
+                                                    </div>
+                                                    <div class="w-full bg-slate-900 h-1 rounded-full overflow-hidden my-0.5 border border-white/20">
+                                                        <div class="bg-emerald-400 h-full hp-bar-fill shadow-[0_0_4px_rgba(52,211,153,0.8)]" style="width: ${pct}%;"></div>
+                                                    </div>
+                                                </div>
 
                                                <!-- 全身スプライト（四角い枠線なし・背景直接配置） -->
                                                <div class="w-full flex-1 flex items-center justify-center relative drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)]">
@@ -4422,38 +4421,37 @@ case 'dopa_juggler_skill':
                                     const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${origIdx}, false)"` : '';
                                     const isCurrentActor = currentActor === c;
 
-                                     let posClasses = '';
-                                     let sizeClasses = '';
-                                     if (posIdx === 0) {
-                                         posClasses = 'absolute left-1/2 -translate-x-1/2 top-[62%] -translate-y-1/2 z-30 scale-110';
-                                         sizeClasses = 'w-32 h-44 sm:w-40 sm:h-52 md:w-46 md:h-60';
-                                     } else if (posIdx === 1) {
-                                         posClasses = 'absolute right-1 sm:right-4 md:right-8 top-[48%] -translate-y-1/2 z-25 opacity-95 scale-105';
-                                         sizeClasses = 'w-26 h-36 sm:w-32 sm:h-44 md:w-36 md:h-48';
-                                     } else {
-                                         posClasses = 'absolute left-1 sm:left-4 md:left-8 top-[48%] -translate-y-1/2 z-25 opacity-95 scale-105';
-                                         sizeClasses = 'w-26 h-36 sm:w-32 sm:h-44 md:w-36 md:h-48';
-                                     }
+                                      let posClasses = '';
+                                      let sizeClasses = '';
+                                      if (posIdx === 0) {
+                                          posClasses = 'absolute left-1/2 -translate-x-1/2 top-[62%] -translate-y-1/2 z-30 scale-110';
+                                          sizeClasses = 'w-24 h-32 sm:w-30 sm:h-40 md:w-36 md:h-48';
+                                      } else if (posIdx === 1) {
+                                          posClasses = 'absolute right-1 sm:right-4 md:right-8 top-[48%] -translate-y-1/2 z-25 opacity-95 scale-105';
+                                          sizeClasses = 'w-20 h-28 sm:w-24 sm:h-34 md:w-28 md:h-38';
+                                      } else {
+                                          posClasses = 'absolute left-1 sm:left-4 md:left-8 top-[48%] -translate-y-1/2 z-25 opacity-95 scale-105';
+                                          sizeClasses = 'w-20 h-28 sm:w-24 sm:h-34 md:w-28 md:h-38';
+                                      }
 
-                                     const interactiveStyle = isSelectable ? 'cursor-pointer ring-4 ring-amber-400 bg-amber-950/40 rounded-xl' : '';
-                                     const deadStyle = c.hp <= 0 ? 'opacity-40 grayscale' : '';
-                                     const flipStyle = 'transform: scaleX(-1);';
+                                      const interactiveStyle = isSelectable ? 'cursor-pointer ring-4 ring-amber-400 bg-amber-950/40 rounded-xl' : '';
+                                      const deadStyle = c.hp <= 0 ? 'opacity-40 grayscale' : '';
+                                      const flipStyle = 'transform: scaleX(-1);';
 
-                                     return `
-                                         <div ${clickableAttr} class="${posClasses} ${sizeClasses} flex flex-col items-center justify-end transition-all duration-500 ${interactiveStyle} ${deadStyle}">
-                                             ${isCurrentActor ? '<div class="absolute bottom-full mb-12 left-1/2 -translate-x-1/2 text-amber-400 font-bold text-base sm:text-xl animate-arrow-float z-50 drop-shadow-md">▼</div>' : ''}
-                                             
-                                              <!-- 頭上のステータスUI（完全頭上固定・フロート表示） -->
-                                              <div class="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 w-[130%] min-w-[120px] sm:w-[140%] z-40 flex flex-col items-center bg-black/85 backdrop-blur-md px-1.5 py-1 rounded-md border border-white/20 shadow-xl">
-                                                  <div class="flex justify-between items-center w-full text-[9px] sm:text-[10px] font-bold text-red-300 px-0.5 gap-1">
-                                                      <span class="truncate">${c.charName}</span>
-                                                      <span class="font-mono text-[9px] text-amber-300">ATK:${c.atk}</span>
-                                                      <span class="font-mono">${c.hp}/${c.maxHp}</span>
-                                                  </div>
-                                                  <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden my-0.5 border border-white/20">
-                                                      <div class="bg-red-500 h-full hp-bar-fill shadow-[0_0_6px_rgba(239,68,68,0.8)]" style="width: ${pct}%;"></div>
-                                                  </div>
-                                              </div>
+                                      return `
+                                          <div ${clickableAttr} class="${posClasses} ${sizeClasses} flex flex-col items-center justify-end transition-all duration-500 ${interactiveStyle} ${deadStyle}">
+                                              ${isCurrentActor ? '<div class="absolute bottom-full mb-7 left-1/2 -translate-x-1/2 text-amber-400 font-bold text-sm sm:text-lg animate-arrow-float z-50 drop-shadow-md">▼</div>' : ''}
+                                              
+                                               <!-- 頭上のステータスUI（完全頭上固定・フロート表示） -->
+                                               <div class="absolute bottom-full mb-0.5 left-1/2 -translate-x-1/2 w-[110%] min-w-[90px] sm:w-[120%] z-40 flex flex-col items-center bg-black/85 backdrop-blur-md px-1 py-0.5 rounded border border-white/20 shadow-lg">
+                                                   <div class="flex justify-between items-center w-full text-[8px] sm:text-[9px] font-bold text-red-300 px-0.5">
+                                                       <span class="truncate">${c.charName}</span>
+                                                       <span class="font-mono">${c.hp}/${c.maxHp}</span>
+                                                   </div>
+                                                   <div class="w-full bg-slate-900 h-1 rounded-full overflow-hidden my-0.5 border border-white/20">
+                                                       <div class="bg-red-500 h-full hp-bar-fill shadow-[0_0_4px_rgba(239,68,68,0.8)]" style="width: ${pct}%;"></div>
+                                                   </div>
+                                               </div>
 
                                               <!-- 全身スプライト（四角い枠線なし・背景直接配置） -->
                                               <div class="w-full flex-1 flex items-center justify-center relative drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)]">
