@@ -2203,15 +2203,30 @@ pasha_dark: {
                 this.latestRoomData = null;
             }
 
-            log(msg, colorClass = 'text-slate-200') {
+            getCharacterTeam(char) {
+                if (!char) return 'system';
+                if (this.allies && this.allies.includes(char)) return 'ally';
+                if (this.enemies && this.enemies.includes(char)) return 'enemy';
+                if (char === this.p1) return 'ally';
+                if (char === this.p2) return 'enemy';
+                return 'system';
+            }
+
+            logTeam(actor, msg, colorClass = 'text-slate-200') {
+                const teamType = this.getCharacterTeam(actor);
+                const prefix = teamType === 'ally' ? '【味方】' : (teamType === 'enemy' ? '【敵】' : '');
+                this.log(`${prefix}${actor ? actor.charName : ''} ${msg}`, colorClass, teamType);
+            }
+
+            log(msg, colorClass = 'text-slate-200', teamType = 'system') {
                 if (this.currentTurnLogs) {
-                    this.currentTurnLogs.push({ msg, colorClass });
+                    this.currentTurnLogs.push({ msg, colorClass, teamType });
                 }
                 if (this.battleLogs) {
-                    this.battleLogs.push({ msg, colorClass });
+                    this.battleLogs.push({ msg, colorClass, teamType });
                 }
                 if (this.onLogUpdate) {
-                    this.onLogUpdate(msg, colorClass);
+                    this.onLogUpdate(msg, colorClass, teamType);
                 }
             }
 
@@ -2418,9 +2433,9 @@ pasha_dark: {
                             if (data.logs && data.logs.length > 0) {
                                 data.logs.forEach(l => {
                                     if (this.battleLogs) {
-                                        this.battleLogs.push({ msg: l.msg, colorClass: l.colorClass });
+                                        this.battleLogs.push({ msg: l.msg, colorClass: l.colorClass, teamType: l.teamType || 'system' });
                                     }
-                                    if (this.onLogUpdate) this.onLogUpdate(l.msg, l.colorClass);
+                                    if (this.onLogUpdate) this.onLogUpdate(l.msg, l.colorClass, l.teamType || 'system');
                                     if (l.effect && this.onVisualEffect) this.onVisualEffect(l.effect.side, l.effect.type, l.effect.text);
                                     if (l.cutin && this.onCutin) this.onCutin(l.cutin.title, l.cutin.subtitle);
                                 });
@@ -3047,11 +3062,20 @@ case 'dopa_juggler_skill':
                         break;
                     case 'asaiomizu_dig_skill':
                         const dummyAttack = { name: '髪をかきあげる', type: 'attack', power: 1.15, isNormalAttack: true };
-                        this.applyDamageSkill(attacker, defender, dummyAttack);
-                        attacker.digActive = true;
-                        attacker.digUsedTurn = this.turn;
-                        this.log(`🕳️ ${attacker.charName} はディグを発動！(自チーム画面表示、敵チームには通常の髪をかきあげるとして偽装)`, 'text-cyan-300 font-bold');
-                        this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'buff', 'ディグ構え');
+                        const isAllyDig = this.getCharacterTeam(attacker) === 'ally';
+                        if (isAllyDig) {
+                            this.applyDamageSkill(attacker, defender, dummyAttack);
+                            attacker.digActive = true;
+                            attacker.digUsedTurn = this.turn;
+                            this.logTeam(attacker, `はディグを発動！（通常攻撃に偽装しつつ相手の攻撃を待ち構える）`, 'text-cyan-300 font-bold');
+                            this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'buff', 'ディグ構え');
+                        } else {
+                            // 敵側のディグ：敵チームには通常の髪をかきあげるとして偽装して表示
+                            this.applyDamageSkill(attacker, defender, dummyAttack);
+                            attacker.digActive = true;
+                            attacker.digUsedTurn = this.turn;
+                            this.logTeam(attacker, `の 「髪をかきあげる」！`, 'text-red-300 font-bold');
+                        }
                         break;
                     case 'asaiomizu_club_skill':
                         attacker.critRateBonus = (attacker.critRateBonus || 0) + 0.40;
@@ -4276,7 +4300,7 @@ case 'dopa_juggler_skill':
                         <div class="md:col-span-5 bg-slate-900/95 border-2 border-slate-700 rounded-lg p-1.5 flex flex-col h-full shadow-md overflow-hidden">
                             <div class="text-[9px] text-amber-400 font-bold font-pixel mb-0.5 shrink-0">📜 BATTLE LOG</div>
                             <div class="w-full flex-1 bg-slate-950 border border-slate-800 rounded p-1 text-[9px] sm:text-[10px] font-mono text-slate-200 overflow-y-auto shadow-inner" id="new-battle-log">
-                                ${(activeNewBattle.battleLogs && activeNewBattle.battleLogs.length > 0) ? activeNewBattle.battleLogs.map(l => `<div class="${l.colorClass || 'text-slate-200'}">${l.msg}</div>`).join('') : "3v3バトルモードが開始しました！コマンドを選択してください。"}
+                                ${(activeNewBattle.battleLogs && activeNewBattle.battleLogs.length > 0) ? activeNewBattle.battleLogs.map(l => renderLogItem(l)).join('') : "3v3バトルモードが開始しました！コマンドを選択してください。"}
                             </div>
                         </div>
 
@@ -4298,12 +4322,28 @@ case 'dopa_juggler_skill':
             }
         }
 
-        function appendNewBattleLog(text, colorClass = 'text-slate-200') {
+        function renderLogItem(l) {
+            let bgStyle = 'bg-slate-900/80 border border-slate-700/80 text-amber-300 text-center font-bold';
+            if (l.teamType === 'ally') {
+                bgStyle = 'bg-emerald-950/60 border-l-4 border-emerald-500 text-emerald-100';
+            } else if (l.teamType === 'enemy') {
+                bgStyle = 'bg-red-950/60 border-l-4 border-red-500 text-red-100';
+            }
+            return `<div class="p-1 mb-1 rounded text-[10px] sm:text-[11px] font-mono ${bgStyle} shadow-sm ${l.colorClass || ''}">${l.msg}</div>`;
+        }
+
+        function appendNewBattleLog(text, colorClass = 'text-slate-200', teamType = 'system') {
             if (!activeNewBattle) return;
             const logEl = document.getElementById('new-battle-log');
             if (logEl) {
+                let bgStyle = 'bg-slate-900/80 border border-slate-700/80 text-amber-300 text-center font-bold';
+                if (teamType === 'ally') {
+                    bgStyle = 'bg-emerald-950/60 border-l-4 border-emerald-500 text-emerald-100';
+                } else if (teamType === 'enemy') {
+                    bgStyle = 'bg-red-950/60 border-l-4 border-red-500 text-red-100';
+                }
                 const line = document.createElement('div');
-                line.className = colorClass;
+                line.className = `p-1 mb-1 rounded text-[10px] sm:text-[11px] font-mono ${bgStyle} shadow-sm ${colorClass}`;
                 line.innerHTML = text;
                 logEl.appendChild(line);
                 logEl.scrollTop = logEl.scrollHeight;
