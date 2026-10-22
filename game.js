@@ -4305,9 +4305,9 @@ case 'dopa_juggler_skill':
                     </div>
 
                     <!-- 2. 中央エリア：味方3体と敵3体の密着隊列バトルステージ (シャッフル・前面移動 & 枠線撤去) -->
-                    <div class="flex-1 flex items-center justify-between px-4 py-2 relative z-10 overflow-hidden w-full max-w-6xl mx-auto">
+                    <div class="flex-1 flex items-center justify-between px-2 sm:px-6 py-2 relative z-10 overflow-hidden w-full max-w-full">
                         <!-- 左側：味方チーム -->
-                        <div class="relative w-[48%] h-full flex items-center justify-center">
+                        <div class="relative w-[47%] sm:w-[48%] h-full flex items-center justify-center">
                             <div class="absolute left-1 top-1 text-[9px] text-emerald-400 font-pixel font-bold z-30">🛡️ 味方チーム (隊列)</div>
                             ${(() => {
                                 const currentActor = activeNewBattle.currentAttacker;
@@ -4336,56 +4336,56 @@ case 'dopa_juggler_skill':
                                      if (posIdx === 0) {
                                          // 先頭（一番手前・中央）へシャッフル＆前面強調
                                          posClasses = 'absolute left-1/2 -translate-x-1/2 top-[55%] -translate-y-1/2 z-30 scale-110';
-                                         sizeClasses = 'w-34 h-48 sm:w-42 sm:h-56';
+                                         sizeClasses = 'w-32 h-44 sm:w-40 sm:h-52 md:w-46 md:h-60';
                                      } else if (posIdx === 1) {
                                          // 2番目（左側密着・少し下＆サイズアップ）
-                                         posClasses = 'absolute left-2 sm:left-5 top-[48%] -translate-y-1/2 z-25 opacity-90 scale-105';
-                                         sizeClasses = 'w-28 h-38 sm:w-34 sm:h-46';
+                                         posClasses = 'absolute left-1 sm:left-4 md:left-8 top-[48%] -translate-y-1/2 z-25 opacity-95 scale-105';
+                                         sizeClasses = 'w-26 h-36 sm:w-32 sm:h-44 md:w-36 md:h-48';
                                      } else {
                                          // 3番目（右側密着・少し下＆サイズアップ）
-                                         posClasses = 'absolute right-2 sm:right-5 top-[48%] -translate-y-1/2 z-25 opacity-90 scale-105';
-                                         sizeClasses = 'w-28 h-38 sm:w-34 sm:h-46';
+                                         posClasses = 'absolute right-1 sm:right-4 md:right-8 top-[48%] -translate-y-1/2 z-25 opacity-95 scale-105';
+                                         sizeClasses = 'w-26 h-36 sm:w-32 sm:h-44 md:w-36 md:h-48';
                                      }
 
-                                    const interactiveStyle = isSelectable ? 'cursor-pointer ring-4 ring-amber-400 bg-amber-950/40 rounded-xl' : '';
-                                    const deadStyle = c.hp <= 0 ? 'opacity-40 grayscale' : '';
+                                     const interactiveStyle = isSelectable ? 'cursor-pointer ring-4 ring-amber-400 bg-amber-950/40 rounded-xl' : '';
+                                     const deadStyle = c.hp <= 0 ? 'opacity-40 grayscale' : '';
 
-                                    return `
-                                        <div ${clickableAttr} class="${posClasses} ${sizeClasses} flex flex-col items-center justify-end transition-all duration-500 ${interactiveStyle} ${deadStyle}">
-                                            ${isCurrentActor ? '<div class="absolute bottom-full mb-12 left-1/2 -translate-x-1/2 text-amber-400 font-bold text-base sm:text-xl animate-arrow-float z-50 drop-shadow-md">▼</div>' : ''}
-                                            
-                                            <!-- 頭上のステータスUI（完全頭上固定・フロート表示） -->
-                                            <div class="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 w-[130%] min-w-[120px] sm:w-[140%] z-40 flex flex-col items-center bg-black/85 backdrop-blur-md px-1.5 py-1 rounded-md border border-white/20 shadow-xl">
-                                                <div class="flex justify-between items-center w-full text-[9px] sm:text-[10px] font-bold text-emerald-300 px-0.5">
-                                                    <span class="truncate">${c.charName}</span>
-                                                    <span class="font-mono">${c.hp}/${c.maxHp}</span>
-                                                </div>
-                                                <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden my-0.5 border border-white/20">
-                                                    <div class="bg-emerald-400 h-full hp-bar-fill shadow-[0_0_6px_rgba(52,211,153,0.8)]" style="width: ${pct}%;"></div>
-                                                </div>
-                                                <div class="flex flex-wrap gap-0.5 justify-center max-h-8 overflow-hidden">
-                                                    ${getStatusBadgesHtml(c, true)}
-                                                </div>
-                                            </div>
+                                     return `
+                                         <div ${clickableAttr} class="${posClasses} ${sizeClasses} flex flex-col items-center justify-end transition-all duration-500 ${interactiveStyle} ${deadStyle}">
+                                             ${isCurrentActor ? '<div class="absolute bottom-full mb-12 left-1/2 -translate-x-1/2 text-amber-400 font-bold text-base sm:text-xl animate-arrow-float z-50 drop-shadow-md">▼</div>' : ''}
+                                             
+                                             <!-- 頭上のステータスUI（完全頭上固定・フロート表示） -->
+                                             <div class="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 w-[130%] min-w-[120px] sm:w-[140%] z-40 flex flex-col items-center bg-black/85 backdrop-blur-md px-1.5 py-1 rounded-md border border-white/20 shadow-xl">
+                                                 <div class="flex justify-between items-center w-full text-[9px] sm:text-[10px] font-bold text-emerald-300 px-0.5">
+                                                     <span class="truncate">${c.charName}</span>
+                                                     <span class="font-mono">${c.hp}/${c.maxHp}</span>
+                                                 </div>
+                                                 <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden my-0.5 border border-white/20">
+                                                     <div class="bg-emerald-400 h-full hp-bar-fill shadow-[0_0_6px_rgba(52,211,153,0.8)]" style="width: ${pct}%;"></div>
+                                                 </div>
+                                                 <div class="flex flex-wrap gap-0.5 justify-center max-h-8 overflow-hidden">
+                                                     ${getStatusBadgesHtml(c, true)}
+                                                 </div>
+                                             </div>
 
-                                            <!-- 全身スプライト（四角い枠線なし・背景直接配置） -->
-                                            <div class="w-full flex-1 flex items-center justify-center relative drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)]">
-                                                <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain">
-                                                ${isLeader && posIdx === 0 ? '<div class="absolute bottom-0 right-0 bg-emerald-600 text-white px-1.5 py-0.5 rounded text-[8px] font-pixel shadow">LEADER</div>' : ''}
-                                            </div>
-                                        </div>
-                                    `;
-                                }).join('');
+                                             <!-- 全身スプライト（四角い枠線なし・背景直接配置） -->
+                                             <div class="w-full flex-1 flex items-center justify-center relative drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)]">
+                                                 <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain">
+                                                 ${isLeader && posIdx === 0 ? '<div class="absolute bottom-0 right-0 bg-emerald-600 text-white px-1.5 py-0.5 rounded text-[8px] font-pixel shadow">LEADER</div>' : ''}
+                                             </div>
+                                         </div>
+                                     `;
+                                 }).join('');
                             })()}
                         </div>
 
                         <!-- 中央：VS -->
-                        <div class="w-[4%] flex flex-col items-center justify-center text-center z-20">
+                        <div class="w-[6%] sm:w-[4%] flex flex-col items-center justify-center text-center z-20">
                             <div class="text-amber-400 font-pixel font-black text-lg sm:text-2xl drop-shadow-[0_0_10px_rgba(251,191,36,0.8)] animate-pulse">VS</div>
                         </div>
 
                         <!-- 右側：敵チーム -->
-                        <div class="relative w-[48%] h-full flex items-center justify-center">
+                        <div class="relative w-[47%] sm:w-[48%] h-full flex items-center justify-center">
                             <div class="absolute right-1 top-1 text-[9px] text-red-400 font-pixel font-bold z-30 text-right">⚔️ 敵チーム</div>
                             ${(() => {
                                 const currentActor = activeNewBattle.currentAttacker;
@@ -4412,52 +4412,52 @@ case 'dopa_juggler_skill':
                                      let sizeClasses = '';
                                      if (posIdx === 0) {
                                          posClasses = 'absolute left-1/2 -translate-x-1/2 top-[55%] -translate-y-1/2 z-30 scale-110';
-                                         sizeClasses = 'w-34 h-48 sm:w-42 sm:h-56';
+                                         sizeClasses = 'w-32 h-44 sm:w-40 sm:h-52 md:w-46 md:h-60';
                                      } else if (posIdx === 1) {
-                                         posClasses = 'absolute right-2 sm:right-5 top-[48%] -translate-y-1/2 z-25 opacity-90 scale-105';
-                                         sizeClasses = 'w-28 h-38 sm:w-34 sm:h-46';
+                                         posClasses = 'absolute right-1 sm:right-4 md:right-8 top-[48%] -translate-y-1/2 z-25 opacity-95 scale-105';
+                                         sizeClasses = 'w-26 h-36 sm:w-32 sm:h-44 md:w-36 md:h-48';
                                      } else {
-                                         posClasses = 'absolute left-2 sm:left-5 top-[48%] -translate-y-1/2 z-25 opacity-90 scale-105';
-                                         sizeClasses = 'w-28 h-38 sm:w-34 sm:h-46';
+                                         posClasses = 'absolute left-1 sm:left-4 md:left-8 top-[48%] -translate-y-1/2 z-25 opacity-95 scale-105';
+                                         sizeClasses = 'w-26 h-36 sm:w-32 sm:h-44 md:w-36 md:h-48';
                                      }
 
-                                    const interactiveStyle = isSelectable ? 'cursor-pointer ring-4 ring-amber-400 bg-amber-950/40 rounded-xl' : '';
-                                    const deadStyle = c.hp <= 0 ? 'opacity-40 grayscale' : '';
-                                    const flipStyle = 'transform: scaleX(-1);';
+                                     const interactiveStyle = isSelectable ? 'cursor-pointer ring-4 ring-amber-400 bg-amber-950/40 rounded-xl' : '';
+                                     const deadStyle = c.hp <= 0 ? 'opacity-40 grayscale' : '';
+                                     const flipStyle = 'transform: scaleX(-1);';
 
-                                    return `
-                                        <div ${clickableAttr} class="${posClasses} ${sizeClasses} flex flex-col items-center justify-end transition-all duration-500 ${interactiveStyle} ${deadStyle}">
-                                            ${isCurrentActor ? '<div class="absolute bottom-full mb-12 left-1/2 -translate-x-1/2 text-amber-400 font-bold text-base sm:text-xl animate-arrow-float z-50 drop-shadow-md">▼</div>' : ''}
-                                            
-                                            <!-- 頭上のステータスUI（完全頭上固定・フロート表示） -->
-                                            <div class="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 w-[130%] min-w-[120px] sm:w-[140%] z-40 flex flex-col items-center bg-black/85 backdrop-blur-md px-1.5 py-1 rounded-md border border-white/20 shadow-xl">
-                                                <div class="flex justify-between items-center w-full text-[9px] sm:text-[10px] font-bold text-red-300 px-0.5">
-                                                    <span class="truncate">${c.charName}</span>
-                                                    <span class="font-mono">${c.hp}/${c.maxHp}</span>
-                                                </div>
-                                                <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden my-0.5 border border-white/20">
-                                                    <div class="bg-red-500 h-full hp-bar-fill shadow-[0_0_6px_rgba(239,68,68,0.8)]" style="width: ${pct}%;"></div>
-                                                </div>
-                                                <div class="flex flex-wrap gap-0.5 justify-center max-h-8 overflow-hidden">
-                                                    ${getStatusBadgesHtml(c, false)}
-                                                </div>
-                                            </div>
+                                     return `
+                                         <div ${clickableAttr} class="${posClasses} ${sizeClasses} flex flex-col items-center justify-end transition-all duration-500 ${interactiveStyle} ${deadStyle}">
+                                             ${isCurrentActor ? '<div class="absolute bottom-full mb-12 left-1/2 -translate-x-1/2 text-amber-400 font-bold text-base sm:text-xl animate-arrow-float z-50 drop-shadow-md">▼</div>' : ''}
+                                             
+                                             <!-- 頭上のステータスUI（完全頭上固定・フロート表示） -->
+                                             <div class="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 w-[130%] min-w-[120px] sm:w-[140%] z-40 flex flex-col items-center bg-black/85 backdrop-blur-md px-1.5 py-1 rounded-md border border-white/20 shadow-xl">
+                                                 <div class="flex justify-between items-center w-full text-[9px] sm:text-[10px] font-bold text-red-300 px-0.5">
+                                                     <span class="truncate">${c.charName}</span>
+                                                     <span class="font-mono">${c.hp}/${c.maxHp}</span>
+                                                 </div>
+                                                 <div class="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden my-0.5 border border-white/20">
+                                                     <div class="bg-red-500 h-full hp-bar-fill shadow-[0_0_6px_rgba(239,68,68,0.8)]" style="width: ${pct}%;"></div>
+                                                 </div>
+                                                 <div class="flex flex-wrap gap-0.5 justify-center max-h-8 overflow-hidden">
+                                                     ${getStatusBadgesHtml(c, false)}
+                                                 </div>
+                                             </div>
 
-                                            <!-- 全身スプライト（四角い枠線なし・背景直接配置） -->
-                                            <div class="w-full flex-1 flex items-center justify-center relative drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)]">
-                                                <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain" style="${flipStyle}">
-                                                ${isLeader && posIdx === 0 ? '<div class="absolute bottom-0 left-0 bg-red-600 text-white px-1.5 py-0.5 rounded text-[8px] font-pixel shadow">BOSS</div>' : ''}
-                                            </div>
-                                        </div>
-                                    `;
-                                }).join('');
+                                             <!-- 全身スプライト（四角い枠線なし・背景直接配置） -->
+                                             <div class="w-full flex-1 flex items-center justify-center relative drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)]">
+                                                 <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain" style="${flipStyle}">
+                                                 ${isLeader && posIdx === 0 ? '<div class="absolute bottom-0 left-0 bg-red-600 text-white px-1.5 py-0.5 rounded text-[8px] font-pixel shadow">BOSS</div>' : ''}
+                                             </div>
+                                         </div>
+                                     `;
+                                 }).join('');
                             })()}
                         </div>
                     </div>
 
                     <!-- 3. 画面下部エリア：プロフィール・ログ・コマンド操作枠 -->
-                    <div class="w-full grid grid-cols-1 md:grid-cols-12 gap-1.5 h-20 sm:h-24 shrink-0 z-10">
-                        <div class="md:col-span-3 bg-slate-900/95 border-2 border-slate-700 rounded-lg p-1.5 flex items-center gap-2 shadow-md h-full overflow-hidden">
+                    <div class="w-full grid grid-cols-1 sm:grid-cols-12 gap-1.5 h-20 sm:h-24 shrink-0 z-10">
+                        <div class="sm:col-span-3 bg-slate-900/95 border-2 border-slate-700 rounded-lg p-1.5 flex items-center gap-2 shadow-md h-full overflow-hidden">
                             <canvas id="new-battle-profile-icon" width="36" height="36" class="pixel-box bg-slate-950 rounded shrink-0 w-8 h-8"></canvas>
                             <div class="flex flex-col justify-center overflow-hidden">
                                 <div class="text-[11px] font-bold text-amber-300 font-pixel truncate">${playerState.playerName || '名無しファイター'}</div>
@@ -4465,14 +4465,14 @@ case 'dopa_juggler_skill':
                             </div>
                         </div>
 
-                        <div class="md:col-span-5 bg-slate-900/95 border-2 border-slate-700 rounded-lg p-1.5 flex flex-col h-full shadow-md overflow-hidden">
+                        <div class="sm:col-span-5 bg-slate-900/95 border-2 border-slate-700 rounded-lg p-1.5 flex flex-col h-full shadow-md overflow-hidden">
                             <div class="text-[9px] text-amber-400 font-bold font-pixel mb-0.5 shrink-0">📜 BATTLE LOG</div>
                             <div class="w-full flex-1 bg-slate-950 border border-slate-800 rounded p-1 text-[9px] sm:text-[10px] font-mono text-slate-200 overflow-y-auto shadow-inner" id="new-battle-log">
                                 ${(activeNewBattle.battleLogs && activeNewBattle.battleLogs.length > 0) ? activeNewBattle.battleLogs.map(l => renderLogItem(l)).join('') : "3v3バトルモードが開始しました！コマンドを選択してください。"}
                             </div>
                         </div>
 
-                        <div class="md:col-span-4 bg-slate-900/95 border-2 border-slate-700 rounded-lg p-1.5 flex flex-col justify-center h-full shadow-md relative overflow-hidden">
+                        <div class="sm:col-span-4 bg-slate-900/95 border-2 border-slate-700 rounded-lg p-1.5 flex flex-col justify-center h-full shadow-md relative overflow-hidden">
                             ${commandAreaContent}
                         </div>
                     </div>
