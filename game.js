@@ -2002,10 +2002,10 @@ dopagaking: {
                 image: 'ndaihyo/ndaihyou.webp',
                 desc: 'N高クリケット部代表。高い知性と緻密な戦術で相手の能力を下げつつ優位に立つ。',
                 skills: [
-                    { id: 'ndaihyo_attack', name: 'バッティング', type: 'attack', power: 1.05, isNormalAttack: true, cooldown: 0, desc: '敵単体に標準ダメージを与える通常攻撃。' },
-                    { id: 'ndaihyo_analysis', name: '弱点分析', type: 'debuff_attack', power: 1.30, isNormalAttack: false, cooldown: 2, desc: '敵単体の攻撃力と防御力を次のターン終了まで小低下させる。' },
-                    { id: 'ndaihyo_tactics', name: 'パシャ憎絶許', type: 'debuff', cooldown: 4, initialCooldown: 1, desc: '敵全体の攻撃力・防御力を2ターン中低下。相手にパシャ憎がいる場合は攻撃力を大幅低下！' },
-                    { id: 'ndaihyo_mind', name: '消しゴム回復', type: 'heal_cleanse', healRate: 0.20, cooldown: 3, desc: '味方全員のHPを小回復し、選択した味方1人のデバフを解除する。' }
+                    { id: 'ndaihyo_attack', name: 'バッティング', type: 'attack', power: 1.05, isNormalAttack: true, cooldown: 0, targetType: 'single_enemy', desc: '敵単体に標準ダメージを与える通常攻撃。' },
+                    { id: 'ndaihyo_analysis', name: '弱点分析', type: 'debuff_attack', power: 1.30, isNormalAttack: false, cooldown: 2, targetType: 'single_enemy', desc: '敵単体の攻撃力と防御力を次のターン終了まで小低下させる。' },
+                    { id: 'ndaihyo_tactics', name: 'パシャ憎絶許', type: 'debuff', cooldown: 4, initialCooldown: 1, targetType: 'all_enemies', desc: '敵全体の攻撃力・防御力を2ターン中低下。相手にパシャ憎がいる場合は攻撃力を大幅低下！' },
+                    { id: 'ndaihyo_mind', name: '消しゴム回復', type: 'heal_cleanse', healRate: 0.20, cooldown: 3, targetType: 'all_allies', desc: '味方全員のHPを小回復し、選択した味方1人のデバフを解除する。' }
                 ]
             },
              pasha: {
@@ -2017,10 +2017,10 @@ dopagaking: {
                 image: 'pasha/pasha.webp',
                 desc: 'スマホとカメラを駆使するサポーター・回復特化。パッシブ: 敵チームに「パシャ憎・半浸闇化状態」がいる場合、自身のクリティカル率が常に少量上昇する。',
                 skills: [
-                    { id: 'pasha_attack', name: '睨みつける', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, desc: '敵単体に標準ダメージを与える通常攻撃。' },
-                    { id: 'pasha_flash', name: 'カメラフラッシュ', type: 'attack', power: 1.35, isNormalAttack: false, cooldown: 3, initialCooldown: 1, desc: '敵全体に小ダメージ＋選択した敵1体を1ターンの間行動不能にする。' },
-                    { id: 'pasha_roll', name: 'カメラロール', type: 'heal', healRate: 0.40, cooldown: 5, initialCooldown: 2, desc: '味方全員のHPを大きく回復。低確率で倒れた味方1人をHP40%で復活（1試合2回まで）。' },
-                    { id: 'pasha_darkness', name: '暗黒封印解除', type: 'special', power: 1.85, isNormalAttack: false, cooldown: 3, desc: '選択した味方1人に暗黒パワーを付与。3ターンの間、毎ターン開始時にHPが少量ずつランダム回復する。' }
+                    { id: 'pasha_attack', name: '睨みつける', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, targetType: 'single_enemy', desc: '敵単体に標準ダメージを与える通常攻撃。' },
+                    { id: 'pasha_flash', name: 'カメラフラッシュ', type: 'attack', power: 1.35, isNormalAttack: false, cooldown: 3, initialCooldown: 1, targetType: 'all_enemies', desc: '敵全体に小ダメージ＋選択した敵1体を1ターンの間行動不能にする。' },
+                    { id: 'pasha_roll', name: 'カメラロール', type: 'heal', healRate: 0.40, cooldown: 5, initialCooldown: 2, targetType: 'all_allies', desc: '味方全員のHPを大きく回復。低確率で倒れた味方1人をHP40%で復活（1試合2回まで）。' },
+                    { id: 'pasha_darkness', name: '暗黒封印解除', type: 'special', power: 1.85, isNormalAttack: false, cooldown: 3, targetType: 'single_ally', desc: '選択した味方1人に暗黒パワーを付与。3ターンの間、毎ターン開始時にHPが少量ずつランダム回復する。' }
                 ]
             },
 
@@ -2033,10 +2033,10 @@ pasha_dark: {
                 image: 'pasha/pasha-dark.webp',
                 desc: '圧倒的な攻撃力と高回避を誇る超攻撃型。回避するたびに攻撃力が跳ね上がるアビリティを持ち、ハマれば一撃で全てを破壊するロマンと脅威を兼ね備えています。',
                 skills: [
-                    { id: 'pasha_dark_attack', name: '通常攻撃', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, desc: 'カメラのフラッシュで攻撃＋20パーセントの確率で自身の回避率3％アップ' },
-                    { id: 'pasha_dark_stealth', name: 'ステルスオブダーク', type: 'attack', power: 1.25, isNormalAttack: false, cooldown: 2, desc: '敵はこの攻撃を絶対に回避できない＋自身の回避率を2%アップする。' },
-                    { id: 'pasha_dark_crime', name: 'パーフェクトクライム', type: 'pasha_crime_skill', cooldown: 3, desc: 'HPを110回復。だが次の一ターンの間自身の防御力ダウン' },
-                    { id: 'pasha_dark_nightmare', name: 'アブソリュートナイトメア', type: 'pasha_nightmare_skill', cooldown: 4, desc: 'このターンのみ自身の攻撃力1.3倍＋このあとの3ターンは敵の防御力が大幅ダウン。使用するとすぐに相手にターンが渡る！' }
+                    { id: 'pasha_dark_attack', name: '通常攻撃', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, targetType: 'single_enemy', desc: 'カメラのフラッシュで攻撃＋20パーセントの確率で自身の回避率3％アップ' },
+                    { id: 'pasha_dark_stealth', name: 'ステルスオブダーク', type: 'attack', power: 1.25, isNormalAttack: false, cooldown: 2, targetType: 'single_enemy', desc: '敵はこの攻撃を絶対に回避できない＋自身の回避率を2%アップする。' },
+                    { id: 'pasha_dark_crime', name: 'パーフェクトクライム', type: 'pasha_crime_skill', cooldown: 3, targetType: 'self', desc: 'HPを110回復。だが次の一ターンの間自身の防御力ダウン' },
+                    { id: 'pasha_dark_nightmare', name: 'アブソリュートナイトメア', type: 'pasha_nightmare_skill', cooldown: 4, targetType: 'single_enemy', desc: 'このターンのみ自身の攻撃力1.3倍＋このあとの3ターンは敵の防御力が大幅ダウン。使用するとすぐに相手にターンが渡る！' }
                 ]
             },
 
@@ -2050,10 +2050,10 @@ pasha_dark: {
                 image: 'iwaba/ganban.webp',
                 desc: 'ダンスとラップと岩盤浴を愛するタンク・耐久強化。パッシブ: ブレイクダンスはごく稀に2回連続ヒットする。',
                 skills: [
-                    { id: 'iwaba_dance', name: 'ブレイクダンス', type: 'attack', power: 1.15, isNormalAttack: true, cooldown: 0, desc: 'リズムに乗った攻撃。パッシブ効果でごく稀に2回連続ヒットする。' },
-                    { id: 'iwaba_rap', name: 'フリースタイル', type: 'buff', buffType: 'def', amount: 1.40, cooldown: 3, desc: '魂のラップで3ターンの間、味方全員の防御力を大幅に強化する！' },
-                    { id: 'iwaba_song', name: 'ソウルソング', type: 'shield', cooldown: 4, initialCooldown: 1, desc: '魂の歌声で傷を癒やす。選択した味方1人は次の相手からの攻撃を1回だけ完全に無効化する。' },
-                    { id: 'iwaba_bath', name: '岩盤浴ブースト', type: 'heal_buff', healRate: 0.20, cooldown: 3, desc: '温まり効果で2ターンの間、味方全員のHPを毎ターン少量回復＋回避率を中強化！' }
+                    { id: 'iwaba_dance', name: 'ブレイクダンス', type: 'attack', power: 1.15, isNormalAttack: true, cooldown: 0, targetType: 'single_enemy', desc: 'リズムに乗った攻撃。パッシブ効果でごく稀に2回連続ヒットする。' },
+                    { id: 'iwaba_rap', name: 'フリースタイル', type: 'buff', buffType: 'def', amount: 1.40, cooldown: 3, targetType: 'all_allies', desc: '魂のラップで3ターンの間、味方全員の防御力を大幅に強化する！' },
+                    { id: 'iwaba_song', name: 'ソウルソング', type: 'shield', cooldown: 4, initialCooldown: 1, targetType: 'single_ally', desc: '魂の歌声で傷を癒やす。選択した味方1人は次の相手からの攻撃を1回だけ完全に無効化する。' },
+                    { id: 'iwaba_bath', name: '岩盤浴ブースト', type: 'heal_buff', healRate: 0.20, cooldown: 3, targetType: 'all_allies', desc: '温まり効果で2ターンの間、味方全員のHPを毎ターン少量回復＋回避率を中強化！' }
                 ]
             },
             momo: {
@@ -2066,10 +2066,10 @@ pasha_dark: {
                 chargedImage: 'momopin/chargenasu.webp',
                 desc: '圧倒的タフさを誇る要塞。「ナス準備中」で変身し、次ターンに「超ナスちん乱舞」を発動！',
                 skills: [
-                    { id: 'momo_attack', name: 'ポカポカ叩く', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, desc: '敵単体に標準ダメージを与える通常攻撃。' },
-                    { id: 'momo_prep', name: 'ナス準備中', type: 'charge', cooldown: 4, desc: '1ターン溜めに入り行動終了。次ターンに「超ナスちん乱舞」が発動！' },
-                    { id: 'momo_chie', name: 'チエを呼ぶ', type: 'momo_chie_skill', healRate: 0.35, cooldown: 2, desc: 'チエを呼び出し自身のHPを小回復＋2ターンの間、自身の回避率を向上させる。' },
-                    { id: 'momo_gk', name: 'ゴールキーパー', type: 'defend_buff', initialCooldown: 1, cooldown: 4, desc: '1ターンの間、鉄壁の守りで味方全員が受けるすべてのダメージを70%カットする！' }
+                    { id: 'momo_attack', name: 'ポカポカ叩く', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, targetType: 'single_enemy', desc: '敵単体に標準ダメージを与える通常攻撃。' },
+                    { id: 'momo_prep', name: 'ナス準備中', type: 'charge', cooldown: 4, targetType: 'self', desc: '1ターン溜めに入り行動終了。次ターンに「超ナスちん乱舞」が発動！' },
+                    { id: 'momo_chie', name: 'チエを呼ぶ', type: 'momo_chie_skill', healRate: 0.35, cooldown: 2, targetType: 'self', desc: 'チエを呼び出し自身のHPを小回復＋2ターンの間、自身の回避率を向上させる。' },
+                    { id: 'momo_gk', name: 'ゴールキーパー', type: 'defend_buff', initialCooldown: 1, cooldown: 4, targetType: 'all_allies', desc: '1ターンの間、鉄壁の守りで味方全員が受けるすべてのダメージを70%カットする！' }
                 ]
             },
             moenan: {
@@ -2081,10 +2081,10 @@ pasha_dark: {
                 image: 'moenan/moenan.webp',
                 desc: '鋭い爪の通常攻撃はクリティカル率が高い。「筋トレ追い込み」からの全力投球で敵を圧倒する。',
                 skills: [
-                    { id: 'moenan_cat', name: '高速猫パンチ', type: 'attack', power: 1.10, isNormalAttack: true, cooldown: 0, desc: '鋭い爪の通常攻撃。他の通常攻撃よりもクリティカル率が高い。' },
-                    { id: 'moenan_play', name: 'こももと遊ぶ', type: 'heal_cleanse', healRate: 0.40, cooldown: 2, desc: '愛猫に癒やされてHPを回復＋かかっているデバフを全解除する。' },
-                    { id: 'moenan_handball', name: '全力投球', type: 'attack', power: 1.60, isNormalAttack: false, cooldown: 2, desc: '唸りをあげるハンドボールシュートを叩き込み、敵単体に中ダメージを与える！' },
-                    { id: 'moenan_workout', name: '筋トレ追い込み', type: 'buff', buffType: 'atk', amount: 2.0, turns: 1, cooldown: 3, desc: '筋肉を限界まで追い込み、次の1ターンの間、自分の攻撃力を大幅に向上させる！' }
+                    { id: 'moenan_cat', name: '高速猫パンチ', type: 'attack', power: 1.10, isNormalAttack: true, cooldown: 0, targetType: 'single_enemy', desc: '鋭い爪の通常攻撃。他の通常攻撃よりもクリティカル率が高い。' },
+                    { id: 'moenan_play', name: 'こももと遊ぶ', type: 'heal_cleanse', healRate: 0.40, cooldown: 2, targetType: 'self', desc: '愛猫に癒やされてHPを回復＋かかっているデバフを全解除する。' },
+                    { id: 'moenan_handball', name: '全力投球', type: 'attack', power: 1.60, isNormalAttack: false, cooldown: 2, targetType: 'single_enemy', desc: '唸りをあげるハンドボールシュートを叩き込み、敵単体に中ダメージを与える！' },
+                    { id: 'moenan_workout', name: '筋トレ追い込み', type: 'buff', buffType: 'atk', amount: 2.0, turns: 1, cooldown: 3, targetType: 'self', desc: '筋肉を限界まで追い込み、次の1ターンの間、自分の攻撃力を大幅に向上させる！' }
                 ]
             },
             asaiomizu: {
@@ -2096,10 +2096,10 @@ pasha_dark: {
                 image: 'asaiomizu/asaiomizu.webp',
                 desc: '攻撃を受けた際50%でカウンターが発動。「ディグ」で相手の技を偽装・コピーし、「クラブに行く」でクリティカル率を大幅アップ！',
                 skills: [
-                    { id: 'asaiomizu_attack', name: '髪をかきあげる', type: 'attack', power: 1.15, isNormalAttack: true, cooldown: 0, desc: 'スタイリッシュな動作で敵単体に標準ダメージを与える通常攻撃。' },
-                    { id: 'asaiomizu_shoot', name: 'サッカーシュート', type: 'attack', power: 1.80, isNormalAttack: false, cooldown: 2, desc: 'サッカーボールを強烈に蹴り出し、敵単体に特大ダメージを与える！' },
-                    { id: 'asaiomizu_dig', name: 'ディグ', type: 'asaiomizu_dig_skill', initialCooldown: 1, cooldown: 3, desc: '通常攻撃に偽装してダメージを与えつつ受けた攻撃技を保存、次ターンにコピー発動する！' },
-                    { id: 'asaiomizu_club', name: 'クラブに行く', type: 'asaiomizu_club_skill', cooldown: 3, desc: 'クラブでアゲアゲに踊り狂う！2ターンの間、自身のクリティカル率を大幅に向上させる。' }
+                    { id: 'asaiomizu_attack', name: '髪をかきあげる', type: 'attack', power: 1.15, isNormalAttack: true, cooldown: 0, targetType: 'single_enemy', desc: 'スタイリッシュな動作で敵単体に標準ダメージを与える通常攻撃。' },
+                    { id: 'asaiomizu_shoot', name: 'サッカーシュート', type: 'attack', power: 1.80, isNormalAttack: false, cooldown: 2, targetType: 'single_enemy', desc: 'サッカーボールを強烈に蹴り出し、敵単体に特大ダメージを与える！' },
+                    { id: 'asaiomizu_dig', name: 'ディグ', type: 'asaiomizu_dig_skill', initialCooldown: 1, cooldown: 3, targetType: 'single_enemy', desc: '通常攻撃に偽装してダメージを与えつつ受けた攻撃技を保存、次ターンにコピー発動する！' },
+                    { id: 'asaiomizu_club', name: 'クラブに行く', type: 'asaiomizu_club_skill', cooldown: 3, targetType: 'self', desc: 'クラブでアゲアゲに踊り狂う！2ターンの間、自身のクリティカル率を大幅に向上させる。' }
                 ]
             }
         };
@@ -2654,7 +2654,15 @@ pasha_dark: {
 
                             const opponents = isAllyTeam ? this.enemies.filter(e => e.hp > 0) : this.allies.filter(a => a.hp > 0);
                             if (opponents.length === 0) break;
-                            const defender = opponents[Math.floor(Math.random() * opponents.length)];
+                            let defender = opponents[Math.floor(Math.random() * opponents.length)];
+
+                            if (isAllyTeam && attacker === this.p1 && this.p1TargetIndex !== null) {
+                                const skill = attacker.skills.find(s => s.id === skillId) || attacker.skills[0];
+                                const targetList = (skill.targetType === 'single_ally') ? this.allies.filter(a => a.hp > 0) : opponents;
+                                if (targetList[this.p1TargetIndex]) {
+                                    defender = targetList[this.p1TargetIndex];
+                                }
+                            }
 
                             this.executePlayerAction(attacker, defender, skillId);
                             if (await this.checkWinner()) return true;
@@ -3739,7 +3747,21 @@ case 'dopa_juggler_skill':
 
         let activeNewBattle = null;
         let isNewBattleSkillModalOpen = false;
-        let newBattleViewMode = 'main';
+        let newBattleViewMode = 'main'; // 'main', 'attack_select', 'target_select'
+        let newBattleTargetSelectSkillId = null;
+        let newBattleTargetSelectType = null;
+
+        function selectNewBattleTarget(targetIdx, isAllySide) {
+            if (!activeNewBattle) return;
+            const skill = activeNewBattle.p1.skills.find(s => s.id === newBattleTargetSelectSkillId) || activeNewBattle.p1.skills.find(s => s.isNormalAttack);
+            if (skill && skill.targetType === 'single_ally' && !isAllySide) return;
+            if (skill && skill.targetType === 'single_enemy' && isAllySide) return;
+
+            activeNewBattle.p1TargetIndex = targetIdx;
+            newBattleViewMode = 'main';
+            activeNewBattle.submitAction(1, newBattleTargetSelectSkillId);
+            renderNewBattleScreen();
+        }
 
         function renderNewBattleCharSelectScreen(sortOrder = 'default', sortDir = 'desc', onlyOwned = false) {
             audioSystem.playSelect();
@@ -4047,7 +4069,16 @@ case 'dopa_juggler_skill':
             const isMyTurn = !activeNewBattle.battleEnded && !activeNewBattle.waitingForOpponent && !p1.isResting;
 
             let commandAreaContent = '';
-            if (newBattleViewMode === 'attack_select') {
+            if (newBattleViewMode === 'target_select') {
+                commandAreaContent = `
+                    <div class="flex flex-col gap-1 w-full h-full justify-center text-center">
+                        <div class="font-pixel text-[11px] text-amber-300 font-bold animate-bounce">🎯 対象を選択してください</div>
+                        <button onclick="newBattleViewMode='main'; renderNewBattleScreen();" class="pixel-btn pixel-btn-danger py-1 px-2 text-[10px] font-bold font-pixel">
+                            ✕ キャンセル
+                        </button>
+                    </div>
+                `;
+            } else if (newBattleViewMode === 'attack_select') {
                 const normalSkill = p1.skills.find(s => s.isNormalAttack) || p1.skills[0];
                 commandAreaContent = `
                     <div class="flex flex-col gap-1 w-full h-full justify-center">
@@ -4161,8 +4192,13 @@ case 'dopa_juggler_skill':
                                 const pct = Math.max(0, Math.min(100, Math.round((ally.hp / ally.maxHp) * 100)));
                                 const img = getCharImg(ally, true);
                                 const isLeader = idx === 0;
+                                const isTargetSelecting = (newBattleViewMode === 'target_select');
+                                const isAllyTargetMode = isTargetSelecting && newBattleTargetSelectType === 'single_ally';
+                                const isSelectable = isAllyTargetMode && ally.hp > 0;
+                                const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${idx}, true)"` : '';
+                                const borderClass = isSelectable ? 'border-amber-400 animate-pulse ring-2 ring-amber-400 cursor-pointer bg-amber-950/30' : (isLeader ? 'border-emerald-400 ring-1 ring-emerald-500/40' : 'border-slate-700');
                                 return `
-                                    <div class="pixel-box p-1.5 bg-slate-900/90 flex items-center gap-2 border ${isLeader ? 'border-emerald-400 ring-1 ring-emerald-500/40' : 'border-slate-700'} ${ally.hp <= 0 ? 'opacity-40 grayscale' : ''}">
+                                    <div ${clickableAttr} class="pixel-box p-1.5 bg-slate-900/90 flex items-center gap-2 border ${borderClass} ${ally.hp <= 0 ? 'opacity-40 grayscale' : ''}">
                                         <div class="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center shrink-0 overflow-hidden bg-slate-950 border border-slate-700">
                                             <img src="${img}" alt="${ally.charName}" class="w-full h-full object-contain">
                                         </div>
@@ -4192,8 +4228,13 @@ case 'dopa_juggler_skill':
                             ${enemies.map((enemy, idx) => {
                                 const pct = Math.max(0, Math.min(100, Math.round((enemy.hp / enemy.maxHp) * 100)));
                                 const img = getCharImg(enemy, false);
+                                const isTargetSelecting = (newBattleViewMode === 'target_select');
+                                const isEnemyTargetMode = isTargetSelecting && newBattleTargetSelectType === 'single_enemy';
+                                const isSelectable = isEnemyTargetMode && enemy.hp > 0;
+                                const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${idx}, false)"` : '';
+                                const borderClass = isSelectable ? 'border-amber-400 animate-pulse ring-2 ring-amber-400 cursor-pointer bg-amber-950/30' : 'border-red-500/60';
                                 return `
-                                    <div class="pixel-box p-1.5 bg-slate-900/90 flex items-center gap-2 border border-red-500/60 ${enemy.hp <= 0 ? 'opacity-40 grayscale' : ''}">
+                                    <div ${clickableAttr} class="pixel-box p-1.5 bg-slate-900/90 flex items-center gap-2 border ${borderClass} ${enemy.hp <= 0 ? 'opacity-40 grayscale' : ''}">
                                         <div class="flex flex-col flex-1 min-w-0 text-right">
                                             <div class="flex justify-between items-center text-[11px] font-bold truncate">
                                                 <span class="font-mono text-[10px]">${enemy.hp}/${enemy.maxHp}</span>
@@ -4298,6 +4339,16 @@ case 'dopa_juggler_skill':
             }
 
             isNewBattleSkillModalOpen = false;
+
+            const skill = activeNewBattle.p1.skills.find(s => s.id === actionType) || (actionType === activeNewBattle.p1.skills.find(s => s.isNormalAttack)?.id ? activeNewBattle.p1.skills.find(s => s.isNormalAttack) : null);
+            if (activeNewBattle.isNewBattle && skill && (skill.targetType === 'single_enemy' || skill.targetType === 'single_ally')) {
+                newBattleTargetSelectSkillId = actionType;
+                newBattleTargetSelectType = skill.targetType;
+                newBattleViewMode = 'target_select';
+                renderNewBattleScreen();
+                return;
+            }
+
             newBattleViewMode = 'main';
             activeNewBattle.submitAction(1, actionType);
             renderNewBattleScreen();
