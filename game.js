@@ -2000,28 +2000,27 @@ dopagaking: {
                 type: '頭脳・デバフ型',
                 hp: 179, atk: 23, def: 15, critRate: 0.05, eva: 16,
                 image: 'ndaihyo/ndaihyou.webp',
-                desc: 'N高クリケット部代表。高い知性と緻密な戦術で相手の能力を下げつつ優位に立つ。相手が「パシャ僧」の場合は専用パッシブ【パシャ僧キラー】が1試合に1回だけ発動し、現在HPの50%を一気に削る！',
+                desc: 'N高クリケット部代表。高い知性と緻密な戦術で相手の能力を下げつつ優位に立つ。',
                 skills: [
-                    { id: 'ndaihyo_attack', name: '通常攻撃', type: 'attack', power: 1.05, isNormalAttack: true, cooldown: 0, desc: '正確なバッティング攻撃。「パシャ僧」相手には1試合1回【パシャ僧キラー】発動！' },
-                    { id: 'ndaihyo_analysis', name: '弱点分析ショット', type: 'debuff_attack', power: 1.30, isNormalAttack: false, cooldown: 3, desc: '相手の攻撃力と防御力を低下させる！' },
-                    { id: 'ndaihyo_tactics', name: 'パシャ憎にムカつく', type: 'debuff', cooldown: 6, desc: '攻撃力と防御力を大きく低下させる。' },
-                    { id: 'ndaihyo_mind', name: '消しゴムを食う', type: 'heal_cleanse', healRate: 0.20, cooldown: 2, desc: 'HPを回復し、自身のデバフを解除する。' }
+                    { id: 'ndaihyo_attack', name: 'バッティング', type: 'attack', power: 1.05, isNormalAttack: true, cooldown: 0, desc: '敵単体に標準ダメージを与える通常攻撃。' },
+                    { id: 'ndaihyo_analysis', name: '弱点分析', type: 'debuff_attack', power: 1.30, isNormalAttack: false, cooldown: 2, desc: '敵単体の攻撃力と防御力を次のターン終了まで小低下させる。' },
+                    { id: 'ndaihyo_tactics', name: 'パシャ憎絶許', type: 'debuff', cooldown: 4, initialCooldown: 1, desc: '敵全体の攻撃力・防御力を2ターン中低下。相手にパシャ憎がいる場合は攻撃力を大幅低下！' },
+                    { id: 'ndaihyo_mind', name: '消しゴム回復', type: 'heal_cleanse', healRate: 0.20, cooldown: 3, desc: '味方全員のHPを小回復し、選択した味方1人のデバフを解除する。' }
                 ]
             },
              pasha: {
                 id: 'pasha',
                 name: 'パシャ僧',
                 title: '暗黒スマホ僧侶',
-                type: '闇属性 / バランス',
+                type: '闇属性 / サポーター・回復特化',
                 hp: 178, atk: 24, def: 19, critRate: 0.06, eva: 21,
                 image: 'pasha/pasha.webp',
-                desc: 'スマホとカメラを駆使し、高い回避率と素早さで相手を翻弄するテクニカルな闇属性ファイター！\n眩い光で敵の目をくらます『カメラフラッシュ』や、罪深い記憶を呼び起こす『カメラロール参照』で戦線を維持する。\nさらに、過酷な過去から生まれた強烈な執念により、HPが半分以下になると「ダークモード」が自動発動して攻撃力が急上昇！\nピンチから一転して反撃の牙を剥く、危険な二面性を秘めたキャラクター。',
-                zukanDesc: 'かつてはごく普通の少年だったが、ある日偶然見かけた超人気女優「コートニー」を一目見て心を奪われ、思わずスマホで写真を撮ってしまったことから人生が一変。\n過剰な詮索とスキャンダル騒ぎにより逮捕寸前まで追い詰められ、世間の冷たい目に晒された。\nその消せない<span>「過去の過ち」</span>と深い後悔を引きずり続けた結果、心に巣食った闇に引きずり込まれていく。\n\nいつしか彼は、手にしたカメラの「強烈なフラッシュ」で周囲の人間をくらませ、自分と同じように様々な人々を漆黒の闇夜へと道連れにしようと企むようになった。\nその歪んだ執念と深まる闇こそが、のちに恐怖の「半浸闇化状態」を招き、彼を最強のダークモンスターへと変貌させる引き金となったのだ……。',
+                desc: 'スマホとカメラを駆使するサポーター・回復特化。パッシブ: 敵チームに「パシャ憎・半浸闇化状態」がいる場合、自身のクリティカル率が常に少量上昇する。',
                 skills: [
-                    { id: 'pasha_attack', name: '通常攻撃', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, desc: '標準的な闇の物理攻撃。' },
-                    { id: 'pasha_flash', name: 'カメラフラッシュ', type: 'attack', power: 1.35, isNormalAttack: false, cooldown: 2, desc: '強烈なフラッシュでダメージを与える。' },
-                    { id: 'pasha_roll', name: 'カメラロール参照', type: 'heal', healRate: 0.35, cooldown: 3, desc: '思い出の写真を見てHPを大きく回復。' },
-                    { id: 'pasha_darkness', name: '暗黒封印解除', type: 'special', power: 1.85, isNormalAttack: false, cooldown: 4, desc: '封印された右手の暗黒パワーを撃ち出す！' }
+                    { id: 'pasha_attack', name: '睨みつける', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, desc: '敵単体に標準ダメージを与える通常攻撃。' },
+                    { id: 'pasha_flash', name: 'カメラフラッシュ', type: 'attack', power: 1.35, isNormalAttack: false, cooldown: 3, initialCooldown: 1, desc: '敵全体に小ダメージ＋選択した敵1体を1ターンの間行動不能にする。' },
+                    { id: 'pasha_roll', name: 'カメラロール', type: 'heal', healRate: 0.40, cooldown: 5, initialCooldown: 2, desc: '味方全員のHPを大きく回復。低確率で倒れた味方1人をHP40%で復活（1試合2回まで）。' },
+                    { id: 'pasha_darkness', name: '暗黒封印解除', type: 'special', power: 1.85, isNormalAttack: false, cooldown: 3, desc: '選択した味方1人に暗黒パワーを付与。3ターンの間、毎ターン開始時にHPが少量ずつランダム回復する。' }
                 ]
             },
 
@@ -2046,15 +2045,15 @@ pasha_dark: {
                 id: 'iwaba',
                 name: '岩盤星人',
                 title: '不屈のラップラッパー',
-                type: '岩属性 / 耐久強化',
+                type: '岩属性 / タンク・耐久強化',
                 hp: 195, atk: 22, def: 18, critRate: 0.03, eva: 8,
                 image: 'iwaba/ganban.webp',
-                desc: 'ダンスとラップと岩盤浴を愛する星人。防御が高く「岩盤浴」や「ラップ」でステータスを底上げする粘り強さ。',
+                desc: 'ダンスとラップと岩盤浴を愛するタンク・耐久強化。パッシブ: ブレイクダンスはごく稀に2回連続ヒットする。',
                 skills: [
-                    { id: 'iwaba_dance', name: 'ブレイクダンス', type: 'attack', power: 1.15, isNormalAttack: true, cooldown: 0, desc: 'リズムに乗った連続アタック。' },
-                    { id: 'iwaba_rap', name: 'フリースタイル', type: 'buff', buffType: 'atk', amount: 1.40, cooldown: 2, desc: '韻を踏みまくって攻撃力を大幅強化！' },
-                    { id: 'iwaba_song', name: 'ソウルソング', type: 'heal', healRate: 0.25, cooldown: 3, desc: '魂の歌声で傷を癒やす。' },
-                    { id: 'iwaba_bath', name: '岩盤浴ブースト', type: 'heal_buff', healRate: 0.20, cooldown: 5, desc: '温まりHP回復＋防御力を強化！' }
+                    { id: 'iwaba_dance', name: 'ブレイクダンス', type: 'attack', power: 1.15, isNormalAttack: true, cooldown: 0, desc: 'リズムに乗った攻撃。パッシブ効果でごく稀に2回連続ヒットする。' },
+                    { id: 'iwaba_rap', name: 'フリースタイル', type: 'buff', buffType: 'def', amount: 1.40, cooldown: 3, desc: '魂のラップで3ターンの間、味方全員の防御力を大幅に強化する！' },
+                    { id: 'iwaba_song', name: 'ソウルソング', type: 'shield', cooldown: 4, initialCooldown: 1, desc: '魂の歌声で傷を癒やす。選択した味方1人は次の相手からの攻撃を1回だけ完全に無効化する。' },
+                    { id: 'iwaba_bath', name: '岩盤浴ブースト', type: 'heal_buff', healRate: 0.20, cooldown: 3, desc: '温まり効果で2ターンの間、味方全員のHPを毎ターン少量回復＋回避率を中強化！' }
                 ]
             },
             momo: {
