@@ -2104,6 +2104,8 @@ pasha_dark: {
             }
         };
 
+        const BOT_ACTION_DELAY = 1700; // 1.5秒〜2秒程度の行動ディレイ（倍速調整対応用定数）
+
         class BotInputAdapter {
             getDecision(botChar, opponentChar) {
                 if (botChar.isResting) return 'rest';
@@ -2645,6 +2647,9 @@ pasha_dark: {
                             const attacker = teamList[i];
                             if (attacker.hp <= 0) continue;
 
+                            // 1アクションごとに1.5秒〜2秒のウェイトを挟んで思考・演出の溜めを作る
+                            await new Promise(resolve => setTimeout(resolve, BOT_ACTION_DELAY));
+
                             let skillId;
                             if (isAllyTeam && attacker === this.p1) {
                                 skillId = ally1Action;
@@ -2667,6 +2672,8 @@ pasha_dark: {
                             }
 
                             this.executePlayerAction(attacker, defender, skillId);
+                            if (this.onStateChange) this.onStateChange(this);
+
                             if (await this.checkWinner()) return true;
                         }
                         return false;
