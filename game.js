@@ -4331,21 +4331,21 @@ case 'dopa_juggler_skill':
                                     const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${origIdx}, true)"` : '';
                                     const isCurrentActor = currentActor === c;
 
-                                    let posClasses = '';
-                                    let sizeClasses = '';
-                                    if (posIdx === 0) {
-                                        // 先頭（一番手前・中央）へシャッフル＆前面移動
-                                        posClasses = 'absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 z-30 scale-105';
-                                        sizeClasses = 'w-32 h-44 sm:w-40 sm:h-52';
-                                    } else if (posIdx === 1) {
-                                        // 2番目（左側密着・後ろ）
-                                        posClasses = 'absolute left-2 sm:left-6 top-1/3 -translate-y-1/2 z-20 opacity-85 scale-90';
-                                        sizeClasses = 'w-20 h-28 sm:w-24 sm:h-34';
-                                    } else {
-                                        // 3番目（右側密着・後ろ）
-                                        posClasses = 'absolute right-2 sm:right-6 top-1/3 -translate-y-1/2 z-20 opacity-85 scale-90';
-                                        sizeClasses = 'w-20 h-28 sm:w-24 sm:h-34';
-                                    }
+                                     let posClasses = '';
+                                     let sizeClasses = '';
+                                     if (posIdx === 0) {
+                                         // 先頭（一番手前・中央）へシャッフル＆前面強調
+                                         posClasses = 'absolute left-1/2 -translate-x-1/2 top-[52%] -translate-y-1/2 z-30 scale-115';
+                                         sizeClasses = 'w-38 h-52 sm:w-46 sm:h-60';
+                                     } else if (posIdx === 1) {
+                                         // 2番目（左側密着・少し手前へ引き出し＆サイズアップ）
+                                         posClasses = 'absolute left-2 sm:left-5 top-[44%] -translate-y-1/2 z-25 opacity-90 scale-100';
+                                         sizeClasses = 'w-26 h-36 sm:w-32 sm:h-44';
+                                     } else {
+                                         // 3番目（右側密着・少し手前へ引き出し＆サイズアップ）
+                                         posClasses = 'absolute right-2 sm:right-5 top-[44%] -translate-y-1/2 z-25 opacity-90 scale-100';
+                                         sizeClasses = 'w-26 h-36 sm:w-32 sm:h-44';
+                                     }
 
                                     const interactiveStyle = isSelectable ? 'cursor-pointer ring-4 ring-amber-400 bg-amber-950/40 rounded-xl' : '';
                                     const deadStyle = c.hp <= 0 ? 'opacity-40 grayscale' : '';
@@ -4408,18 +4408,18 @@ case 'dopa_juggler_skill':
                                     const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${origIdx}, false)"` : '';
                                     const isCurrentActor = currentActor === c;
 
-                                    let posClasses = '';
-                                    let sizeClasses = '';
-                                    if (posIdx === 0) {
-                                        posClasses = 'absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 z-30 scale-105';
-                                        sizeClasses = 'w-32 h-44 sm:w-40 sm:h-52';
-                                    } else if (posIdx === 1) {
-                                        posClasses = 'absolute right-2 sm:right-6 top-1/3 -translate-y-1/2 z-20 opacity-85 scale-90';
-                                        sizeClasses = 'w-20 h-28 sm:w-24 sm:h-34';
-                                    } else {
-                                        posClasses = 'absolute left-2 sm:left-6 top-1/3 -translate-y-1/2 z-20 opacity-85 scale-90';
-                                        sizeClasses = 'w-20 h-28 sm:w-24 sm:h-34';
-                                    }
+                                     let posClasses = '';
+                                     let sizeClasses = '';
+                                     if (posIdx === 0) {
+                                         posClasses = 'absolute left-1/2 -translate-x-1/2 top-[52%] -translate-y-1/2 z-30 scale-115';
+                                         sizeClasses = 'w-38 h-52 sm:w-46 sm:h-60';
+                                     } else if (posIdx === 1) {
+                                         posClasses = 'absolute right-2 sm:right-5 top-[44%] -translate-y-1/2 z-25 opacity-90 scale-100';
+                                         sizeClasses = 'w-26 h-36 sm:w-32 sm:h-44';
+                                     } else {
+                                         posClasses = 'absolute left-2 sm:left-5 top-[44%] -translate-y-1/2 z-25 opacity-90 scale-100';
+                                         sizeClasses = 'w-26 h-36 sm:w-32 sm:h-44';
+                                     }
 
                                     const interactiveStyle = isSelectable ? 'cursor-pointer ring-4 ring-amber-400 bg-amber-950/40 rounded-xl' : '';
                                     const deadStyle = c.hp <= 0 ? 'opacity-40 grayscale' : '';
