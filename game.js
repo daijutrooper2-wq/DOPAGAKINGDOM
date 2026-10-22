@@ -4182,20 +4182,20 @@ case 'dopa_juggler_skill':
                 const actor = activeNewBattle.currentAttacker;
                 const isAlly = activeNewBattle.getCharacterTeam(actor) === 'ally';
                 actorIndicator = `
-                    <div class="px-3 py-1 rounded-md border text-xs sm:text-sm font-bold font-pixel animate-pulse shadow-lg ${isAlly ? 'bg-emerald-950/90 border-emerald-500 text-emerald-300' : 'bg-red-950/90 border-red-500 text-red-300'}">
+                    <div class="px-2 py-0.5 rounded border text-[10px] sm:text-xs font-bold font-pixel animate-pulse shadow ${isAlly ? 'bg-emerald-950/90 border-emerald-500 text-emerald-300' : 'bg-red-950/90 border-red-500 text-red-300'}">
                         ⚡ 現在行動中：${isAlly ? '【味方】' : '【敵】'} ${actor.charName}
                     </div>
                 `;
             } else if (isMyTurn) {
                 actorIndicator = `
-                    <div class="px-3 py-1 rounded-md border border-emerald-400 bg-emerald-950/90 text-emerald-300 text-xs sm:text-sm font-bold font-pixel animate-pulse shadow-lg">
-                        🟢 自分のターン (${p1.charName}の指令を選べ)
+                    <div class="px-2 py-0.5 rounded border border-emerald-400 bg-emerald-950/90 text-emerald-300 text-[10px] sm:text-xs font-bold font-pixel animate-pulse shadow">
+                        🟢 自分のターン (${p1.charName})
                     </div>
                 `;
             } else {
                 actorIndicator = `
-                    <div class="px-3 py-1 rounded-md border border-slate-700 bg-slate-900 text-slate-400 text-xs sm:text-sm font-bold font-pixel">
-                        ⏳ 処理中...
+                    <div class="px-2 py-0.5 rounded border border-slate-700 bg-slate-900 text-slate-400 text-[10px] sm:text-xs font-bold font-pixel">
+                        ⏳ 相手のターン
                     </div>
                 `;
             }
@@ -4295,12 +4295,15 @@ case 'dopa_juggler_skill':
                     <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
                         <img src="images/backnormal.webp" alt="backnormal" class="w-full h-full object-cover opacity-80">
                     </div>
-                    <!-- 1. 上部エリア（ターン・制限時間） -->
+                    <!-- 1. 上部エリア（タイトル・行動状態・ターン・制限時間） -->
                     <div class="w-full flex items-center justify-between gap-2 px-3 py-1.5 bg-slate-900/95 rounded-lg border border-slate-700 shadow-md z-20 shrink-0">
-                        <div class="flex items-center gap-1.5 text-xs font-pixel text-amber-300">
+                        <div class="flex items-center gap-1.5 text-xs font-pixel text-amber-300 shrink-0">
                             <span>⚔️ 3v3バトルモード</span>
                         </div>
-                        <div class="flex items-center gap-3 text-xs sm:text-sm font-mono">
+                        <div class="flex items-center justify-center flex-1 px-1">
+                            ${actorIndicator}
+                        </div>
+                        <div class="flex items-center gap-2 text-xs sm:text-sm font-mono shrink-0">
                             <div class="flex items-center gap-1">
                                 <span class="text-slate-400">T:</span>
                                 <strong id="new-battle-turn" class="text-amber-400 font-pixel">${activeNewBattle.turn}</strong>
@@ -4311,12 +4314,6 @@ case 'dopa_juggler_skill':
                                 <strong id="new-battle-timer" class="text-emerald-400 font-pixel">${activeNewBattle.turnTimer}</strong><span>s</span>
                             </div>
                         </div>
-                        <div class="px-2 py-0.5 rounded text-[10px] font-bold ${isMyTurn ? 'bg-emerald-950 text-emerald-300 border border-emerald-500 animate-pulse' : 'bg-slate-800 text-slate-400'}">
-                            ${isMyTurn ? '🟢 自分のターン' : '⏳ 相手のターン'}
-                        </div>
-                    </div>
-                    <div class="w-full flex justify-center z-20 shrink-0 my-0.5">
-                        ${actorIndicator}
                     </div>
 
                     <!-- 2. 中央エリア：味方3体と敵3体の密着隊列バトルステージ (シャッフル・前面移動 & 枠線撤去) -->
