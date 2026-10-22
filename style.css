@@ -13,8 +13,10 @@
             color: #ffffff;
             user-select: none;
             overflow: hidden;
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            height: 100%;
+            width: 100dvw;
+            height: 100dvh;
             margin: 0;
             padding: 0;
             position: fixed;
@@ -24,6 +26,7 @@
             padding-right: env(safe-area-inset-right);
             padding-bottom: env(safe-area-inset-bottom);
             padding-left: env(safe-area-inset-left);
+            box-sizing: border-box;
         }
 
         body.modal-open {
@@ -32,10 +35,15 @@
         }
 
         #app {
-            width: 100vw;
-            height: 100vh;
+            width: 100%;
+            height: 100%;
+            width: 100dvw;
+            height: 100dvh;
             overflow: hidden;
             touch-action: none;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
         }
 
         /* 3. 必要なエリアのみのスクロール許可 (touch-action: pan-y) */
@@ -241,59 +249,67 @@
         }
 
         @media (orientation: landscape) {
-            body {
+            html, body {
                 padding-top: env(safe-area-inset-top) !important;
                 padding-right: env(safe-area-inset-right) !important;
                 padding-bottom: env(safe-area-inset-bottom) !important;
                 padding-left: env(safe-area-inset-left) !important;
                 margin: 0 !important;
-                width: 100vw !important;
-                height: 100vh !important;
+                width: 100% !important;
+                height: 100% !important;
+                width: 100dvw !important;
+                height: 100dvh !important;
                 overflow: hidden !important;
                 position: fixed !important;
                 inset: 0 !important;
                 touch-action: none !important;
+                box-sizing: border-box !important;
             }
             #app {
                 padding-left: max(4px, env(safe-area-inset-left)) !important;
                 padding-right: max(4px, env(safe-area-inset-right)) !important;
-                padding-top: max(4px, env(safe-area-inset-top)) !important;
-                padding-bottom: max(4px, env(safe-area-inset-bottom)) !important;
+                padding-top: max(2px, env(safe-area-inset-top)) !important;
+                padding-bottom: max(2px, env(safe-area-inset-bottom)) !important;
                 border: none !important;
                 box-shadow: none !important;
                 border-radius: 0 !important;
-                width: 100vw !important;
-                height: 100vh !important;
-                min-height: 100vh !important;
+                width: 100% !important;
+                height: 100% !important;
+                width: 100dvw !important;
+                height: 100dvh !important;
                 display: flex !important;
                 flex-direction: column !important;
+                justify-content: space-between !important;
                 overflow: hidden !important;
                 touch-action: none !important;
+                box-sizing: border-box !important;
             }
             #screen-container {
-                overflow-y: auto !important;
-                touch-action: pan-y !important;
-                max-height: calc(100vh - 24px) !important;
+                overflow: hidden !important;
+                touch-action: none !important;
+                height: 100% !important;
+                max-height: 100% !important;
                 flex: 1 !important;
                 display: flex !important;
                 flex-direction: column !important;
                 align-items: stretch !important;
-                width: 100vw !important;
-                max-width: 100vw !important;
-                -webkit-overflow-scrolling: touch !important;
+                justify-content: space-between !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                box-sizing: border-box !important;
             }
             .landscape-battle-container {
                 display: flex !important;
                 flex-direction: column !important;
-                gap: 8px !important;
+                justify-content: space-between !important;
                 align-items: center !important;
-                justify-content: center !important;
                 width: 100% !important;
+                height: 100% !important;
                 max-height: 100% !important;
-                overflow-y: auto !important;
-                touch-action: pan-y !important;
-                padding: 4px 8px !important;
-                -webkit-overflow-scrolling: touch !important;
+                overflow: hidden !important;
+                touch-action: none !important;
+                padding: 2px 4px !important;
+                box-sizing: border-box !important;
             }
             .landscape-battle-upper {
                 width: 100% !important;
@@ -329,5 +345,3 @@
         .animate-arrow-float {
             animation: arrow-float 0.8s ease-in-out infinite;
         }
-
-
