@@ -2156,6 +2156,30 @@ pasha_dark: {
                 this.p1 = this.createBattlePlayer(p1CharId, isOnline ? 'Player 1' : 'Player 1', 1);
                 this.p2 = this.createBattlePlayer(p2CharId, isOnline ? 'Player 2' : 'BOT (CPU)', 2);
 
+                if (this.isNewBattle) {
+                    const allIds = Object.keys(CHARACTER_DATA);
+                    const otherAllyIds = allIds.filter(id => id !== p1CharId);
+                    const ally2Id = otherAllyIds[Math.floor(Math.random() * otherAllyIds.length)] || 'courtney';
+                    const ally3Id = otherAllyIds.filter(id => id !== ally2Id)[Math.floor(Math.random() * (otherAllyIds.length - 1))] || 'ndaihyo';
+
+                    const enemy2Id = allIds[Math.floor(Math.random() * allIds.length)];
+                    const enemy3Id = allIds[Math.floor(Math.random() * allIds.length)];
+
+                    this.allies = [
+                        this.p1,
+                        this.createBattlePlayer(ally2Id, '味方2', 1),
+                        this.createBattlePlayer(ally3Id, '味方3', 1)
+                    ];
+                    this.enemies = [
+                        this.p2,
+                        this.createBattlePlayer(enemy2Id, '敵2', 2),
+                        this.createBattlePlayer(enemy3Id, '敵3', 2)
+                    ];
+                } else {
+                    this.allies = [this.p1];
+                    this.enemies = [this.p2];
+                }
+
                 this.p1Action = null;
                 this.p2Action = null;
 
@@ -3095,29 +3119,32 @@ case 'dopa_juggler_skill':
                 let winnerText = '';
                 let isEnded = false;
 
-                if (this.p1.hp <= 0 && this.p2.hp <= 0) {
+                const livingAllies = this.allies ? this.allies.filter(a => a.hp > 0) : [this.p1].filter(a => a.hp > 0);
+                const livingEnemies = this.enemies ? this.enemies.filter(e => e.hp > 0) : [this.p2].filter(e => e.hp > 0);
+
+                if (livingAllies.length === 0 && livingEnemies.length === 0) {
                     winnerText = '⚔️ 引き分け！相討ちとなりました！';
                     isEnded = true;
                     this.log(winnerText, 'text-yellow-400 font-bold text-center text-sm');
                     this.log(`🤝 引き分けとなりました。`, 'text-yellow-400 font-bold text-center');
-                } else if (this.p2.hp <= 0) {
-                    winnerText = `🎉 【${this.p1.charName}】の勝利！`;
+                } else if (livingEnemies.length === 0) {
+                    winnerText = `🎉 【${this.p1.charName}】チームの勝利！`;
                     isEnded = true;
                     this.log(winnerText, 'text-emerald-400 font-bold text-center text-sm');
                     audioSystem.playVictory();
                     if (!this.isOnline || this.myPlayerNum === 1) {
-                        const earnedDopa = 100;
+                        const earnedDopa = 150;
                         await addDopa(earnedDopa);
                         this.log(`🎁 勝利報酬: +${formatDopa(earnedDopa)} DOPA 獲得！`, 'text-amber-300 font-bold text-center');
                     }
-                } else if (this.p1.hp <= 0) {
-                    winnerText = `💀 【${this.p2.charName}】の勝利！`;
+                } else if (livingAllies.length === 0) {
+                    winnerText = `💀 敵チームの勝利！`;
                     isEnded = true;
                     this.log(winnerText, 'text-red-400 font-bold text-center text-sm');
                     audioSystem.playDefeat();
                     this.log(`💀 敗北… 次回は勝利を目指そう！`, 'text-red-400 font-bold text-center');
                     if (this.isOnline && this.myPlayerNum === 2) {
-                        const earnedDopa = 100;
+                        const earnedDopa = 150;
                         await addDopa(earnedDopa);
                         this.log(`🎁 勝利報酬: +${formatDopa(earnedDopa)} DOPA 獲得！`, 'text-amber-300 font-bold text-center');
                     }
@@ -3472,13 +3499,13 @@ case 'dopa_juggler_skill':
                     <div class="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-3 relative z-10 my-auto items-center justify-center max-w-4xl mx-auto w-full">
                         <button onclick="renderCharacterSelectScreen(false)" class="pixel-box bg-slate-900 border-amber-400 hover:border-amber-300 p-4 flex flex-col items-center justify-center gap-2 cursor-pointer transform hover:scale-105 transition-all shadow-xl h-28 sm:h-36 group">
                             <span class="text-2xl sm:text-3xl">⚔️</span>
-                            <span class="text-amber-300 font-pixel font-bold text-xs sm:text-sm text-center">コマンドバトル</span>
+                            <span class="text-amber-300 font-pixel font-bold text-xs sm:text-sm text-center">！元祖1v1コマンドバトル</span>
                             <span class="text-[9px] text-slate-400 text-center">おなじみの本格バトル！</span>
                         </button>
 
                         <button onclick="renderNewBattleCharSelectScreen()" class="pixel-box bg-slate-900 border-emerald-400 hover:border-emerald-300 p-4 flex flex-col items-center justify-center gap-2 cursor-pointer transform hover:scale-105 transition-all shadow-xl h-28 sm:h-36 group">
                             <span class="text-2xl sm:text-3xl">✨</span>
-                            <span class="text-emerald-300 font-pixel font-bold text-xs sm:text-sm text-center">新規バトルモード</span>
+                            <span class="text-emerald-300 font-pixel font-bold text-xs sm:text-sm text-center">3v3バトルモード</span>
                             <span class="text-[9px] text-slate-400 text-center">左右分割の最新バトルUI！</span>
                         </button>
 
@@ -3589,7 +3616,7 @@ case 'dopa_juggler_skill':
                                 ◀ モード選択
                             </button>
                             <h2 class="text-xs sm:text-base font-bold text-amber-300 font-pixel">
-                                ✨ 新規バトルモード - キャラ選択
+                                 ✨ 3v3バトルモード - キャラ選択
                             </h2>
                             <div class="w-16"></div>
                         </div>
@@ -3804,9 +3831,8 @@ case 'dopa_juggler_skill':
 
             const p1 = activeNewBattle.p1;
             const p2 = activeNewBattle.p2;
-
-            const pPercent = Math.max(0, Math.min(100, Math.round((p1.hp / p1.maxHp) * 100)));
-            const ePercent = Math.max(0, Math.min(100, Math.round((p2.hp / p2.maxHp) * 100)));
+            const allies = activeNewBattle.allies || [p1];
+            const enemies = activeNewBattle.enemies || [p2];
 
             const getCharImg = (player, isPlayerSide) => {
                 const isC = player.id === 'courtney';
@@ -3921,90 +3947,111 @@ case 'dopa_juggler_skill':
             }
 
             container.innerHTML = `
-                <div class="w-full h-full flex flex-col justify-between bg-slate-950 text-white relative select-none p-1.5 sm:p-2 overflow-hidden">
+                <div class="w-full h-full flex flex-col justify-between bg-slate-950 text-white relative select-none p-1 sm:p-2 overflow-hidden">
                     ${skillModalHtml}
-                    <!-- 背景画像 "backnormal" -->
+                    <!-- 背景画像 -->
                     <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
-                        <img src="images/backnormal.webp" alt="backnormal" class="w-full h-full object-cover">
+                        <img src="images/backnormal.webp" alt="backnormal" class="w-full h-full object-cover opacity-80">
                     </div>
-                    <!-- 1. 上部エリア（ターン・制限時間・HPの高さ同一の横一列） -->
-                    <div class="w-full flex items-center justify-between gap-2 px-3 py-2 bg-slate-900/95 rounded-lg border border-slate-700 shadow-md z-20 shrink-0">
-                        <!-- 左：自分 HP & 名前 -->
-                        <div class="flex flex-col gap-1 w-36 sm:w-48">
-                            <div class="flex justify-between text-[11px] sm:text-xs font-bold">
-                                <span id="new-player-name" class="font-pixel text-emerald-400 truncate">${p1.charName}</span>
-                                <span class="font-mono"><span id="new-player-hp">${p1.hp}</span>/<span id="new-player-maxhp">${p1.maxHp}</span></span>
+                    <!-- 1. 上部エリア（ターン・制限時間） -->
+                    <div class="w-full flex items-center justify-between gap-2 px-3 py-1.5 bg-slate-900/95 rounded-lg border border-slate-700 shadow-md z-20 shrink-0">
+                        <div class="flex items-center gap-1.5 text-xs font-pixel text-amber-300">
+                            <span>⚔️ 3v3バトルモード</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-xs sm:text-sm font-mono">
+                            <div class="flex items-center gap-1">
+                                <span class="text-slate-400">T:</span>
+                                <strong id="new-battle-turn" class="text-amber-400 font-pixel">${activeNewBattle.turn}</strong>
                             </div>
-                            <div class="w-full bg-slate-950 h-2 border border-slate-700 rounded-full overflow-hidden shadow-inner">
-                                <div id="new-player-hp-bar" class="bg-emerald-500 h-full hp-bar-fill transition-all duration-300" style="width: ${pPercent}%;"></div>
+                            <span>|</span>
+                            <div class="flex items-center gap-1">
+                                <span class="text-slate-400">制限:</span>
+                                <strong id="new-battle-timer" class="text-emerald-400 font-pixel">${activeNewBattle.turnTimer}</strong><span>s</span>
                             </div>
                         </div>
-
-                        <!-- 中央：ターン・制限時間・ステータス -->
-                        <div class="flex flex-col items-center gap-1 px-2">
-                            <div class="flex items-center gap-2.5 text-xs sm:text-sm font-mono whitespace-nowrap">
-                                <div class="flex items-center gap-1">
-                                    <span class="text-slate-400 font-bold">T</span>
-                                    <strong id="new-battle-turn" class="text-amber-400 font-pixel text-xs sm:text-sm">${activeNewBattle.turn}</strong>
-                                </div>
-                                <span class="text-slate-600">|</span>
-                                <div class="flex items-center gap-1">
-                                    <span class="text-slate-400 font-bold">制限:</span>
-                                    <strong id="new-battle-timer" class="text-emerald-400 font-pixel text-xs sm:text-sm">${activeNewBattle.turnTimer}</strong><span class="text-[10px] sm:text-xs">s</span>
-                                </div>
-                            </div>
-                            <div class="px-2 py-0.5 rounded text-[10px] sm:text-xs font-bold whitespace-nowrap ${isMyTurn ? 'bg-emerald-950 text-emerald-300 border border-emerald-500 animate-pulse' : 'bg-slate-800 text-slate-400 border border-slate-600'}">
-                                ${isMyTurn ? '🟢 自分のターン' : '⏳ 相手のターン'}
-                            </div>
-                        </div>
-
-                        <!-- 右：敵 HP & 名前 -->
-                        <div class="flex flex-col gap-1 w-36 sm:w-48">
-                            <div class="flex justify-between text-[11px] sm:text-xs font-bold">
-                                <span id="new-enemy-name" class="font-pixel text-amber-400 truncate">${p2.charName}</span>
-                                <span class="font-mono"><span id="new-enemy-hp">${p2.hp}</span>/<span id="new-enemy-maxhp">${p2.maxHp}</span></span>
-                            </div>
-                            <div class="w-full bg-slate-950 h-2 border border-slate-700 rounded-full overflow-hidden shadow-inner">
-                                <div id="new-enemy-hp-bar" class="bg-red-500 h-full hp-bar-fill transition-all duration-300" style="width: ${ePercent}%;"></div>
-                            </div>
+                        <div class="px-2 py-0.5 rounded text-[10px] font-bold ${isMyTurn ? 'bg-emerald-950 text-emerald-300 border border-emerald-500 animate-pulse' : 'bg-slate-800 text-slate-400'}">
+                            ${isMyTurn ? '🟢 自分のターン' : '⏳ 相手のターン'}
                         </div>
                     </div>
 
-                    <!-- 2. キャラクター全身画像（立ち絵）エリア（左右配置・少し上方に持ち上げ） -->
-                    <div class="flex-1 flex flex-row items-center justify-between px-6 sm:px-16 pt-3 pb-1 relative z-10 overflow-hidden">
-                        <!-- 左：自分（プレイヤー） -->
-                        <div onclick="if(activeNewBattle && activeNewBattle.p1.id === 'courtney') { executeNewBattleCourtneyCharge(); }" class="w-32 h-32 sm:w-48 sm:h-48 flex items-center justify-center overflow-hidden ${p1.id === 'courtney' ? 'cursor-pointer hover:scale-105 transition-transform' : ''}" title="${p1.id === 'courtney' ? 'タップしてチャージ！' : ''}">
-                            <img id="new-player-img" src="${pImg}" alt="Player" class="w-full h-full object-contain drop-shadow-xl ${p1IsCharging ? 'animate-courtney-bounce' : ''}">
+                    <!-- 2. 中央エリア：味方3体（左側）と 敵3体（右側）の合計6体レイアウト -->
+                    <div class="flex-1 grid grid-cols-12 gap-2 px-2 py-1 items-center justify-center relative z-10 overflow-hidden">
+                        <!-- 左側：味方3体 -->
+                        <div class="col-span-5 flex flex-col gap-1.5 justify-center h-full">
+                            <div class="text-[10px] text-emerald-400 font-pixel font-bold mb-0.5">🛡️ 味方チーム (3体)</div>
+                            ${allies.map((ally, idx) => {
+                                const pct = Math.max(0, Math.min(100, Math.round((ally.hp / ally.maxHp) * 100)));
+                                const img = getCharImg(ally, true);
+                                const isLeader = idx === 0;
+                                return `
+                                    <div class="pixel-box p-1.5 bg-slate-900/90 flex items-center gap-2 border ${isLeader ? 'border-emerald-400 ring-1 ring-emerald-500/40' : 'border-slate-700'} ${ally.hp <= 0 ? 'opacity-40 grayscale' : ''}">
+                                        <div class="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center shrink-0 overflow-hidden bg-slate-950 border border-slate-700">
+                                            <img src="${img}" alt="${ally.charName}" class="w-full h-full object-contain">
+                                        </div>
+                                        <div class="flex flex-col flex-1 min-w-0">
+                                            <div class="flex justify-between items-center text-[11px] font-bold truncate">
+                                                <span class="text-emerald-300 truncate">${ally.charName} ${isLeader ? '(L)' : ''}</span>
+                                                <span class="font-mono text-[10px]">${ally.hp}/${ally.maxHp}</span>
+                                            </div>
+                                            <div class="w-full bg-slate-950 h-2 border border-slate-700 rounded-full overflow-hidden my-0.5">
+                                                <div class="bg-emerald-500 h-full hp-bar-fill" style="width: ${pct}%;"></div>
+                                            </div>
+                                            <div class="text-[9px] text-slate-400 font-mono truncate">攻:${ally.atk} 防:${ally.def}</div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
                         </div>
 
-                        <!-- 右：敵 -->
-                        <div class="w-32 h-32 sm:w-48 sm:h-48 flex items-center justify-center overflow-hidden">
-                            <img id="new-enemy-img" src="${eImg}" alt="Enemy" class="w-full h-full object-contain drop-shadow-xl ${p2IsCharging ? 'animate-courtney-bounce' : ''}" style="transform: scaleX(-1);">
+                        <!-- 中央：VS -->
+                        <div class="col-span-2 flex flex-col items-center justify-center text-center">
+                            <div class="text-amber-400 font-pixel font-black text-sm sm:text-xl drop-shadow-lg animate-pulse">VS</div>
+                        </div>
+
+                        <!-- 右側：敵3体 -->
+                        <div class="col-span-5 flex flex-col gap-1.5 justify-center h-full">
+                            <div class="text-[10px] text-red-400 font-pixel font-bold mb-0.5 text-right">⚔️ 敵チーム (3体)</div>
+                            ${enemies.map((enemy, idx) => {
+                                const pct = Math.max(0, Math.min(100, Math.round((enemy.hp / enemy.maxHp) * 100)));
+                                const img = getCharImg(enemy, false);
+                                return `
+                                    <div class="pixel-box p-1.5 bg-slate-900/90 flex items-center gap-2 border border-red-500/60 ${enemy.hp <= 0 ? 'opacity-40 grayscale' : ''}">
+                                        <div class="flex flex-col flex-1 min-w-0 text-right">
+                                            <div class="flex justify-between items-center text-[11px] font-bold truncate">
+                                                <span class="font-mono text-[10px]">${enemy.hp}/${enemy.maxHp}</span>
+                                                <span class="text-red-300 truncate">${enemy.charName}</span>
+                                            </div>
+                                            <div class="w-full bg-slate-950 h-2 border border-slate-700 rounded-full overflow-hidden my-0.5">
+                                                <div class="bg-red-500 h-full hp-bar-fill" style="width: ${pct}%;"></div>
+                                            </div>
+                                            <div class="text-[9px] text-slate-400 font-mono truncate">攻:${enemy.atk} 防:${enemy.def}</div>
+                                        </div>
+                                        <div class="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center shrink-0 overflow-hidden bg-slate-950 border border-slate-700">
+                                            <img src="${img}" alt="${enemy.charName}" class="w-full h-full object-contain" style="transform: scaleX(-1);">
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
                         </div>
                     </div>
 
-                    <!-- 3. 画面下部エリア（サイズコンパクト・さらに下へ移動・端側に寄せる） -->
-                    <div class="w-full grid grid-cols-1 md:grid-cols-12 gap-1.5 h-20 sm:h-24 shrink-0 z-10 pb-0 mb-0 mt-auto">
-                        <!-- ① 画面の一番左側：プレイヤープロフィール枠 -->
+                    <!-- 3. 画面下部エリア：プロフィール・ログ・コマンド操作枠 -->
+                    <div class="w-full grid grid-cols-1 md:grid-cols-12 gap-1.5 h-20 sm:h-24 shrink-0 z-10">
                         <div class="md:col-span-3 bg-slate-900/95 border-2 border-slate-700 rounded-lg p-1.5 flex items-center gap-2 shadow-md h-full overflow-hidden">
-                            <canvas id="new-battle-profile-icon" width="40" height="40" class="pixel-box bg-slate-950 rounded shrink-0 w-9 h-9 sm:w-11 sm:h-11"></canvas>
+                            <canvas id="new-battle-profile-icon" width="36" height="36" class="pixel-box bg-slate-950 rounded shrink-0 w-8 h-8"></canvas>
                             <div class="flex flex-col justify-center overflow-hidden">
-                                <div id="new-battle-profile-name" class="text-[11px] sm:text-xs font-bold text-amber-300 font-pixel truncate">${playerState.playerName || '名無しファイター'}</div>
-                                <div class="text-[9px] sm:text-[11px] text-slate-300 font-mono truncate">DOPA: <span class="text-amber-400 font-bold">${formatDopa(playerState.dopa)}</span></div>
+                                <div class="text-[11px] font-bold text-amber-300 font-pixel truncate">${playerState.playerName || '名無しファイター'}</div>
+                                <div class="text-[9px] text-slate-300 font-mono truncate">DOPA: <span class="text-amber-400 font-bold">${formatDopa(playerState.dopa)}</span></div>
                             </div>
                         </div>
 
-                        <!-- ③ 中央：バトルログ枠 -->
                         <div class="md:col-span-5 bg-slate-900/95 border-2 border-slate-700 rounded-lg p-1.5 flex flex-col h-full shadow-md overflow-hidden">
-                            <div class="text-[9px] text-amber-400 font-bold font-pixel mb-0.5 flex items-center justify-between shrink-0">
-                                <span>📜 BATTLE LOG</span>
-                            </div>
-                            <div class="w-full flex-1 bg-slate-950 border border-slate-800 rounded p-1 text-[9px] sm:text-[11px] font-mono text-slate-200 overflow-y-auto shadow-inner" id="new-battle-log">
-                                ${(activeNewBattle.battleLogs && activeNewBattle.battleLogs.length > 0) ? activeNewBattle.battleLogs.map(l => `<div class="${l.colorClass || 'text-slate-200'}">${l.msg}</div>`).join('') : "新規バトルモードが開始しました！コマンドを選択してください。"}
+                            <div class="text-[9px] text-amber-400 font-bold font-pixel mb-0.5 shrink-0">📜 BATTLE LOG</div>
+                            <div class="w-full flex-1 bg-slate-950 border border-slate-800 rounded p-1 text-[9px] sm:text-[10px] font-mono text-slate-200 overflow-y-auto shadow-inner" id="new-battle-log">
+                                ${(activeNewBattle.battleLogs && activeNewBattle.battleLogs.length > 0) ? activeNewBattle.battleLogs.map(l => `<div class="${l.colorClass || 'text-slate-200'}">${l.msg}</div>`).join('') : "3v3バトルモードが開始しました！コマンドを選択してください。"}
                             </div>
                         </div>
 
-                        <!-- ② 画面の右下：コマンド枠 / スキル展開エリア -->
                         <div class="md:col-span-4 bg-slate-900/95 border-2 border-slate-700 rounded-lg p-1.5 flex flex-col justify-center h-full shadow-md relative overflow-hidden">
                             ${commandAreaContent}
                         </div>
