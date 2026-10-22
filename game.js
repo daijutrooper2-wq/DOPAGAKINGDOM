@@ -130,19 +130,11 @@
                 let imagePath = null;
                 if (charData) {
                     if (!isBattleCanvas) {
-                        if (charId === 'courtney') {
-                            imagePath = 'courtney/ALT11.webp';
-                        } else if (charId === 'dopagaking') {
-                            imagePath = 'dopagaking/dopagaking11.webp';
-                        } else {
-                            imagePath = charData.image || charData.allImage;
-                        }
+                        imagePath = charData.image || charData.allImage;
                     } else {
                         if (isDead) {
                             if (charData.dieImage) {
                                 imagePath = charData.dieImage;
-                            } else if (charId === 'courtney') {
-                                imagePath = 'courtney/ALT3.webp';
                             } else if (charId === 'asaiomizu') {
                                 imagePath = 'asaiomizu/asaiomizu3.webp';
                             } else {
@@ -151,13 +143,7 @@
                         } else if ((isMiniZou || isCharged || charId.includes('charged') || charId === 'dopagaking_crown') && charData.chargedImage) {
                             imagePath = charData.chargedImage;
                         } else {
-                            if (charId === 'courtney') {
-                                imagePath = 'courtney/ALT.webp';
-                            } else if (charId === 'dopagaking') {
-                                imagePath = 'dopagaking/dopagaking.webp';
-                            } else {
-                                imagePath = charData.allImage || charData.image;
-                            }
+                            imagePath = charData.allImage || charData.image;
                         }
                     }
                 }
@@ -1977,8 +1963,9 @@ dopagaking: {
     dopaChargeCount: 0,
     selectedInheritChar: null,
     maxHpRandom: 200,
-    image: 'dopagaking/dopagaking11.webp',
-    allImage: 'dopagaking/dopagaking.webp',
+    image: 'dopagaking/dopakaking11.webp',
+    allImage: 'dopagaking/dopagakingALL.webp',
+    dieImage: 'dopagaking/dopagakingDIE.webp',
     chargedImage: 'dopagaking/dopagakingchange.webp',
     desc: 'すべてを運に任せる完全ランダム型の国王。アイコンタップで「王位継承」をチャージし、他キャラの力の4倍ダメージを叩き込む！',
     skills: [
@@ -1999,8 +1986,9 @@ dopagaking: {
                 type: '恋属性 / 溜め・爆発型',
                 hp: 190, atk: 18, def: 15, critRate: 0.04, eva: 18,
                 courtneyChargeCount: 0,
-                image: 'courtney/ALT11.webp',
-                allImage: 'courtney/ALT.webp',
+                image: 'courtney/courtney11.webp',
+                allImage: 'courtney/courtneyALL.webp',
+                dieImage: 'courtney/courtneyDIE.webp',
                 chargedImage: 'courtney/ALTchange2.webp',
                 desc: '相手をメロメロにして戦う海外ガール。王国初となる「溜め技」を駆使し、最大8回までチャージして一撃の爆発力を高める！',
                 skills: [
@@ -4150,7 +4138,6 @@ case 'dopa_juggler_skill':
 
                 if (player.hp <= 0) {
                     if (charData.dieImage) return charData.dieImage;
-                    if (isC) return 'courtney/ALT3.webp';
                     if (isA) return 'asaiomizu/asaiomizu3.webp';
                     return charData.image || player.image;
                 }
@@ -4162,9 +4149,7 @@ case 'dopa_juggler_skill':
                     return charData.chargedImage;
                 }
 
-                if (isC) return 'courtney/ALT.webp';
                 if (isA) return isPlayerSide ? 'asaiomizu/asaiomizu2.webp' : 'asaiomizu/asaiomizu1.webp';
-                if (isD) return 'dopagaking/dopagaking.webp';
 
                 return charData.allImage || charData.image || player.image;
             };
