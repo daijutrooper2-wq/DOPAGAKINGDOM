@@ -2060,46 +2060,46 @@ pasha_dark: {
                 id: 'momo',
                 name: '桃ピン',
                 title: 'ナスを統べる守護要塞',
-                type: '土属性 / 超耐久一発型',
+                type: '土属性 / タンク・一発特化',
                 hp: 210, atk: 18, def: 25, critRate: 0.03, eva: 9,
                 image: 'momopin/momopin.webp',
                 chargedImage: 'momopin/chargenasu.webp',
-                desc: '圧倒的タフさを誇る要塞。「ナス準備中」でミニぞうさんに変身し、次のターン手動で大威力の“超ナス乱舞”を繰り出す！',
+                desc: '圧倒的タフさを誇る要塞。「ナス準備中」で変身し、次ターンに「超ナスちん乱舞」を発動！',
                 skills: [
-                    { id: 'momo_attack', name: 'ポカポカ叩く', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, desc: '通常攻撃。' },
-                    { id: 'momo_prep', name: 'ナス準備中', type: 'charge', cooldown: 3, desc: 'ゾウに変身し相手のターンへ！次ターンにコマンド“超ナスちん乱舞”が解禁！' },
-                    { id: 'momo_chie', name: 'チエを呼び出す', type: 'sacrifice_buff', hpCostRate: 0.20, cooldown: 4, desc: 'HPを削り、次の2ターンの間攻撃力を2.3倍に跳ね上げる！' },
-                    { id: 'momo_gk', name: 'ゴールキーパー', type: 'defend_buff', cooldown: 3, desc: '2ターンの間、被ダメージを70%カットする鉄壁。' }
+                    { id: 'momo_attack', name: 'ポカポカ叩く', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, desc: '敵単体に標準ダメージを与える通常攻撃。' },
+                    { id: 'momo_prep', name: 'ナス準備中', type: 'charge', cooldown: 4, desc: '1ターン溜めに入り行動終了。次ターンに「超ナスちん乱舞」が発動！' },
+                    { id: 'momo_chie', name: 'チエを呼ぶ', type: 'momo_chie_skill', healRate: 0.35, cooldown: 2, desc: 'チエを呼び出し自身のHPを小回復＋2ターンの間、自身の回避率を向上させる。' },
+                    { id: 'momo_gk', name: 'ゴールキーパー', type: 'defend_buff', initialCooldown: 1, cooldown: 4, desc: '1ターンの間、鉄壁の守りで味方全員が受けるすべてのダメージを70%カットする！' }
                 ]
             },
             moenan: {
                 id: 'moenan',
                 name: 'もえなん',
                 title: 'トゲ髪のアタッカー',
-                type: '火属性 / 超超攻撃特化',
-                hp: 155, atk: 28, def: 14, critRate: 0.08, eva: 12,
+                type: '火属性 / アタッカー・超攻撃特化',
+                hp: 155, atk: 28, def: 14, critRate: 0.18, eva: 12,
                 image: 'moenan/moenan.webp',
-                desc: 'トゲ髪が目印の超攻撃的ハンター。素早さと威力が圧倒的で「筋トレ」後のハンドボールシュートは一撃必殺。',
+                desc: '鋭い爪の通常攻撃はクリティカル率が高い。「筋トレ追い込み」からの全力投球で敵を圧倒する。',
                 skills: [
-                    { id: 'moenan_cat', name: '高速猫パンチ', type: 'attack', power: 1.10, isNormalAttack: true, cooldown: 0, desc: '鋭い爪の通常攻撃。' },
-                    { id: 'moenan_play', name: 'こももと遊ぶ', type: 'heal', healRate: 0.62, cooldown: 2, desc: '愛猫に癒やされてHPを回復。' },
-                    { id: 'moenan_handball', name: '全力投球', type: 'attack', power: 1.60, isNormalAttack: false, cooldown: 3, desc: '唸りをあげるシュートを叩き込む！' },
-                    { id: 'moenan_workout', name: '筋トレ追い込み', type: 'buff', buffType: 'atk', amount: 1.40, cooldown: 3, desc: '筋肉を追い込み攻撃力を激増させる。' }
+                    { id: 'moenan_cat', name: '高速猫パンチ', type: 'attack', power: 1.10, isNormalAttack: true, cooldown: 0, desc: '鋭い爪の通常攻撃。他の通常攻撃よりもクリティカル率が高い。' },
+                    { id: 'moenan_play', name: 'こももと遊ぶ', type: 'heal_cleanse', healRate: 0.40, cooldown: 2, desc: '愛猫に癒やされてHPを回復＋かかっているデバフを全解除する。' },
+                    { id: 'moenan_handball', name: '全力投球', type: 'attack', power: 1.60, isNormalAttack: false, cooldown: 2, desc: '唸りをあげるハンドボールシュートを叩き込み、敵単体に中ダメージを与える！' },
+                    { id: 'moenan_workout', name: '筋トレ追い込み', type: 'buff', buffType: 'atk', amount: 2.0, turns: 1, cooldown: 3, desc: '筋肉を限界まで追い込み、次の1ターンの間、自分の攻撃力を大幅に向上させる！' }
                 ]
             },
             asaiomizu: {
                 id: 'asaiomizu',
                 name: 'ASAIOMIZU',
                 title: 'パーマなナルシスト',
-                type: '水属性 / COUNTER',
+                type: '水属性 / アタッカー・カウンター特化',
                 hp: 182, atk: 28, def: 20, critRate: 0.06, eva: 17,
                 image: 'asaiomizu/asaiomizu.webp',
-                desc: '特徴的なパーマヘアを持つナルシスト。通常攻撃を受けると自動で反撃！「ディグ」で相手の攻撃技をコピーし「サッカーシュート」で大ダメージを狙う。',
+                desc: '攻撃を受けた際50%でカウンターが発動。「ディグ」で相手の技を偽装・コピーし、「クラブに行く」でクリティカル率を大幅アップ！',
                 skills: [
-                    { id: 'asaiomizu_attack', name: '通常攻撃', type: 'attack', power: 1.15, isNormalAttack: true, cooldown: 0, desc: 'スタイリッシュな通常の攻撃。' },
-                    { id: 'asaiomizu_shoot', name: 'サッカーシュート', type: 'attack', power: 1.80, isNormalAttack: false, cooldown: 3, desc: 'サッカーボールを強烈に蹴り出す特大パワーシュート！' },
-                    { id: 'asaiomizu_dig', name: 'ディグ', type: 'dig', cooldown: 3, desc: '身を潜めて相手の攻撃を待ち構え、受けた攻撃技をコピーする！' },
-                    { id: 'asaiomizu_club', name: 'クラブに行く', type: 'heal_club', healRate: 0.35, cooldown: 3, desc: 'クラブでアゲアゲに踊り狂ってHPを回復！' }
+                    { id: 'asaiomizu_attack', name: '髪をかきあげる', type: 'attack', power: 1.15, isNormalAttack: true, cooldown: 0, desc: 'スタイリッシュな動作で敵単体に標準ダメージを与える通常攻撃。' },
+                    { id: 'asaiomizu_shoot', name: 'サッカーシュート', type: 'attack', power: 1.80, isNormalAttack: false, cooldown: 2, desc: 'サッカーボールを強烈に蹴り出し、敵単体に特大ダメージを与える！' },
+                    { id: 'asaiomizu_dig', name: 'ディグ', type: 'asaiomizu_dig_skill', initialCooldown: 1, cooldown: 3, desc: '通常攻撃に偽装してダメージを与えつつ受けた攻撃技を保存、次ターンにコピー発動する！' },
+                    { id: 'asaiomizu_club', name: 'クラブに行く', type: 'asaiomizu_club_skill', cooldown: 3, desc: 'クラブでアゲアゲに踊り狂う！2ターンの間、自身のクリティカル率を大幅に向上させる。' }
                 ]
             }
         };
@@ -2263,7 +2263,13 @@ pasha_dark: {
                     critRate: critRate,
                     eva: eva,
                     skills: master.skills.map(s => ({ ...s })),
-                    cooldowns: {},
+                    cooldowns: (() => {
+                        const cds = {};
+                        master.skills.forEach(s => {
+                            if (s.initialCooldown) cds[s.id] = s.initialCooldown;
+                        });
+                        return cds;
+                    })(),
                     buffAtk: 1.0,
                     buffDef: 1.0,
                     buffAtkTurns: 0,
@@ -2284,7 +2290,13 @@ pasha_dark: {
                     defendBuffTurns: 0,
                     crimeDefDownTurns: 0,
                     nightmareDefTurns: 0,
-                    nightmareAtkActive: false
+                    nightmareAtkActive: false,
+                    critRateBonus: 0,
+                    critBuffTurns: 0,
+                    evaDebuff: 0,
+                    enemyEvaTurns: 0,
+                    momoEvaTurns: 0,
+                    asaiomizuCritTurns: 0
                 };
             }
 
@@ -2991,11 +3003,45 @@ case 'dopa_juggler_skill':
                         audioSystem.playHeal();
                         break;
                     case 'eggplant_burst':
-                        this.log(`🐘 ${attacker.charName} は全パワーを開放してナスを乱射した！！`, 'text-purple-300 font-bold');
+                        this.log(`🐘 ${attacker.charName} の「超ナスちん乱舞」発動！！ 3ターンの間、全味方のクリティカル大幅UP ＆ 敵全体の回避率中DOWN！`, 'text-purple-300 font-bold');
                         this.applyDamageSkill(attacker, defender, skill);
+                        const alliesList = attacker.isEnemySide ? (this.enemies || [attacker]) : (this.allies || [attacker]);
+                        alliesList.forEach(a => {
+                            a.critRateBonus = (a.critRateBonus || 0) + 0.35;
+                            a.critBuffTurns = 3;
+                        });
+                        const enemiesList = attacker.isEnemySide ? (this.allies || [defender]) : (this.enemies || [defender]);
+                        enemiesList.forEach(e => {
+                            e.evaDebuff = (e.evaDebuff || 0) + 15;
+                            e.enemyEvaTurns = 3;
+                        });
                         attacker.isMiniZou = false;
                         attacker.eggplantReady = false;
                         this.log(`✨ ${attacker.charName} は元の姿に戻った。`, 'text-slate-400');
+                        break;
+                    case 'momo_chie_skill':
+                        const hChie = Math.floor(attacker.maxHp * (skill.healRate || 0.35));
+                        attacker.hp = Math.min(attacker.maxHp, attacker.hp + hChie);
+                        attacker.eva = (attacker.eva || 10) + 20;
+                        attacker.momoEvaTurns = 2;
+                        this.log(`🩷 ${attacker.charName} は「チエを呼ぶ」！ HPが ${hChie} 回復し、2ターンの間回避率が大幅アップ！`, 'text-pink-300 font-bold');
+                        this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'heal', `+${hChie}`);
+                        audioSystem.playHeal();
+                        break;
+                    case 'asaiomizu_dig_skill':
+                        const dummyAttack = { name: '髪をかきあげる', type: 'attack', power: 1.15, isNormalAttack: true };
+                        this.applyDamageSkill(attacker, defender, dummyAttack);
+                        attacker.digActive = true;
+                        attacker.digUsedTurn = this.turn;
+                        this.log(`🕳️ ${attacker.charName} はディグを発動！(自チーム画面表示、敵チームには通常の髪をかきあげるとして偽装)`, 'text-cyan-300 font-bold');
+                        this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'buff', 'ディグ構え');
+                        break;
+                    case 'asaiomizu_club_skill':
+                        attacker.critRateBonus = (attacker.critRateBonus || 0) + 0.40;
+                        attacker.asaiomizuCritTurns = 2;
+                        this.log(`🎵 ${attacker.charName} は「クラブに行く」でアゲアゲに踊り狂う！2ターンの間、クリティカル率が大幅向上！`, 'text-cyan-300 font-bold');
+                        this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'buff', 'クリティカル大幅UP!');
+                        audioSystem.playBuff();
                         break;
                     case 'debuff_attack':
                         this.applyDamageSkill(attacker, defender, skill);
@@ -3131,7 +3177,8 @@ case 'dopa_juggler_skill':
                 }
 
                 if (!isStealth) {
-                    const hitRate = 100 - (defender.eva || 10);
+                    const effectiveEva = Math.max(0, (defender.eva || 10) - (defender.evaDebuff || 0));
+                    const hitRate = 100 - effectiveEva;
                     if (Math.random() * 100 > hitRate) {
                         this.log(`🌀 ${defender.charName} は攻撃を回避した！`, 'text-sky-300');
                         this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'miss', 'MISS');
@@ -3161,7 +3208,8 @@ case 'dopa_juggler_skill':
                 let damage = Math.max(8, Math.floor(baseDmg + (Math.random() * 4 - 2)));
 
                 let isCrit = false;
-                if (attacker.critRate && Math.random() < attacker.critRate) {
+                let effectiveCritRate = (attacker.critRate || 0.05) + (attacker.critRateBonus || 0);
+                if (Math.random() < effectiveCritRate) {
                     isCrit = true;
                     damage = Math.floor(damage * 1.5);
                     audioSystem.playCrit();
@@ -3216,7 +3264,7 @@ case 'dopa_juggler_skill':
                     return;
                 }
 
-                if (!isCounter && defender.id === 'asaiomizu' && skill.isNormalAttack && defender.hp > 0) {
+                if (!isCounter && defender.id === 'asaiomizu' && defender.hp > 0 && Math.random() < 0.5) {
                     this.executeCounter(defender, attacker);
                 }
             }
@@ -3343,6 +3391,19 @@ case 'dopa_juggler_skill':
                     if (p.nightmareAtkActive) {
                         p.nightmareAtkActive = false;
                         p.buffAtk /= 1.3;
+                    }
+
+                    if (p.critBuffTurns > 0) {
+                        p.critBuffTurns--;
+                        if (p.critBuffTurns === 0) p.critRateBonus = 0;
+                    }
+                    if (p.enemyEvaTurns > 0) {
+                        p.enemyEvaTurns--;
+                        if (p.enemyEvaTurns === 0) p.evaDebuff = 0;
+                    }
+                    if (p.momoEvaTurns > 0) {
+                        p.momoEvaTurns--;
+                        if (p.momoEvaTurns === 0) p.eva -= 20;
                     }
                 });
 
