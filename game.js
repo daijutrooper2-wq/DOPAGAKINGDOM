@@ -135,14 +135,14 @@
                         } else if (charId === 'dopagaking') {
                             imagePath = 'dopagaking/dopagaking.webp';
                         } else {
-                            imagePath = charData.image;
+                            imagePath = charData.allImage || charData.image;
                         }
                     } else {
-                        // 特殊状態の専用画像（chargedImage）があり、かつチャージ状態(isMiniZou, isCharged等)の場合のみ優先、それ以外は image を使用
+                        // 特殊状態の専用画像（chargedImage）があり、かつチャージ状態(isMiniZou, isCharged等)の場合のみ優先、それ以外は allImage / image を使用
                         if ((isMiniZou || isCharged || charId.includes('charged') || charId === 'dopagaking_crown') && charData.chargedImage) {
                             imagePath = charData.chargedImage;
                         } else {
-                            imagePath = charData.image;
+                            imagePath = charData.allImage || charData.image;
                         }
                     }
                 }
@@ -1993,13 +1993,15 @@ dopagaking: {
                     { id: 'courtney_feel', name: 'FEEL SO HOT ///', type: 'courtney_charge_release', cooldown: 0, desc: '（アイコンタップでチャージ）最大8回までチャージ可能、最大110ダメージ！' }
                 ]
             },
-            ndaihyo: {
+             ndaihyo: {
                 id: 'ndaihyo',
                 name: 'N高代表',
                 title: 'クリケット部の天才',
                 type: '頭脳・デバフ型',
                 hp: 179, atk: 23, def: 15, critRate: 0.05, eva: 16,
                 image: 'ndaihyo/ndaihyou.webp',
+                allImage: 'ndaihyo/ndaihyouALL.webp',
+                dieImage: 'ndaihyo/ndaihyouDIE.webp',
                 desc: 'N高クリケット部代表。高い知性と緻密な戦術で相手の能力を下げつつ優位に立つ。',
                 skills: [
                     { id: 'ndaihyo_attack', name: 'バッティング', type: 'attack', power: 1.05, isNormalAttack: true, cooldown: 0, targetType: 'single_enemy', desc: '敵単体に標準ダメージを与える通常攻撃。' },
@@ -2015,6 +2017,8 @@ dopagaking: {
                 type: '闇属性 / サポーター・回復特化',
                 hp: 178, atk: 24, def: 19, critRate: 0.06, eva: 21,
                 image: 'pasha/pasha.webp',
+                allImage: 'pasha/pashaALL.webp',
+                dieImage: 'pasha/pashaDIE.webp',
                 desc: 'スマホとカメラを駆使するサポーター・回復特化。パッシブ: 敵チームに「パシャ憎・半浸闇化状態」がいる場合、自身のクリティカル率が常に少量上昇する。',
                 skills: [
                     { id: 'pasha_attack', name: '睨みつける', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, targetType: 'single_enemy', desc: '敵単体に標準ダメージを与える通常攻撃。' },
@@ -2031,6 +2035,8 @@ pasha_dark: {
                 type: '闇属性 / 超火力・回避特化',
                 hp: 163, atk: 25, def: 17, critRate: 0.07, eva: 25,
                 image: 'pasha/pasha-dark.webp',
+                allImage: 'pasha-dark/pasha-darkALL.webp',
+                dieImage: 'pasha-dark/pasha-darkDIE.webp',
                 desc: '圧倒的な攻撃力と高回避を誇る超攻撃型。回避するたびに攻撃力が跳ね上がるアビリティを持ち、ハマれば一撃で全てを破壊するロマンと脅威を兼ね備えています。',
                 skills: [
                     { id: 'pasha_dark_attack', name: '通常攻撃', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, targetType: 'single_enemy', desc: 'カメラのフラッシュで攻撃＋20パーセントの確率で自身の回避率3％アップ' },
@@ -2048,6 +2054,8 @@ pasha_dark: {
                 type: '岩属性 / タンク・耐久強化',
                 hp: 195, atk: 22, def: 18, critRate: 0.03, eva: 8,
                 image: 'iwaba/ganban.webp',
+                allImage: 'iwaba/ganbanALL.webp',
+                dieImage: 'iwaba/ganbanDIE.webp',
                 desc: 'ダンスとラップと岩盤浴を愛するタンク・耐久強化。パッシブ: ブレイクダンスはごく稀に2回連続ヒットする。',
                 skills: [
                     { id: 'iwaba_dance', name: 'ブレイクダンス', type: 'attack', power: 1.15, isNormalAttack: true, cooldown: 0, targetType: 'single_enemy', desc: 'リズムに乗った攻撃。パッシブ効果でごく稀に2回連続ヒットする。' },
@@ -2063,6 +2071,8 @@ pasha_dark: {
                 type: '土属性 / タンク・一発特化',
                 hp: 210, atk: 18, def: 25, critRate: 0.03, eva: 9,
                 image: 'momopin/momopin.webp',
+                allImage: 'momopin/momopinALL.webp',
+                dieImage: 'momopin/momopinDIE.webp',
                 chargedImage: 'momopin/chargenasu.webp',
                 desc: '圧倒的タフさを誇る要塞。「ナス準備中」で変身し、次ターンに「超ナスちん乱舞」を発動！',
                 skills: [
@@ -2079,6 +2089,8 @@ pasha_dark: {
                 type: '火属性 / アタッカー・超攻撃特化',
                 hp: 155, atk: 28, def: 14, critRate: 0.18, eva: 12,
                 image: 'moenan/moenan.webp',
+                allImage: 'moenan/moenanALL.webp',
+                dieImage: 'moenan/moenanDIE.webp',
                 desc: '鋭い爪の通常攻撃はクリティカル率が高い。「筋トレ追い込み」からの全力投球で敵を圧倒する。',
                 skills: [
                     { id: 'moenan_cat', name: '高速猫パンチ', type: 'attack', power: 1.10, isNormalAttack: true, cooldown: 0, targetType: 'single_enemy', desc: '鋭い爪の通常攻撃。他の通常攻撃よりもクリティカル率が高い。' },
@@ -4081,6 +4093,7 @@ case 'dopa_juggler_skill':
                 const charData = CHARACTER_DATA[player.id] || {};
 
                 if (player.hp <= 0) {
+                    if (charData.dieImage) return charData.dieImage;
                     if (isC) return 'courtney/ALT3.webp';
                     if (isA) return 'asaiomizu/asaiomizu3.webp';
                     return charData.image || player.image;
@@ -4097,7 +4110,7 @@ case 'dopa_juggler_skill':
                 if (isA) return isPlayerSide ? 'asaiomizu/asaiomizu2.webp' : 'asaiomizu/asaiomizu1.webp';
                 if (isD) return 'dopagaking/dopagaking11.webp';
 
-                return charData.image || player.image;
+                return charData.allImage || charData.image || player.image;
             };
 
             const pImg = getCharImg(p1, true);
