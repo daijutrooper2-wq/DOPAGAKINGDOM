@@ -2181,6 +2181,7 @@ pasha_dark: {
 
                 this.p1Action = null;
                 this.p2Action = null;
+                this.p1TargetIndex = null;
 
                 this.botAdapter = isOnline ? null : new BotInputAdapter();
 
@@ -2407,8 +2408,9 @@ pasha_dark: {
                             this.deserializePlayer(this.p2, data.p2State);
                             this.isSuddenDeath = data.isSuddenDeath;
                             this.turn = data.currentTurn;
-                            this.p1Action = null;
-                            this.p2Action = null;
+                this.p1Action = null;
+                this.p2Action = null;
+                this.p1TargetIndex = null;
                             this.waitingForOpponent = false;
 
                             if (data.logs && data.logs.length > 0) {
