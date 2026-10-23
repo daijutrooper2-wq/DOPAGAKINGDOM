@@ -522,7 +522,7 @@ function renderNewBattleCharSelectScreen(sortOrder = 'default', sortDir = 'desc'
     const totalCount = Object.keys(CHARACTER_DATA).length;
 
     let html = `
-        <div class="w-full h-full flex flex-col items-center justify-between max-w-4xl mx-auto py-1 px-2 overflow-hidden select-none bg-slate-950 text-white">
+        <div class="w-full h-full flex flex-col items-center justify-between p-2 overflow-hidden select-none bg-slate-950 text-white">
             <div class="pixel-box-gold p-1.5 sm:p-2 bg-amber-950/90 w-full text-center space-y-0.5 border-amber-400 mb-1.5 flex-shrink-0">
                 <div class="flex items-center justify-between">
                     <button onclick="renderBotModesScreen()" class="pixel-btn pixel-btn-danger px-2.5 py-0.5 text-xs font-bold">
@@ -858,7 +858,7 @@ function renderNewBattleScreen() {
     }
 
     container.innerHTML = `
-        <div class="w-full h-full flex flex-col justify-between bg-slate-950 text-white relative select-none pt-0 px-1 pb-0 overflow-hidden">
+        <div class="w-full h-full flex flex-col justify-between bg-slate-950 text-white relative select-none p-1 sm:p-2 overflow-hidden">
             ${skillModalHtml}
             ${choicePopupHtml}
             <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">

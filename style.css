@@ -313,6 +313,17 @@
                 max-width: 100% !important;
                 box-sizing: border-box !important;
             }
+            #screen-container > div {
+                width: 100% !important;
+                height: 100% !important;
+                max-width: 100% !important;
+                max-height: 100% !important;
+                box-sizing: border-box !important;
+                overflow: hidden !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
+            }
             .landscape-battle-container {
                 display: flex !important;
                 flex-direction: column !important;
