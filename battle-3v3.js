@@ -401,13 +401,47 @@ class Battle3v3Engine {
     }
 
     applyDamageSkill(attacker, defender, skill, isCounter = false) {
+        const isStealth = (skill.id === 'pasha_dark_stealth');
+
+        if (defender.tempEvadeNext && !isStealth) {
+            defender.tempEvadeNext = false;
+            this.log(`✨ ${defender.charName} は「アエグ」等の効果により次の攻撃を完全に回避した！`, 'text-pink-300 font-bold');
+            audioSystem.playEvade();
+            triggerNewBattleCharacterEffect(defender, 'miss', '回避');
+            this.triggerEffect(this.getCharacterTeam(defender) === 'ally' ? 'Player' : 'Enemy', 'miss', '絶対回避!');
+            return;
+        }
+
+        if (!isStealth) {
+            const effectiveEva = Math.max(0, (defender.eva || 10) - (defender.evaDebuff || 0));
+            const hitRate = 100 - effectiveEva;
+            if (Math.random() * 100 > hitRate) {
+                this.log(`🌀 ${defender.charName} は攻撃を回避した！`, 'text-sky-300');
+                audioSystem.playEvade();
+                triggerNewBattleCharacterEffect(defender, 'miss', '回避');
+                this.triggerEffect(this.getCharacterTeam(defender) === 'ally' ? 'Player' : 'Enemy', 'miss', 'MISS');
+                if (defender.id === 'pasha_dark') {
+                    defender.buffAtk *= 1.1;
+                    this.log(`✨🦇 パシャ憎の回避アビリティ発動！ 攻撃力が 1.1倍 に跳ね上がった！（現在倍率: ${defender.buffAtk.toFixed(2)}倍）`, 'text-purple-300 font-bold');
+                    this.triggerEffect(this.getCharacterTeam(defender) === 'ally' ? 'Player' : 'Enemy', 'buff', '攻撃力1.1倍!');
+                }
+                return;
+            }
+        } else {
+            if (defender.tempEvadeNext) defender.tempEvadeNext = false;
+            attacker.eva = Math.min(60, (attacker.eva || 10) + 1);
+            this.log(`🖤 ${attacker.charName} の「ステルスオブダーク」！ 相手の回避を完全に無視して命中！ 自身の回避率が 1% アップ（現在: ${attacker.eva}%）`, 'text-purple-300 font-bold');
+        }
+
         let baseDmg = (attacker.atk * (skill.power || 1.0) * attacker.buffAtk) - (defender.def * 0.4 * defender.buffDef);
         let damage = Math.max(8, Math.floor(baseDmg + (Math.random() * 4 - 2)));
 
-        if (Math.random() < (attacker.critRate || 0.05)) {
+        let effectiveCritRate = (attacker.critRate || 0.05) + (attacker.critRateBonus || 0);
+        if (Math.random() < effectiveCritRate) {
             damage = Math.floor(damage * 1.5);
             audioSystem.playCrit();
             this.log(`🔥✨ クリティカルヒット (${damage})！！`, 'text-yellow-300 font-bold');
+            triggerNewBattleCharacterEffect(defender, 'crit', 'クリティカル！');
         }
 
         defender.hp = Math.max(0, defender.hp - damage);
@@ -883,7 +917,7 @@ function renderNewBattleScreen() {
                         const isSelectable = newBattleViewMode === 'target_select' && newBattleTargetSelectType === 'single_ally' && c.hp > 0;
                         const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${posIdx}, true)"` : '';
                         return `
-                            <div ${clickableAttr} class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center w-24 h-32 ${c.hp <= 0 ? 'opacity-40 grayscale' : ''}">
+                            <div id="new-ally-char-${posIdx}" ${clickableAttr} class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center w-24 h-32 relative ${c.hp <= 0 ? 'opacity-40 grayscale' : ''}">
                                 <div class="w-full bg-black/85 px-1 py-0.5 rounded border border-white/20 text-[8px] text-emerald-300">
                                     <span>${c.charName}</span>: <span class="font-mono">${c.hp}/${c.maxHp}</span>
                                     <div class="w-full bg-slate-900 h-1 rounded overflow-hidden"><div class="bg-emerald-400 h-full" style="width: ${pct}%;"></div></div>
@@ -907,7 +941,7 @@ function renderNewBattleScreen() {
                         const isSelectable = newBattleViewMode === 'target_select' && newBattleTargetSelectType === 'single_enemy' && c.hp > 0;
                         const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${posIdx}, false)"` : '';
                         return `
-                            <div ${clickableAttr} class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center w-24 h-32 ${c.hp <= 0 ? 'opacity-40 grayscale' : ''}">
+                            <div id="new-enemy-char-${posIdx}" ${clickableAttr} class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center w-24 h-32 relative ${c.hp <= 0 ? 'opacity-40 grayscale' : ''}">
                                 <div class="w-full bg-black/85 px-1 py-0.5 rounded border border-white/20 text-[8px] text-red-300">
                                     <span>${c.charName}</span>: <span class="font-mono">${c.hp}/${c.maxHp}</span>
                                     <div class="w-full bg-slate-900 h-1 rounded overflow-hidden"><div class="bg-red-500 h-full" style="width: ${pct}%;"></div></div>
@@ -1010,6 +1044,45 @@ function executeNewBattleAction(actionType) {
 function openNewBattleSettingsPanel() {
     audioSystem.playSelect();
     openSettingsPanel();
+}
+
+function getNewBattleCharacterDOMElement(char) {
+    if (!activeNewBattle) return null;
+    if (activeNewBattle.allies && activeNewBattle.allies.includes(char)) {
+        const idx = activeNewBattle.allies.indexOf(char);
+        return document.getElementById(`new-ally-char-${idx}`);
+    }
+    if (activeNewBattle.enemies && activeNewBattle.enemies.includes(char)) {
+        const idx = activeNewBattle.enemies.indexOf(char);
+        return document.getElementById(`new-enemy-char-${idx}`);
+    }
+    return null;
+}
+
+function triggerNewBattleCharacterEffect(targetChar, type, text) {
+    const targetEl = getNewBattleCharacterDOMElement(targetChar);
+    if (!targetEl) return;
+
+    const pop = document.createElement('div');
+    pop.className = 'absolute font-pixel font-bold z-50 floating-text pointer-events-none transform -translate-x-1/2';
+
+    let color = 'text-white text-[10px]';
+    if (type === 'miss') {
+        color = 'text-sky-300 text-[10px] sm:text-xs font-pixel drop-shadow-[0_1px_0_rgba(0,0,0,1)]';
+    } else if (type === 'crit') {
+        color = 'text-yellow-300 text-[10px] sm:text-xs font-bold font-pixel drop-shadow-[0_1px_0_rgba(0,0,0,1)]';
+    }
+
+    pop.classList.add(...color.split(' '));
+    pop.innerText = text;
+
+    pop.style.left = `50%`;
+    pop.style.bottom = `-5px`;
+
+    targetEl.style.position = 'relative';
+    targetEl.appendChild(pop);
+
+    setTimeout(() => pop.remove(), 1100);
 }
 
 // Window bindings
