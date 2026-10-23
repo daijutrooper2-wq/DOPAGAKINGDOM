@@ -2176,6 +2176,8 @@ pasha_dark: {
 
                 this.p1 = this.createBattlePlayer(p1CharId, isOnline ? 'Player 1' : 'Player 1', 1);
                 this.p2 = this.createBattlePlayer(p2CharId, isOnline ? 'Player 2' : 'BOT (CPU)', 2);
+                this.activeAllyIndex = 0;
+                this.waitingForChoice = false;
 
                 if (this.isNewBattle) {
                     const allIds = Object.keys(CHARACTER_DATA);
@@ -2221,6 +2223,25 @@ pasha_dark: {
                 this.battleLogs = [];
                 this.onlineSyncStarted = false;
                 this.latestRoomData = null;
+            }
+
+            checkActiveAllyStatus() {
+                if (!this.isNewBattle || this.battleEnded || this.waitingForChoice) return false;
+                const currentActiveAlly = this.allies[this.activeAllyIndex || 0];
+                if (currentActiveAlly && currentActiveAlly.hp <= 0) {
+                    if (this.allies.every(a => a.hp <= 0)) {
+                        this.battleEnded = true;
+                        this.stopTimer();
+                        if (this.onBattleEnd) this.onBattleEnd('💀 敵チームの勝利！');
+                        return true;
+                    } else {
+                        this.stopTimer();
+                        this.waitingForChoice = true;
+                        if (this.onStateChange) this.onStateChange(this);
+                        return true;
+                    }
+                }
+                return false;
             }
 
             getCharacterTeam(char) {
@@ -3390,6 +3411,7 @@ case 'dopa_juggler_skill':
                 this.log(`${damageLog}${isCrit ? ' (🔥会心)' : ''}${this.isSuddenDeath ? ' (🔥サドンデスUP)' : ''}`, 'text-red-400 font-bold');
                 this.triggerEffect(side, 'damage', `-${damage}`);
                 audioSystem.playHit();
+                if (this.checkActiveAllyStatus()) return;
 
                 if (defender.hp <= 0 && defender.id === 'momo' && !defender.momoRevived) {
                     defender.momoRevived = true;
@@ -4154,6 +4176,51 @@ case 'dopa_juggler_skill':
             }, 1000);
         }
 
+        function handleNewBattleContinueChoice(action) {
+            audioSystem.playSelect();
+            if (!activeNewBattle) return;
+
+            if (action === 'skip') {
+                activeNewBattle.waitingForChoice = false;
+                activeNewBattle.battleEnded = true;
+                activeNewBattle.stopTimer();
+                activeNewBattle.winnerText = '💀 敵チームの勝利！';
+                if (activeNewBattle.onBattleEnd) {
+                    activeNewBattle.onBattleEnd(activeNewBattle.winnerText);
+                }
+                renderNewBattleScreen();
+            } else if (action === 'switch') {
+                let nextIdx = -1;
+                for (let i = 0; i < activeNewBattle.allies.length; i++) {
+                    if (activeNewBattle.allies[i].hp > 0) {
+                        nextIdx = i;
+                        break;
+                    }
+                }
+
+                if (nextIdx === -1 || activeNewBattle.allies.every(a => a.hp <= 0)) {
+                    handleNewBattleContinueChoice('skip');
+                    return;
+                }
+
+                activeNewBattle.activeAllyIndex = nextIdx;
+                activeNewBattle.p1 = activeNewBattle.allies[nextIdx];
+                activeNewBattle.waitingForChoice = false;
+                activeNewBattle.p1Action = null;
+                activeNewBattle.p1TargetIndex = null;
+
+                activeNewBattle.log(`🔄 ${activeNewBattle.p1.charName} に操作権が引き継がれた！`, 'text-amber-300 font-bold');
+                if (activeNewBattle.onCutin) {
+                    activeNewBattle.onCutin('🔄 キャラクター交代！', `${activeNewBattle.p1.charName} が戦闘を引き継ぎます！`);
+                }
+
+                audioSystem.playBuff();
+                activeNewBattle.startTimer();
+                renderNewBattleScreen();
+            }
+        }
+        window.handleNewBattleContinueChoice = handleNewBattleContinueChoice;
+
         function renderNewBattleScreen() {
             const container = document.getElementById('screen-container');
             if (!container || !activeNewBattle) return;
@@ -4306,9 +4373,32 @@ case 'dopa_juggler_skill':
                 `;
             }
 
+            let choicePopupHtml = '';
+            if (activeNewBattle && activeNewBattle.waitingForChoice) {
+                choicePopupHtml = `
+                    <div class="fixed inset-0 bg-black/85 z-[999] flex items-center justify-center p-4 animate-fadeIn">
+                        <div class="pixel-box-gold bg-slate-900 border-amber-400 max-w-md w-full p-6 text-center relative shadow-2xl flex flex-col items-center space-y-4">
+                            <div class="text-xl sm:text-2xl font-pixel font-black text-red-500 animate-bounce">⚠️ 操作キャラクター戦闘不能！</div>
+                            <p class="text-xs sm:text-sm text-slate-200 font-mono leading-relaxed">
+                                現在の操作キャラクターが倒れました。<br>どう行動しますか？
+                            </p>
+                            <div class="flex flex-col gap-3 w-full mt-2">
+                                <button onclick="handleNewBattleContinueChoice('skip')" class="pixel-btn pixel-btn-danger py-3 px-4 text-xs sm:text-sm font-bold font-pixel flex items-center justify-center gap-2 shadow-lg cursor-pointer">
+                                    <span>🏁 結果を見る（バトルをスキップ）</span>
+                                </button>
+                                <button onclick="handleNewBattleContinueChoice('switch')" class="pixel-btn pixel-btn-primary py-3 px-4 text-xs sm:text-sm font-bold font-pixel flex items-center justify-center gap-2 shadow-lg cursor-pointer">
+                                    <span>🔄 バトルを続ける（次のキャラへ交代）</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
             container.innerHTML = `
                 <div class="w-full h-full flex flex-col justify-between bg-slate-950 text-white relative select-none pt-0 px-1 pb-0 sm:pt-0 sm:px-2 sm:pb-0 overflow-hidden">
                     ${skillModalHtml}
+                    ${choicePopupHtml}
                     <!-- 背景画像 -->
                     <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
                         <img src="images/backnormal.webp" alt="backnormal" class="w-full h-full object-cover opacity-80">
