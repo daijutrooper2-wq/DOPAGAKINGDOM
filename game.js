@@ -6390,3 +6390,25 @@ case 'dopa_juggler_skill':
         window.getNewBattleCustomStats = getNewBattleCustomStats;
         window.adjustNewBattleStat = adjustNewBattleStat;
         window.resetNewBattleStats = resetNewBattleStats;
+
+        // 画像・Canvas・ゲーム画面内でのコンテキストメニュー（長押し・右クリック）の禁止対策
+        document.addEventListener('contextmenu', (e) => {
+            const target = e.target;
+            if (target.tagName === 'IMG' || target.tagName === 'CANVAS' || target.closest('#app') || target.closest('#screen-container')) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        function preventContextMenuForMedia() {
+            document.querySelectorAll('img, canvas').forEach(el => {
+                if (!el._hasContextMenuPrevented) {
+                    el._hasContextMenuPrevented = true;
+                    el.addEventListener('contextmenu', e => e.preventDefault(), { passive: false });
+                }
+            });
+        }
+        window.addEventListener('load', preventContextMenuForMedia);
+        const mediaObserver = new MutationObserver(() => {
+            preventContextMenuForMedia();
+        });
+        mediaObserver.observe(document.body, { childList: true, subtree: true });

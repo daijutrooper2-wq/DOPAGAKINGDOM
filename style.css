@@ -1,3 +1,18 @@
+        /* 画像の長押し・保存・ドラッグ・選択の防止 */
+        img, canvas, [style*="background-image"] {
+            -webkit-touch-callout: none !important;
+            -webkit-user-select: none !important;
+            user-select: none !important;
+            -webkit-user-drag: none !important;
+        }
+
+        html, body, #app {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
         #orientation-warning {
             display: none;
         }
