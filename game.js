@@ -2232,6 +2232,15 @@ pasha_dark: {
                 return 'system';
             }
 
+            triggerHitShake(target) {
+                if (!target) return;
+                target.isShaking = true;
+                setTimeout(() => {
+                    target.isShaking = false;
+                    if (this.onStateChange) this.onStateChange(this);
+                }, 300);
+            },
+
             logTeam(actor, msg, colorClass = 'text-slate-200') {
                 const teamType = this.getCharacterTeam(actor);
                 const prefix = teamType === 'ally' ? '【味方】' : (teamType === 'enemy' ? '【敵】' : '');
@@ -2918,19 +2927,26 @@ pasha_dark: {
                     this.applyDamageSkill(attacker, defender, skill);
                     defender.buffAtk *= 0.86;
                     defender.buffDef *= 0.86;
+                    this.triggerHitShake(defender);
                     this.log(`N高代表 は【弱点分析】を行った！ ${defender.charName} の攻撃力と防御力が低下！`, 'text-cyan-300 font-bold');
                     return;
                 }
                 if (skill.id === 'ndaihyo_tactics') {
-                    if (['pasha', 'pasha_dark'].includes(defender.id)) {
-                        defender.buffAtk *= 0.3;
-                        this.log(`【特効発動！】 ${defender.charName}は激怒され、攻撃力が大幅に激減した！`, 'text-yellow-300 font-bold text-base');
-                        this.triggerCutin('🎯 特効発動！', 'パシャ憎へのムカつきが極限に達した！');
-                    } else {
-                        defender.buffAtk *= 0.80;
-                        defender.buffDef *= 0.80;
-                        this.log(`N高代表 はパシャ憎へのムカつきを放った！ ${defender.charName} の攻撃力と防御力が低下！`, 'text-cyan-300 font-bold');
-                    }
+                    const targetTeam = (this.getCharacterTeam(attacker) === 'ally') ? this.enemies : this.allies;
+                    targetTeam.forEach(e => {
+                        if (e.hp > 0) {
+                            if (['pasha', 'pasha_dark'].includes(e.id)) {
+                                e.buffAtk *= 0.3;
+                                this.log(`【特効発動！】 ${e.charName}は激怒され、攻撃力が大幅に激減した！`, 'text-yellow-300 font-bold text-base');
+                                this.triggerCutin('🎯 特効発動！', 'パシャ憎へのムカつきが極限に達した！');
+                            } else {
+                                e.buffAtk *= 0.80;
+                                e.buffDef *= 0.80;
+                            }
+                            this.triggerHitShake(e);
+                        }
+                    });
+                    this.log(`N高代表 はパシャ憎へのムカつきを放った！ 敵全体の攻撃力と防御力が低下！`, 'text-cyan-300 font-bold');
                     return;
                 }
                 if (skill.id === 'ndaihyo_mind') {
@@ -2942,9 +2958,14 @@ pasha_dark: {
                     return;
                 }
                 if (skill.id === 'pasha_flash') {
-                    this.applyDamageSkill(attacker, defender, skill);
+                    const targetTeam = (this.getCharacterTeam(attacker) === 'ally') ? this.enemies : this.allies;
+                    targetTeam.forEach(e => {
+                        if (e.hp > 0) {
+                            this.applyDamageSkill(attacker, e, skill);
+                        }
+                    });
                     if (Math.random() < 0.5) {
-                        this.log(`強烈な光で ${defender.charName} は目を眩まされ、1ターン行動不能になった！`, 'text-purple-300 font-bold');
+                        this.log(`強烈な光で敵全体は目を眩まされ、1ターン行動不能になった！`, 'text-purple-300 font-bold');
                     }
                     return;
                 }
@@ -2991,6 +3012,7 @@ pasha_dark: {
                     this.triggerCutin(`👑 王位継承発動！！`, `${chosenMaster.name}の力 × 4 ＝ ${inheritDmg} ダメージ！`);
                     
                     defender.hp = Math.max(0, defender.hp - inheritDmg);
+                    this.triggerHitShake(defender);
                     this.log(`👑🔥 ドパガキングの「王位継承」発動！！ ${chosenMaster.name}の力を借りて ${defender.charName} に ${inheritDmg} の大ダメージを与えた！！`, 'text-amber-400 font-black text-base');
                     this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'damage', `-${inheritDmg}`);
 
@@ -3028,6 +3050,7 @@ case 'dopa_juggler_skill':
             // 0～50の完全ランダムダメージ
             const jugglerDmg = Math.floor(Math.random() * 51);
             defender.hp = Math.max(0, defender.hp - jugglerDmg);
+            this.triggerHitShake(defender);
             this.log(`🃏 ドパガキングの「ジャグラー」！ 完全ランダムダメージ ⇒ ${defender.charName} に ${jugglerDmg} のダメージ！`, 'text-purple-300 font-bold');
             this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'damage', `-${jugglerDmg}`);
             audioSystem.playHit();
@@ -3052,12 +3075,14 @@ case 'dopa_juggler_skill':
             // 95%で自分に10ダメージ、5%で相手に1000ダメージ
             if (Math.random() < 0.05) {
                 defender.hp = Math.max(0, defender.hp - 1000);
+                this.triggerHitShake(defender);
                 this.log(`✨⚡【神頼み 5%的中！！】 ${defender.charName} に 1000 の超絶ダメージ！！`, 'text-yellow-300 font-black font-pixel text-base');
                 this.triggerCutin('⚡ 神頼み 5%的中！！', '奇跡の1000ダメージ炸裂！');
                 this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'damage', '-1000');
                 audioSystem.playSpecial();
             } else {
                 attacker.hp = Math.max(1, attacker.hp - 10);
+                this.triggerHitShake(attacker);
                 this.log(`🎲 ${attacker.charName} のキャラクター「神頼み」… 運が悪く、自分に 10 のダメージを受けた！`, 'text-red-400 font-bold');
                 this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'damage', '-10');
                 audioSystem.playHit();
@@ -3077,6 +3102,7 @@ case 'dopa_juggler_skill':
                         audioSystem.playSpecial();
                         this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'damage', `🔥 ${releaseDmg} DMG!`);
                         defender.hp = Math.max(0, defender.hp - releaseDmg);
+                        this.triggerHitShake(defender);
                         this.log(`💖🔥 コートニーの 「FEEL SO HOT ///」解放！！ (溜め ${charges}回) ⇒ ${defender.charName} に ${releaseDmg} の爆発ダメージ！！`, 'text-pink-400 font-black text-base');
                         attacker.courtneyChargeCount = 0;
                         break;
@@ -3084,6 +3110,7 @@ case 'dopa_juggler_skill':
                         let yoseruDmg = Math.max(8, Math.floor(attacker.atk * 0.9 - defender.def * 0.3));
                         defender.hp = Math.max(0, defender.hp - yoseruDmg);
                         defender.buffDef = 0.0;
+                        this.triggerHitShake(defender);
                         this.log(`💋 ${attacker.charName} の「ヨセル」！ ${yoseruDmg} ダメージを与え、1ターンの間 ${defender.charName} の防御力を 0 にした！`, 'text-pink-300 font-bold');
                         this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'damage', `-${yoseruDmg}`);
                         audioSystem.playHit();
@@ -3098,7 +3125,12 @@ case 'dopa_juggler_skill':
                         break;
                     case 'eggplant_burst':
                         this.log(`🐘 ${attacker.charName} の「超ナスちん乱舞」発動！！ 3ターンの間、全味方のクリティカル大幅UP ＆ 敵全体の回避率中DOWN！`, 'text-purple-300 font-bold');
-                        this.applyDamageSkill(attacker, defender, skill);
+                        const targetTeamEgg = (this.getCharacterTeam(attacker) === 'ally') ? this.enemies : this.allies;
+                        targetTeamEgg.forEach(e => {
+                            if (e.hp > 0) {
+                                this.applyDamageSkill(attacker, e, skill);
+                            }
+                        });
                         const alliesList = attacker.isEnemySide ? (this.enemies || [attacker]) : (this.allies || [attacker]);
                         alliesList.forEach(a => {
                             a.critRateBonus = (a.critRateBonus || 0) + 0.35;
@@ -3339,6 +3371,7 @@ case 'dopa_juggler_skill':
                 }
 
                 defender.hp = Math.max(0, defender.hp - damage);
+                this.triggerHitShake(defender);
                 const side = defender === this.p1 ? 'Player' : 'Enemy';
                 let damageLog = `⚔ ${defender.charName} に ${damage} のダメージ！`;
                 if (attacker.id === 'ndaihyo' && skill.isNormalAttack) {
@@ -4368,7 +4401,7 @@ case 'dopa_juggler_skill':
                                                  </div>
 
                                                <!-- 全身スプライト（四角い枠線なし・背景直接配置） -->
-                                               <div class="w-full flex-1 flex items-center justify-center relative drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)]">
+                                               <div class="w-full flex-1 flex items-center justify-center relative drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)] ${c.isShaking ? 'animate-hit-shake' : ''}">
                                                    <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain">
                                                    ${isLeader && posIdx === 0 ? '<div class="absolute bottom-0 right-0 bg-emerald-600 text-white px-1.5 py-0.5 rounded text-[8px] font-pixel shadow">LEADER</div>' : ''}
                                                    <!-- スタンプ風バッジ（左下あたり） -->
