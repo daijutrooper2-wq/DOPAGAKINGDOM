@@ -4410,16 +4410,16 @@ case 'dopa_juggler_skill':
                     </div>
                 `;
             } else {
-                const disabledClass = !isMyTurn ? 'opacity-50 pointer-events-none filter grayscale' : '';
+                const actionDisabledClass = !isMyTurn ? 'opacity-50 pointer-events-none filter grayscale' : '';
                 commandAreaContent = `
-                    <div class="grid grid-cols-2 gap-1 w-full h-full ${disabledClass}">
-                        <button onclick="executeNewBattleAction('normal_attack_click')" class="pixel-btn pixel-btn-primary py-1 px-1 text-[11px] font-bold flex flex-col items-center justify-center text-center shadow cursor-pointer">
+                    <div class="grid grid-cols-2 gap-1 w-full h-full">
+                        <button onclick="executeNewBattleAction('normal_attack_click')" class="pixel-btn pixel-btn-primary py-1 px-1 text-[11px] font-bold flex flex-col items-center justify-center text-center shadow cursor-pointer ${actionDisabledClass}">
                             <span>⚔️ 通常攻撃</span>
                         </button>
-                        <button onclick="executeNewBattleAction('run')" class="pixel-btn pixel-btn-danger py-1 px-1 text-[11px] font-bold flex flex-col items-center justify-center text-center shadow cursor-pointer">
+                        <button onclick="executeNewBattleAction('run')" class="pixel-btn pixel-btn-danger py-1 px-1 text-[11px] font-bold flex flex-col items-center justify-center text-center shadow cursor-pointer ${actionDisabledClass}">
                             <span>🏃 逃げる</span>
                         </button>
-                        <button onclick="executeNewBattleAction('skill_click')" class="pixel-btn pixel-btn-success py-1 px-1 text-[11px] font-bold flex flex-col items-center justify-center text-center shadow cursor-pointer">
+                        <button onclick="executeNewBattleAction('skill_click')" class="pixel-btn pixel-btn-success py-1 px-1 text-[11px] font-bold flex flex-col items-center justify-center text-center shadow cursor-pointer ${actionDisabledClass}">
                             <span>✨ スキル</span>
                         </button>
                         <button onclick="executeNewBattleAction('setting')" class="pixel-btn pixel-btn-warning py-1 px-1 text-[11px] font-bold flex flex-col items-center justify-center text-center shadow cursor-pointer">
