@@ -3681,16 +3681,20 @@ case 'dopa_juggler_skill':
             } else if (type === 'buff') {
                 color = 'text-amber-300 text-base sm:text-lg drop-shadow-[0_2px_0_rgba(0,0,0,1)]';
             } else if (type === 'miss') {
-                color = 'text-sky-300 text-base sm:text-lg font-pixel drop-shadow-[0_2px_0_rgba(0,0,0,1)]';
+                color = 'text-sky-300 text-xs sm:text-sm font-pixel drop-shadow-[0_1px_0_rgba(0,0,0,1)]';
             } else if (type === 'crit') {
-                color = 'text-yellow-300 text-lg sm:text-xl font-black font-pixel drop-shadow-[0_3px_0_rgba(0,0,0,1)] animate-bounce';
+                color = 'text-yellow-300 text-xs sm:text-sm font-bold font-pixel drop-shadow-[0_1px_0_rgba(0,0,0,1)]';
             }
 
             pop.classList.add(...color.split(' '));
             pop.innerText = text;
 
             pop.style.left = `50%`;
-            pop.style.top = `15%`;
+            if (type === 'miss' || type === 'crit') {
+                pop.style.top = `85%`;
+            } else {
+                pop.style.top = `15%`;
+            }
 
             targetEl.style.position = 'relative';
             targetEl.appendChild(pop);
