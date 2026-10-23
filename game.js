@@ -2239,7 +2239,7 @@ pasha_dark: {
                     target.isShaking = false;
                     if (this.onStateChange) this.onStateChange(this);
                 }, 300);
-            },
+            }
 
             logTeam(actor, msg, colorClass = 'text-slate-200') {
                 const teamType = this.getCharacterTeam(actor);
