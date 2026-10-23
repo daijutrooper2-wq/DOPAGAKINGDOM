@@ -647,7 +647,7 @@ static drawDopagaking(p, isCharged) {
 
         // 経済システム・DOPA管理用変数
 
-        let activeBattle = null;
+
 
         let openingTimer = null;
         let openingKeyHandler = null;
@@ -3997,11 +3997,7 @@ case 'dopa_juggler_skill':
             `;
         }
 
-        let activeNewBattle = null;
-        let isNewBattleSkillModalOpen = false;
-        let newBattleViewMode = 'main'; // 'main', 'attack_select', 'target_select'
-        let newBattleTargetSelectSkillId = null;
-        let newBattleTargetSelectType = null;
+
 
         function selectNewBattleTarget(targetIdx, isAllySide) {
             if (!activeNewBattle) return;
