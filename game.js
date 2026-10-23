@@ -2160,39 +2160,41 @@ pasha_dark: {
 
         const BOT_ACTION_DELAY = 1700; // 1.5秒〜2秒程度の行動ディレイ（倍速調整対応用定数）
 
-        class BotInputAdapter {
-            getDecision(botChar, opponentChar) {
-                if (botChar.isResting) return 'rest';
-                if (botChar.eggplantReady) return 'momo_eggplant_burst';
-                if (botChar.recordedSkill) return 'asaiomizu_copied';
+        if (typeof window.BotInputAdapter === 'undefined') {
+            window.BotInputAdapter = class BotInputAdapter {
+                getDecision(botChar, opponentChar) {
+                    if (botChar.isResting) return 'rest';
+                    if (botChar.eggplantReady) return 'momo_eggplant_burst';
+                    if (botChar.recordedSkill) return 'asaiomizu_copied';
 
-                if (botChar.id === 'courtney') {
-                    const charges = botChar.courtneyChargeCount || 0;
-                    if (charges < 8 && Math.random() < 0.6) {
-                        return 'courtney_charge_only';
+                    if (botChar.id === 'courtney') {
+                        const charges = botChar.courtneyChargeCount || 0;
+                        if (charges < 8 && Math.random() < 0.6) {
+                            return 'courtney_charge_only';
+                        }
                     }
+
+                    const availableSkills = botChar.skills.filter(s => (botChar.cooldowns?.[s.id] || 0) === 0);
+                    const skills = availableSkills.length > 0 ? availableSkills : botChar.skills;
+                    const hpRatio = botChar.hp / botChar.maxHp;
+
+                    if (botChar.id === 'ndaihyo') {
+                        if (opponentChar.buffAtk >= 1.0) {
+                            const tactics = skills.find(s => s.id === 'ndaihyo_tactics');
+                            if (tactics) return tactics.id;
+                        }
+                        if (hpRatio < 0.4) {
+                            const mind = skills.find(s => s.id === 'ndaihyo_mind');
+                            if (mind) return mind.id;
+                        }
+                        const analysis = skills.find(s => s.id === 'ndaihyo_analysis');
+                        if (analysis) return analysis.id;
+                    }
+
+                    const chosen = skills[Math.floor(Math.random() * skills.length)];
+                    return chosen ? chosen.id : botChar.skills[0].id;
                 }
-
-                const availableSkills = botChar.skills.filter(s => (botChar.cooldowns?.[s.id] || 0) === 0);
-                const skills = availableSkills.length > 0 ? availableSkills : botChar.skills;
-                const hpRatio = botChar.hp / botChar.maxHp;
-
-                if (botChar.id === 'ndaihyo') {
-                    if (opponentChar.buffAtk >= 1.0) {
-                        const tactics = skills.find(s => s.id === 'ndaihyo_tactics');
-                        if (tactics) return tactics.id;
-                    }
-                    if (hpRatio < 0.4) {
-                        const mind = skills.find(s => s.id === 'ndaihyo_mind');
-                        if (mind) return mind.id;
-                    }
-                    const analysis = skills.find(s => s.id === 'ndaihyo_analysis');
-                    if (analysis) return analysis.id;
-                }
-
-                const chosen = skills[Math.floor(Math.random() * skills.length)];
-                return chosen ? chosen.id : botChar.skills[0].id;
-            }
+            };
         }
 
         class BattleEngine {
