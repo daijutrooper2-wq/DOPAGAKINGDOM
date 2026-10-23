@@ -4528,20 +4528,12 @@ case 'dopa_juggler_skill':
                         <!-- 左側：味方チーム -->
                         <div class="relative w-[47%] sm:w-[48%] h-full flex items-center justify-center">
                             <div class="absolute left-1 top-1 text-[9px] text-emerald-400 font-pixel font-bold z-30">🛡️ 味方チーム (隊列)</div>
-                            ${(() => {
-                                const currentActor = activeNewBattle.currentAttacker;
-                                // 味方3体の中で、現在行動中のキャラが先頭(index 0)になるようにシャッフル
-                                let ordered = [...allies];
-                                if (currentActor && ordered.includes(currentActor)) {
-                                    const idx = ordered.indexOf(currentActor);
-                                    if (idx !== 0) {
-                                        const [target] = ordered.splice(idx, 1);
-                                        ordered.unshift(target);
-                                    }
-                                }
+                             ${(() => {
+                                 const currentActor = activeNewBattle.currentAttacker;
+                                 const ordered = allies;
 
-                                return ordered.map((c, posIdx) => {
-                                    const origIdx = allies.indexOf(c);
+                                 return ordered.map((c, posIdx) => {
+                                     const origIdx = posIdx;
                                     const pct = Math.max(0, Math.min(100, Math.round((c.hp / c.maxHp) * 100)));
                                     const img = getCharImg(c, true);
                                     const isLeader = origIdx === 0;
@@ -4612,19 +4604,12 @@ case 'dopa_juggler_skill':
                         <!-- 右側：敵チーム -->
                         <div class="relative w-[47%] sm:w-[48%] h-full flex items-center justify-center">
                             <div class="absolute right-1 top-1 text-[9px] text-red-400 font-pixel font-bold z-30 text-right">⚔️ 敵チーム</div>
-                            ${(() => {
-                                const currentActor = activeNewBattle.currentAttacker;
-                                let ordered = [...enemies];
-                                if (currentActor && ordered.includes(currentActor)) {
-                                    const idx = ordered.indexOf(currentActor);
-                                    if (idx !== 0) {
-                                        const [target] = ordered.splice(idx, 1);
-                                        ordered.unshift(target);
-                                    }
-                                }
+                             ${(() => {
+                                 const currentActor = activeNewBattle.currentAttacker;
+                                 const ordered = enemies;
 
-                                return ordered.map((c, posIdx) => {
-                                    const origIdx = enemies.indexOf(c);
+                                 return ordered.map((c, posIdx) => {
+                                     const origIdx = posIdx;
                                     const pct = Math.max(0, Math.min(100, Math.round((c.hp / c.maxHp) * 100)));
                                     const img = getCharImg(c, false);
                                     const isLeader = origIdx === 0;
