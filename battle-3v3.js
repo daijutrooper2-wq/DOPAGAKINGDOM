@@ -384,19 +384,58 @@ class Battle3v3Engine {
         this.log(`💥 ${attacker.charName} の 「${skill.name}」！`, 'text-emerald-300 font-bold');
         audioSystem.playCharacterSound(attacker.id);
 
-        if (skill.type === 'attack' || skill.type === 'special') {
-            this.applyDamageSkill(attacker, defender, skill);
-        } else if (skill.id === 'eggplant_burst') {
-            this.log(`🐘 「超ナスちん乱舞」発動！！`, 'text-purple-300 font-bold');
-            const targetTeamEgg = (this.getCharacterTeam(attacker) === 'ally') ? this.enemies : this.allies;
-            targetTeamEgg.forEach(e => {
-                if (e.hp > 0) this.applyDamageSkill(attacker, e, skill);
+        if (skill.targetType === 'all_enemies' || skill.id === 'ndaihyo_tactics' || skill.id === 'pasha_flash' || skill.id === 'eggplant_burst') {
+            const targetTeam = (this.getCharacterTeam(attacker) === 'ally') ? this.enemies : this.allies;
+            targetTeam.forEach(e => {
+                if (e.hp > 0) {
+                    if (skill.type === 'attack' || skill.type === 'special' || (skill.power && skill.power > 0) || skill.id === 'pasha_flash' || skill.id === 'eggplant_burst') {
+                        this.applyDamageSkill(attacker, e, skill);
+                    } else {
+                        e.buffAtk = Math.max(0.2, (e.buffAtk || 1.0) * 0.80);
+                        e.buffDef = Math.max(0.2, (e.buffDef || 1.0) * 0.80);
+                        this.triggerHitShake(e);
+                        this.log(`📉 ${e.charName} の攻撃力・防御力が低下した！`, 'text-cyan-300 font-bold');
+                        this.triggerEffect(this.getCharacterTeam(e) === 'ally' ? 'Player' : 'Enemy', 'damage', 'DEBUFF');
+                    }
+                }
             });
-            attacker.isMiniZou = false;
-            attacker.eggplantReady = false;
-        } else {
-            // Other skill types
+            if (skill.id === 'eggplant_burst') {
+                attacker.isMiniZou = false;
+                attacker.eggplantReady = false;
+            }
+            return;
+        }
+
+        if (skill.id === 'ndaihyo_analysis' || skill.type === 'debuff_attack') {
             this.applyDamageSkill(attacker, defender, skill);
+            if (defender && defender.hp > 0) {
+                defender.buffAtk = Math.max(0.2, (defender.buffAtk || 1.0) * 0.85);
+                defender.buffDef = Math.max(0.2, (defender.buffDef || 1.0) * 0.85);
+                this.log(`📉 ${defender.charName} の攻撃力・防御力が低下した！`, 'text-cyan-300 font-bold');
+                this.triggerEffect(this.getCharacterTeam(defender) === 'ally' ? 'Player' : 'Enemy', 'damage', 'DEBUFF');
+            }
+            return;
+        }
+
+        if (skill.type === 'debuff') {
+            if (defender && defender.hp > 0) {
+                defender.buffAtk = Math.max(0.2, (defender.buffAtk || 1.0) * 0.80);
+                defender.buffDef = Math.max(0.2, (defender.buffDef || 1.0) * 0.80);
+                this.triggerHitShake(defender);
+                this.log(`📉 ${defender.charName} はデバフを受けた！`, 'text-cyan-300 font-bold');
+                this.triggerEffect(this.getCharacterTeam(defender) === 'ally' ? 'Player' : 'Enemy', 'damage', 'DEBUFF');
+            }
+            return;
+        }
+
+        if (skill.type === 'attack' || skill.type === 'special' || (skill.power && skill.power > 0)) {
+            this.applyDamageSkill(attacker, defender, skill);
+        } else {
+            if (defender && this.getCharacterTeam(defender) !== this.getCharacterTeam(attacker)) {
+                this.applyDamageSkill(attacker, defender, skill);
+            } else {
+                this.log(`✨ ${attacker.charName} の ${skill.name}！`, 'text-emerald-300 font-bold');
+            }
         }
     }
 
