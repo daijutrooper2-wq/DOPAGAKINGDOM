@@ -1032,3 +1032,245 @@ class OriginalBattleEngine {
         }
     }
 }
+
+// Original Battle UI Functions
+let activeBattle = null;
+
+function confirmRetireBattle() {
+    audioSystem.playSelect();
+    showConfirmModal("バトル中断", "本当にバトルを中断して降参しますか？\n（ホーム画面に戻ります）", () => {
+        if (activeBattle) {
+            activeBattle.destroy();
+            activeBattle = null;
+        }
+        renderHomeScreen();
+    }, "降参する");
+}
+
+function triggerVisualEffect(side, type, text) {
+    const canvasId = side === 'Player' ? 'p1-canvas' : 'p2-canvas';
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+
+    const pop = document.createElement('div');
+    pop.className = 'absolute font-pixel font-bold text-base sm:text-lg z-30 floating-text pointer-events-none';
+    
+    let color = 'text-white';
+    if (type === 'damage') color = 'text-red-400 drop-shadow-[0_2px_0_rgba(0,0,0,1)]';
+    else if (type === 'heal') color = 'text-emerald-400 drop-shadow-[0_2px_0_rgba(0,0,0,1)]';
+    else if (type === 'buff') color = 'text-amber-300 drop-shadow-[0_2px_0_rgba(0,0,0,1)]';
+    else if (type === 'miss') color = 'text-sky-300 drop-shadow-[0_2px_0_rgba(0,0,0,1)]';
+
+    pop.classList.add(...color.split(' '));
+    pop.innerText = text;
+    pop.style.left = `${canvas.offsetLeft + canvas.offsetWidth / 2 - 20}px`;
+    pop.style.top = `${canvas.offsetTop + 10}px`;
+
+    canvas.parentElement.appendChild(pop);
+    setTimeout(() => pop.remove(), 1100);
+}
+
+function triggerCutinBanner(title, subtitle) {
+    const stage = document.getElementById('battle-stage');
+    if (!stage) return;
+
+    const banner = document.createElement('div');
+    banner.className = 'absolute inset-x-0 top-1/3 bg-gradient-to-r from-red-950 via-amber-600 to-red-950 text-white p-3 text-center z-50 shadow-2xl border-y-4 border-amber-300 animate-cutin pointer-events-none';
+    banner.innerHTML = `
+        <div class="font-pixel text-yellow-300 text-lg sm:text-2xl font-black drop-shadow-[0_3px_0_rgba(0,0,0,1)] tracking-widest">${title}</div>
+        <div class="text-xs sm:text-sm font-bold text-white mt-1">${subtitle}</div>
+    `;
+    stage.appendChild(banner);
+    setTimeout(() => banner.remove(), 1700);
+}
+
+function launchBattle(p1Id, p2Id, isOnline = false, myPlayerNum = 1, roomId = null) {
+    if (activeBattle) {
+        activeBattle.destroy();
+        activeBattle = null;
+    }
+
+    const container = document.getElementById('screen-container');
+    container.innerHTML = `
+        <div id="battle-stage" class="w-full flex flex-col gap-3 items-center justify-center relative transition-colors duration-200 landscape-battle-container">
+            <div class="w-full flex flex-col gap-2.5 max-w-4xl landscape-battle-upper px-2">
+                <div class="w-full grid grid-cols-2 gap-4">
+                    <div id="p1-box-container" class="pixel-box p-2.5 bg-slate-900/90 relative border-blue-500 ring-2 ring-blue-500/50">
+                        <div class="flex justify-between items-center mb-1">
+                            <span id="p1-name-label" class="font-bold text-xs sm:text-sm text-blue-300 font-pixel truncate max-w-[140px]">自分</span>
+                            <span id="p1-hp-text" class="text-xs sm:text-sm font-mono font-bold text-slate-200">100/100</span>
+                        </div>
+                        <div class="w-full bg-slate-950 h-2.5 sm:h-3 rounded-sm border border-slate-700 overflow-hidden p-0.5 mb-1.5">
+                            <div id="p1-hp-bar" class="hp-bar-fill h-full bg-emerald-500 rounded-sm" style="width: 100%;"></div>
+                        </div>
+                        <div id="p1-status-badges" class="flex flex-wrap gap-1 text-[9px] sm:text-[10px] font-mono min-h-[14px]"></div>
+                    </div>
+                    <div id="p2-box-container" class="pixel-box p-2.5 bg-slate-900/90 relative border-red-500 ring-2 ring-red-500/50">
+                        <div class="flex justify-between items-center mb-1">
+                            <span id="p2-name-label" class="font-bold text-xs sm:text-sm text-red-300 font-pixel truncate max-w-[140px]">相手</span>
+                            <span id="p2-hp-text" class="text-xs sm:text-sm font-mono font-bold text-slate-200">100/100</span>
+                        </div>
+                        <div class="w-full bg-slate-950 h-2.5 sm:h-3 rounded-sm border border-slate-700 overflow-hidden p-0.5 mb-1.5">
+                            <div id="p2-hp-bar" class="hp-bar-fill h-full bg-emerald-500 rounded-sm" style="width: 100%;"></div>
+                        </div>
+                        <div id="p2-status-badges" class="flex flex-wrap gap-1 text-[9px] sm:text-[10px] font-mono min-h-[14px]"></div>
+                    </div>
+                </div>
+
+                <div class="w-full grid grid-cols-5 gap-2 relative items-center justify-items-center my-1">
+                    <div class="col-span-2 relative flex flex-col items-center w-full">
+                        <div class="absolute -top-2.5 z-10 bg-blue-600 text-white font-pixel text-[9px] px-2 py-0.5 rounded border border-blue-300 shadow">YOU</div>
+                        <canvas id="p1-canvas" width="200" height="200" class="pixel-box bg-slate-950 shadow-lg cursor-pointer border-2 border-blue-500 mt-1 w-24 h-24 sm:w-32 sm:h-32 lg:w-36 lg:h-36"></canvas>
+                    </div>
+
+                    <div class="col-span-1 flex flex-col items-center justify-center space-y-1.5 bg-slate-900/80 p-2 rounded border border-amber-500/50 shadow-md">
+                        <div class="pixel-box-gold px-2 py-1 bg-amber-950/90 text-amber-300 font-pixel text-[10px] font-bold text-center shadow whitespace-nowrap">
+                            🌟 ターン <span id="battle-turn-num">1</span>
+                        </div>
+                        <div class="flex items-center gap-1 text-[10px] whitespace-nowrap font-mono text-center">
+                            <span class="text-slate-400">制限:</span>
+                            <span id="turn-timer-display" class="font-pixel text-xs font-bold text-amber-400">15</span>秒
+                        </div>
+                        <button onclick="confirmRetireBattle()" class="pixel-btn pixel-btn-danger text-[9px] px-2 py-0.5 font-bold mt-1">🏳️ 降参</button>
+                    </div>
+
+                    <div class="col-span-2 relative flex flex-col items-center w-full">
+                        <div class="absolute -top-2.5 z-10 bg-red-600 text-white font-pixel text-[9px] px-2 py-0.5 rounded border border-red-300 shadow">OPPONENT</div>
+                        <canvas id="p2-canvas" width="200" height="200" class="pixel-box bg-slate-950 shadow-lg border-2 border-red-500 mt-1 w-24 h-24 sm:w-32 sm:h-32 lg:w-36 lg:h-36"></canvas>
+                    </div>
+                </div>
+
+                <div id="battle-log-box" class="pixel-box p-2 bg-slate-950 w-full h-16 sm:h-24 overflow-y-auto text-[11px] font-mono space-y-1 border-slate-700"></div>
+            </div>
+
+            <div class="w-full flex flex-col gap-2 max-w-4xl landscape-battle-lower px-2">
+                <div id="command-panel" class="w-full">
+                    <div id="skill-buttons-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    activeBattle = new OriginalBattleEngine(p1Id, p2Id, isOnline, myPlayerNum, roomId);
+
+    activeBattle.onLogUpdate = (msg, colorClass) => {
+        const logBox = document.getElementById('battle-log-box');
+        if (logBox) {
+            const line = document.createElement('div');
+            line.className = colorClass || 'text-slate-200';
+            line.innerHTML = msg;
+            logBox.appendChild(line);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+    };
+
+    activeBattle.onTimerUpdate = (sec) => {
+        const timerEl = document.getElementById('turn-timer-display');
+        if (timerEl) {
+            timerEl.innerText = sec;
+            if (sec <= 5) timerEl.className = 'font-pixel text-lg font-bold text-red-500 animate-ping';
+            else timerEl.className = 'font-pixel text-lg font-bold text-amber-400';
+        }
+    };
+
+    activeBattle.onStateChange = (engine) => {
+        updateBattleUI();
+    };
+
+    activeBattle.onVisualEffect = (side, type, text) => {
+        triggerVisualEffect(side, type, text);
+    };
+
+    activeBattle.onCutin = (title, subtitle) => {
+        triggerCutinBanner(title, subtitle);
+    };
+
+    activeBattle.onBattleEnd = (winner) => {
+        updateBattleUI();
+        setTimeout(() => {
+            const stage = document.getElementById('screen-container');
+            if (!stage) return;
+            const p1 = activeBattle.p1;
+            const p2 = activeBattle.p2;
+            const isP1Win = (activeBattle.isOnline && activeBattle.myPlayerNum === 2) ? (p2.hp <= 0 && p1.hp > 0) : (p2.hp <= 0 && p1.hp > 0);
+
+            if (!isP1Win) {
+                stage.innerHTML += `
+                    <div id="battle-result-overlay" class="fixed inset-0 bg-black z-[9999] flex flex-col items-center justify-center p-6 text-center">
+                        <div class="text-4xl font-pixel font-black text-red-500 mb-3">LOSE</div>
+                        <button onclick="renderBotModesScreen()" class="pixel-btn pixel-btn-primary px-8 py-3 text-sm font-bold font-pixel">バトル選択画面へ戻る ▶</button>
+                    </div>
+                `;
+            } else {
+                stage.innerHTML += `
+                    <div id="battle-result-overlay" class="fixed inset-0 bg-black/90 z-[9999] flex flex-col items-center justify-center p-6 text-center">
+                        <div class="pixel-box-gold p-8 bg-amber-950/95 border-amber-400 max-w-md w-full flex flex-col items-center">
+                            <div class="text-4xl font-pixel font-black text-amber-300 mb-2">WIN</div>
+                            <p class="text-xs text-amber-200 mb-4">+100 DOPA 獲得！</p>
+                            <button onclick="renderBotModesScreen()" class="pixel-btn pixel-btn-primary px-8 py-3 text-sm font-bold font-pixel">バトル選択画面へ戻る ▶</button>
+                        </div>
+                    </div>
+                `;
+            }
+        }, 1000);
+    };
+
+    activeBattle.startBattle();
+    updateBattleUI();
+}
+
+function updateBattleUI() {
+    if (!activeBattle) return;
+
+    const turnNumEl = document.getElementById('battle-turn-num');
+    if (turnNumEl) turnNumEl.innerText = activeBattle.turn;
+
+    const p1 = activeBattle.p1;
+    const p2 = activeBattle.p2;
+
+    const p1Label = document.getElementById('p1-name-label');
+    const p2Label = document.getElementById('p2-name-label');
+    const p1HpText = document.getElementById('p1-hp-text');
+    const p2HpText = document.getElementById('p2-hp-text');
+    const p1HpBar = document.getElementById('p1-hp-bar');
+    const p2HpBar = document.getElementById('p2-hp-bar');
+
+    if (p1Label) p1Label.innerText = p1.charName;
+    if (p2Label) p2Label.innerText = p2.charName;
+    if (p1HpText) p1HpText.innerText = `${p1.hp}/${p1.maxHp}`;
+    if (p2HpText) p2HpText.innerText = `${p2.hp}/${p2.maxHp}`;
+
+    if (p1HpBar) {
+        const pct1 = Math.max(0, Math.min(100, (p1.hp / p1.maxHp) * 100));
+        p1HpBar.style.width = `${pct1}%`;
+    }
+    if (p2HpBar) {
+        const pct2 = Math.max(0, Math.min(100, (p2.hp / p2.maxHp) * 100));
+        p2HpBar.style.width = `${pct2}%`;
+    }
+
+    const p1Cvs = document.getElementById('p1-canvas');
+    const p2Cvs = document.getElementById('p2-canvas');
+
+    if (p1Cvs) CharacterRenderer.drawCharacter(p1Cvs, p1.id, p1.isMiniZou, false, p1.hp <= 0);
+    if (p2Cvs) CharacterRenderer.drawCharacter(p2Cvs, p2.id, p2.isMiniZou, false, p2.hp <= 0);
+
+    const grid = document.getElementById('skill-buttons-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    const activePlayer = activeBattle.myPlayerNum === 1 ? p1 : p2;
+    const isMyTurnBlocked = activeBattle.battleEnded || activeBattle.waitingForOpponent || activePlayer.isResting;
+
+    activePlayer.skills.forEach(s => {
+        const cd = activePlayer.cooldowns[s.id] || 0;
+        const disabled = isMyTurnBlocked || (cd > 0);
+
+        const btn = document.createElement('button');
+        btn.className = `pixel-btn p-2 text-xs font-bold flex flex-col items-center justify-center ${disabled ? 'pixel-btn-disabled' : 'pixel-btn-primary'}`;
+        btn.disabled = disabled;
+        btn.innerHTML = `<span class="font-pixel text-xs mb-0.5">${s.name} ${cd > 0 ? `(CT:${cd})` : ''}</span><span class="text-[10px] text-slate-300 font-mono truncate max-w-full">${s.desc}</span>`;
+        btn.onclick = () => activeBattle.submitAction(activeBattle.myPlayerNum, s.id);
+        grid.appendChild(btn);
+    });
+}
