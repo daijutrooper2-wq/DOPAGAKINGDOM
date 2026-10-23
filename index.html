@@ -79,7 +79,7 @@
     </div>
 
     <!-- MODAL / NOTIFICATION OVERLAY -->
-    <div id="modal-overlay" class="fixed inset-0 bg-black/85 hidden flex items-center justify-center p-2 sm:p-4 z-50">
+    <div id="modal-overlay" class="fixed inset-0 bg-black/85 hidden flex items-center justify-center p-2 sm:p-4 z-[9995]">
         <div class="pixel-box bg-slate-900 max-w-md w-full p-3 sm:p-5 text-center relative border-amber-400 max-h-[90vh] flex flex-col">
             <h3 id="modal-title" class="text-base sm:text-xl font-bold text-amber-400 mb-2 sm:mb-3 font-pixel"></h3>
             <div id="modal-body" class="text-slate-200 mb-4 sm:mb-6 text-xs sm:text-sm leading-relaxed whitespace-pre-line max-h-[60vh] overflow-y-auto text-left flex-1 pr-1"></div>
@@ -89,9 +89,14 @@
         </div>
     </div>
 
+    <!-- グローバル常時表示設定ボタン（戦闘中・演出中・相手ターン中も常時表示＆最前面操作保障） -->
+    <button onclick="openSettingsPanel()" class="fixed top-2 right-2 z-[9990] pixel-btn pixel-btn-warning px-2.5 py-1 text-xs font-bold shadow-2xl flex items-center gap-1 cursor-pointer select-none">
+        <span>⚙️ 設定</span>
+    </button>
+
     <!-- SETTINGS SLIDE-IN PANEL -->
-    <div id="settings-backdrop" class="fixed inset-0 bg-black/75 hidden z-50 transition-opacity" onclick="closeSettingsPanel()"></div>
-    <div id="settings-slide-panel" class="fixed inset-y-0 right-0 z-50 w-1/2 bg-slate-900 border-l-4 border-amber-500 shadow-2xl transform translate-x-full transition-transform duration-300 ease-out flex flex-col p-4 overflow-y-auto">
+    <div id="settings-backdrop" class="fixed inset-0 bg-black/75 hidden z-[9996] transition-opacity" onclick="closeSettingsPanel()"></div>
+    <div id="settings-slide-panel" class="fixed inset-y-0 right-0 z-[9997] w-1/2 bg-slate-900 border-l-4 border-amber-500 shadow-2xl transform translate-x-full transition-transform duration-300 ease-out flex flex-col p-4 overflow-y-auto">
         <div class="flex justify-between items-center border-b border-amber-600/50 pb-3 mb-4">
             <h3 class="text-base sm:text-lg font-bold text-amber-400 font-pixel">⚙️ 設定パネル</h3>
             <button onclick="closeSettingsPanel()" class="pixel-btn pixel-btn-danger px-3 py-1 text-xs font-bold">✕ 閉じる</button>
