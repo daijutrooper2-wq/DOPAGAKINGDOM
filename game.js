@@ -583,6 +583,43 @@ static drawDopagaking(p, isCharged) {
                 setTimeout(() => this.playTone(880, 0.12, 'square', 0.2), 60);
                 setTimeout(() => this.playTone(1320, 0.2, 'triangle', 0.25), 120);
             }
+
+            playEvade() {
+                if (!this.enabled) return;
+                this.init();
+                try {
+                    const bufferSize = this.ctx.sampleRate * 0.1;
+                    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                    const output = buffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) {
+                        output[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+                    }
+                    const whiteNoise = this.ctx.createBufferSource();
+                    whiteNoise.buffer = buffer;
+                    const filter = this.ctx.createBiquadFilter();
+                    filter.type = 'highpass';
+                    filter.frequency.setValueAtTime(2000, this.ctx.currentTime);
+                    const gain = this.ctx.createGain();
+                    gain.gain.setValueAtTime(0.2 * (this.volume !== undefined ? this.volume : 0.5), this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.1);
+                    whiteNoise.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    whiteNoise.start();
+
+                    const osc = this.ctx.createOscillator();
+                    const oscGain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(300, this.ctx.currentTime + 0.1);
+                    oscGain.gain.setValueAtTime(0.15 * (this.volume !== undefined ? this.volume : 0.5), this.ctx.currentTime);
+                    oscGain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.1);
+                    osc.connect(oscGain);
+                    oscGain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.1);
+                } catch(e) {}
+            }
         }
         const audioSystem = new SoundSystem();
 
@@ -3315,6 +3352,8 @@ case 'dopa_juggler_skill':
                 if (defender.tempEvadeNext && !isStealth) {
                     defender.tempEvadeNext = false;
                     this.log(`✨ ${defender.charName} は「アエグ」等の効果により次の攻撃を完全に回避した！`, 'text-pink-300 font-bold');
+                    audioSystem.playEvade();
+                    triggerCharacterEffect(defender, 'miss', '回避');
                     this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'miss', '絶対回避!');
                     return;
                 }
@@ -3338,6 +3377,8 @@ case 'dopa_juggler_skill':
                     const hitRate = 100 - effectiveEva;
                     if (Math.random() * 100 > hitRate) {
                         this.log(`🌀 ${defender.charName} は攻撃を回避した！`, 'text-sky-300');
+                        audioSystem.playEvade();
+                        triggerCharacterEffect(defender, 'miss', '回避');
                         this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'miss', 'MISS');
                         if (defender.id === 'pasha_dark') {
                             defender.buffAtk *= 1.1;
@@ -3372,6 +3413,7 @@ case 'dopa_juggler_skill':
                     audioSystem.playCrit();
                     this.log(`🔥✨【クリティカルヒット発動！！】 1.5倍の会心ダメージ (${damage})！！`, 'text-yellow-300 font-black text-base');
                     this.triggerCutin('🔥 クリティカルヒット！！', '会心の一撃！ 1.5倍ダメージ炸裂！');
+                    triggerCharacterEffect(defender, 'crit', 'クリティカル！');
                     this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'buff', 'CRITICAL! 1.5x');
 
                     const defCvsId = defender === this.p1 ? 'p1-canvas' : 'p2-canvas';
@@ -3599,6 +3641,61 @@ case 'dopa_juggler_skill':
                     this.heartbeatTimer = null;
                 }
             }
+        }
+
+        function getCharacterDOMElement(char) {
+            if (!activeNewBattle) {
+                if (activeBattle) {
+                    if (char === activeBattle.p1) return document.getElementById('p1-canvas');
+                    if (char === activeBattle.p2) return document.getElementById('p2-canvas');
+                }
+                return document.getElementById('p1-canvas') || document.getElementById('screen-container');
+            }
+
+            if (activeNewBattle.allies && activeNewBattle.allies.includes(char)) {
+                const idx = activeNewBattle.allies.indexOf(char);
+                const el = document.getElementById(`ally-char-${idx}`);
+                if (el) return el;
+            }
+            if (activeNewBattle.enemies && activeNewBattle.enemies.includes(char)) {
+                const idx = activeNewBattle.enemies.indexOf(char);
+                const el = document.getElementById(`enemy-char-${idx}`);
+                if (el) return el;
+            }
+
+            return document.getElementById('screen-container');
+        }
+
+        function triggerCharacterEffect(targetChar, type, text) {
+            const targetEl = getCharacterDOMElement(targetChar);
+            if (!targetEl) return;
+
+            const pop = document.createElement('div');
+            pop.className = 'absolute font-pixel font-bold z-50 floating-text pointer-events-none transform -translate-x-1/2 -translate-y-1/2';
+
+            let color = 'text-white text-base';
+            if (type === 'damage') {
+                color = 'text-red-400 text-base sm:text-lg drop-shadow-[0_2px_0_rgba(0,0,0,1)]';
+            } else if (type === 'heal') {
+                color = 'text-emerald-400 text-base sm:text-lg drop-shadow-[0_2px_0_rgba(0,0,0,1)]';
+            } else if (type === 'buff') {
+                color = 'text-amber-300 text-base sm:text-lg drop-shadow-[0_2px_0_rgba(0,0,0,1)]';
+            } else if (type === 'miss') {
+                color = 'text-sky-300 text-base sm:text-lg font-pixel drop-shadow-[0_2px_0_rgba(0,0,0,1)]';
+            } else if (type === 'crit') {
+                color = 'text-yellow-300 text-lg sm:text-xl font-black font-pixel drop-shadow-[0_3px_0_rgba(0,0,0,1)] animate-bounce';
+            }
+
+            pop.classList.add(...color.split(' '));
+            pop.innerText = text;
+
+            pop.style.left = `50%`;
+            pop.style.top = `15%`;
+
+            targetEl.style.position = 'relative';
+            targetEl.appendChild(pop);
+
+            setTimeout(() => pop.remove(), 1200);
         }
 
         function triggerVisualEffect(side, type, text) {
@@ -4475,8 +4572,8 @@ case 'dopa_juggler_skill':
                                             ? `absolute top-1.5 left-1/2 -translate-x-1/2 ${hpBarWidthClass} z-40 flex flex-col items-center bg-black/85 backdrop-blur-md px-1 py-0.5 rounded border border-white/20 shadow-lg` 
                                             : `absolute bottom-full mb-0.5 left-1/2 -translate-x-1/2 ${hpBarWidthClass} z-40 flex flex-col items-center bg-black/85 backdrop-blur-md px-1 py-0.5 rounded border border-white/20 shadow-lg`;
 
-                                        return `
-                                            <div ${clickableAttr} class="${posClasses} ${sizeClasses} flex flex-col items-center justify-end transition-all duration-500 ${interactiveStyle} ${deadStyle}">
+                                         return `
+                                             <div id="ally-char-${origIdx}" ${clickableAttr} class="${posClasses} ${sizeClasses} flex flex-col items-center justify-end transition-all duration-500 ${interactiveStyle} ${deadStyle}">
                                                 ${isCurrentActor ? '<div class="absolute bottom-full mb-7 left-1/2 -translate-x-1/2 text-amber-400 font-bold text-sm sm:text-lg animate-arrow-float z-50 drop-shadow-md">▼</div>' : ''}
                                                 
                                                  <!-- 頭上のステータスUI（完全頭上固定・フロート表示） -->
@@ -4556,8 +4653,8 @@ case 'dopa_juggler_skill':
                                            ? `absolute top-1.5 left-1/2 -translate-x-1/2 ${hpBarWidthClass} z-40 flex flex-col items-center bg-black/85 backdrop-blur-md px-1 py-0.5 rounded border border-white/20 shadow-lg` 
                                            : `absolute bottom-full mb-0.5 left-1/2 -translate-x-1/2 ${hpBarWidthClass} z-40 flex flex-col items-center bg-black/85 backdrop-blur-md px-1 py-0.5 rounded border border-white/20 shadow-lg`;
 
-                                       return `
-                                           <div ${clickableAttr} class="${posClasses} ${sizeClasses} flex flex-col items-center justify-end transition-all duration-500 ${interactiveStyle} ${deadStyle}">
+                                        return `
+                                            <div id="enemy-char-${origIdx}" ${clickableAttr} class="${posClasses} ${sizeClasses} flex flex-col items-center justify-end transition-all duration-500 ${interactiveStyle} ${deadStyle}">
                                                ${isCurrentActor ? '<div class="absolute bottom-full mb-7 left-1/2 -translate-x-1/2 text-amber-400 font-bold text-sm sm:text-lg animate-arrow-float z-50 drop-shadow-md">▼</div>' : ''}
                                                
                                                 <!-- 頭上のステータスUI（完全頭上固定・フロート表示） -->
