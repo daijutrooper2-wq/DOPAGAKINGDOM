@@ -14,12 +14,7 @@
         }
 
         #orientation-warning {
-            display: none;
-        }
-        @media (orientation: portrait) {
-            #orientation-warning {
-                display: flex !important;
-            }
+            display: none !important;
         }
 
         html, body {
