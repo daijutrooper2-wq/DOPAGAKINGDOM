@@ -1097,30 +1097,42 @@ function openNewBattleSettingsPanel() {
 }
 
 function applyHitShake(target) {
-    if (!target) return;
-    if (typeof target === 'object' && !(target instanceof Element)) {
-        target.isShaking = true;
-        if (activeNewBattle && activeNewBattle.onStateChange) activeNewBattle.onStateChange(activeNewBattle);
-        setTimeout(() => {
-            target.isShaking = false;
-            if (activeNewBattle && activeNewBattle.onStateChange) activeNewBattle.onStateChange(activeNewBattle);
-        }, 300);
+    console.log("[Debug:applyHitShake] Called with target:", target);
+    if (!target) {
+        console.warn("[Debug:applyHitShake] target is null or undefined");
         return;
     }
+
     let el = null;
     if (target instanceof Element) {
         el = target;
+        console.log("[Debug:applyHitShake] Target is direct Element instance");
     } else if (typeof target === 'string') {
         el = document.getElementById(target);
+        console.log(`[Debug:applyHitShake] Target is string ID '${target}', found element:`, el);
     } else {
         el = getNewBattleCharacterDOMElement(target);
+        console.log("[Debug:applyHitShake] Target is character object, resolved DOM element via getNewBattleCharacterDOMElement:", el);
     }
-    if (!el) return;
+
+    if (!el) {
+        console.error("[Debug:applyHitShake] FAILED to resolve DOM element for target:", target);
+        return;
+    }
+
+    console.log("[Debug:applyHitShake] DOM Element found - ID:", el.id, "classList before:", el.classList.toString());
+
+    // Remove class to reset animation state if already shaking
     el.classList.remove('animate-hit-shake');
-    void el.offsetWidth; // force reflow
+    // Force browser reflow to restart CSS animation reliably
+    void el.offsetWidth;
+
     el.classList.add('animate-hit-shake');
+    console.log("[Debug:applyHitShake] Added 'animate-hit-shake' class. classList after:", el.classList.toString());
+
     setTimeout(() => {
         el.classList.remove('animate-hit-shake');
+        console.log("[Debug:applyHitShake] Removed 'animate-hit-shake' class after timeout.");
     }, 300);
 }
 
