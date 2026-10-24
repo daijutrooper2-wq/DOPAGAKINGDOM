@@ -3417,6 +3417,10 @@ case 'dopa_juggler_skill':
                 defender.hp = Math.max(0, defender.hp - damage);
 
                 const side = defender === this.p1 ? 'Player' : 'Enemy';
+                if (this.isNewBattle && (defender.buffDef > 1.0 || defender.defendBuffTurns > 0)) {
+                    triggerCharacterEffect(defender, 'def', '防御');
+                    this.triggerEffect(side, 'def', '防御');
+                }
                 let damageLog = `⚔ ${defender.charName} に ${damage} のダメージ！`;
                 if (attacker.id === 'ndaihyo' && skill.isNormalAttack) {
                     damageLog = `N高代表 の【バッティング】！ ${defender.charName} に ${damage} のダメージ！`;
@@ -3668,6 +3672,8 @@ case 'dopa_juggler_skill':
                 color = 'text-sky-300 text-xs sm:text-sm font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
             } else if (type === 'crit') {
                 color = 'text-yellow-300 text-xs sm:text-sm font-bold font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
+            } else if (type === 'def' || type === 'defense') {
+                color = 'text-blue-300 text-xs sm:text-sm font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
             }
 
             pop.classList.add(...color.split(' '));
@@ -3677,7 +3683,7 @@ case 'dopa_juggler_skill':
             pop.style.position = 'fixed';
             pop.style.left = `${rect.left + rect.width / 2}px`;
             
-            if (type === 'miss' || type === 'crit') {
+            if (type === 'miss' || type === 'crit' || type === 'def' || type === 'defense') {
                 pop.style.top = `${rect.top + rect.height / 3}px`;
             } else {
                 pop.style.top = `${rect.top - 10}px`;
@@ -3702,6 +3708,7 @@ case 'dopa_juggler_skill':
             else if (type === 'heal') color = 'text-emerald-400 drop-shadow-[0_2px_0_rgba(0,0,0,1)]';
             else if (type === 'buff') color = 'text-amber-300 drop-shadow-[0_2px_0_rgba(0,0,0,1)]';
             else if (type === 'miss') color = 'text-sky-300 drop-shadow-[0_2px_0_rgba(0,0,0,1)]';
+            else if (type === 'def' || type === 'defense') color = 'text-blue-300 drop-shadow-[0_2px_0_rgba(0,0,0,1)]';
 
             pop.classList.add(...color.split(' '));
             pop.innerText = text;

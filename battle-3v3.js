@@ -484,6 +484,10 @@ class Battle3v3Engine {
         defender.hp = Math.max(0, defender.hp - damage);
 
         const side = this.getCharacterTeam(defender) === 'ally' ? 'Player' : 'Enemy';
+        if (defender.buffDef > 1.0 || defender.defendBuffTurns > 0) {
+            triggerNewBattleCharacterEffect(defender, 'def', '防御');
+            this.triggerEffect(side, 'def', '防御');
+        }
         this.log(`⚔ ${defender.charName} に ${damage} のダメージ！`, 'text-red-400 font-bold');
         this.triggerEffect(side, 'damage', `-${damage}`);
         audioSystem.playHit();
@@ -1114,6 +1118,8 @@ function triggerNewBattleCharacterEffect(targetChar, type, text) {
         color = 'text-sky-300 text-xs sm:text-sm font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
     } else if (type === 'crit') {
         color = 'text-yellow-300 text-xs sm:text-sm font-bold font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
+    } else if (type === 'def' || type === 'defense') {
+        color = 'text-blue-300 text-xs sm:text-sm font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
     }
 
     pop.classList.add(...color.split(' '));
@@ -1122,7 +1128,11 @@ function triggerNewBattleCharacterEffect(targetChar, type, text) {
     const rect = targetEl.getBoundingClientRect();
     pop.style.position = 'fixed';
     pop.style.left = `${rect.left + rect.width / 2}px`;
-    pop.style.top = `${rect.top - 10}px`;
+    if (type === 'miss' || type === 'crit' || type === 'def' || type === 'defense') {
+        pop.style.top = `${rect.top + rect.height / 3}px`;
+    } else {
+        pop.style.top = `${rect.top - 10}px`;
+    }
     pop.style.transform = 'translateX(-50%)';
 
     document.body.appendChild(pop);
@@ -1143,13 +1153,11 @@ window.triggerNewBattleShake = triggerNewBattleShake;
 let activeNewBattleShakingMap = {};
 
 function getNewBattleCharacterKey(char) {
-    if (!activeNewBattle) return null;
-    if (activeNewBattle.allies && activeNewBattle.allies.includes(char)) {
-        return `ally_${activeNewBattle.allies.indexOf(char)}`;
-    }
-    if (activeNewBattle.enemies && activeNewBattle.enemies.includes(char)) {
-        return `enemy_${activeNewBattle.enemies.indexOf(char)}`;
-    }
+    if (!activeNewBattle || !char) return null;
+    const allyIdx = activeNewBattle.allies.findIndex(a => a === char || (a && char && a.id === char.id && a.name === char.name));
+    if (allyIdx !== -1) return `ally_${allyIdx}`;
+    const enemyIdx = activeNewBattle.enemies.findIndex(e => e === char || (e && char && e.id === char.id && e.name === char.name));
+    if (enemyIdx !== -1) return `enemy_${enemyIdx}`;
     return null;
 }
 
@@ -1159,7 +1167,9 @@ function triggerNewBattleShake(targetChar) {
 
     activeNewBattleShakingMap[key] = true;
 
-    const imgEl = document.getElementById(`new-${key.replace('_', '-img-')}`);
+    const [team, idxStr] = key.split('_');
+    const elId = `new-${team}-img-${idxStr}`;
+    const imgEl = document.getElementById(elId);
     if (imgEl) {
         imgEl.classList.remove('char-shake');
         void imgEl.offsetWidth;
@@ -1168,7 +1178,7 @@ function triggerNewBattleShake(targetChar) {
 
     setTimeout(() => {
         activeNewBattleShakingMap[key] = false;
-        const el = document.getElementById(`new-${key.replace('_', '-img-')}`);
+        const el = document.getElementById(elId);
         if (el) el.classList.remove('char-shake');
     }, 400);
 }
