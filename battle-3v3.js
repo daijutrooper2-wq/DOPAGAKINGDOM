@@ -197,6 +197,7 @@ class Battle3v3Engine {
             digUsedTurn: 0,
             recordedSkill: null,
             eggplantReady: false,
+            isShaking: false,
             isMiniZou: false,
             momoRevived: false,
             isDarkMode: false,
@@ -1071,7 +1072,7 @@ function renderNewBattleScreen() {
                                     <span>${c.charName}</span>: <span class="font-mono">${c.hp}/${c.maxHp}</span>
                                     <div class="w-full bg-slate-900 h-1 rounded overflow-hidden"><div class="bg-emerald-400 h-full" style="width: ${pct}%;"></div></div>
                                 </div>
-                                 <div id="new-ally-img-${posIdx}" class="w-full flex-1 flex items-center justify-center">
+                                 <div id="new-ally-img-${posIdx}" class="w-full flex-1 flex items-center justify-center ${c.isShaking ? 'char-shake' : ''}">
                                      <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain">
                                  </div>
                             </div>
@@ -1097,7 +1098,7 @@ function renderNewBattleScreen() {
                                     <span>${c.charName}</span>: <span class="font-mono">${c.hp}/${c.maxHp}</span>
                                     <div class="w-full bg-slate-900 h-1 rounded overflow-hidden"><div class="bg-red-500 h-full" style="width: ${pct}%;"></div></div>
                                 </div>
-                                 <div id="new-enemy-img-${posIdx}" class="w-full flex-1 flex items-center justify-center">
+                                 <div id="new-enemy-img-${posIdx}" class="w-full flex-1 flex items-center justify-center ${c.isShaking ? 'char-shake' : ''}">
                                      <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain" style="transform: scaleX(-1);">
                                  </div>
                             </div>
@@ -1269,26 +1270,22 @@ function getNewBattleCharacterKey(char) {
 }
 
 function triggerNewBattleShake(targetChar) {
-    const key = getNewBattleCharacterKey(targetChar);
-    if (!key) return;
-
-    const [team, idxStr] = key.split('_');
-    const elId = `new-${team}-img-${idxStr}`;
+    if (!targetChar) return;
+    targetChar.isShaking = true;
+    if (activeNewBattle && activeNewBattle.onStateChange) {
+        activeNewBattle.onStateChange(activeNewBattle);
+    } else if (typeof renderNewBattleScreen === 'function') {
+        renderNewBattleScreen();
+    }
 
     setTimeout(() => {
-        const imgEl = document.getElementById(elId);
-        if (imgEl) {
-            imgEl.classList.remove('char-shake');
-            void imgEl.offsetWidth;
-            imgEl.classList.add('char-shake');
-
-            setTimeout(() => {
-                if (imgEl) {
-                    imgEl.classList.remove('char-shake');
-                }
-            }, 350);
+        targetChar.isShaking = false;
+        if (activeNewBattle && activeNewBattle.onStateChange) {
+            activeNewBattle.onStateChange(activeNewBattle);
+        } else if (typeof renderNewBattleScreen === 'function') {
+            renderNewBattleScreen();
         }
-    }, 20);
+    }, 350);
 }
 
 function showBattleCharTooltip(teamOrChar, posIdxOrIsAlly, event) {
