@@ -1065,11 +1065,7 @@ function renderNewBattleScreen() {
                         const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${posIdx}, true)"` : '';
                         return `
                             <div id="new-ally-char-${posIdx}" ${clickableAttr} 
-                                 onmouseenter="showBattleCharTooltip('ally', ${posIdx}, event)"
-                                 onmouseleave="hideBattleCharTooltip()"
-                                 ontouchstart="showBattleCharTooltip('ally', ${posIdx}, event)"
-                                 ontouchend="hideBattleCharTooltip()"
-                                 ontouchcancel="hideBattleCharTooltip()"
+                                 data-char-team="ally" data-char-idx="${posIdx}"
                                  class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center w-24 h-32 relative ${c.hp <= 0 ? 'opacity-40 grayscale' : ''}">
                                 <div class="w-full bg-black/85 px-1 py-0.5 rounded border border-white/20 text-[8px] text-emerald-300">
                                     <span>${c.charName}</span>: <span class="font-mono">${c.hp}/${c.maxHp}</span>
