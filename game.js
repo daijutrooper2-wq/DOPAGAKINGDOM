@@ -3104,7 +3104,8 @@ pasha_dark: {
                     if (skill.type === 'attack' || skill.type === 'special' || skill.type === 'debuff_attack' || skill.type === 'eggplant_burst' || (skill.power && skill.power > 0)) {
                         defender.recordedSkill = { ...skill };
                         defender.digActive = false;
-                        this.log(`💡 ${defender.charName} は ${attacker.charName} の「${skill.name}」を記憶（コピー）した！`, 'text-cyan-300 font-bold');
+                        this.log(`asaiomizuは相手の[${skill.name}]をコピーした！`, 'text-cyan-300 font-bold');
+                        this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'buff', 'スキルコピー成功！');
                     }
                 }
 
@@ -4470,7 +4471,23 @@ case 'dopa_juggler_skill':
 
             let skillModalHtml = '';
             if (isNewBattleSkillModalOpen) {
-                const skills = p1.skills.filter(s => !s.isNormalAttack);
+                const skills = [];
+                p1.skills.forEach(s => {
+                    if (!s.isNormalAttack) {
+                        skills.push(s);
+                    }
+                });
+                if (p1.id === 'asaiomizu' && p1.recordedSkill) {
+                    skills.unshift({
+                        id: 'asaiomizu_copied',
+                        name: `📋【コピー】${p1.recordedSkill.name}`,
+                        type: p1.recordedSkill.type || 'attack',
+                        power: p1.recordedSkill.power || 1.0,
+                        isNormalAttack: false,
+                        cooldown: 0,
+                        desc: `【ディグコピー技】${p1.recordedSkill.name}（${p1.recordedSkill.desc || '相手からコピーしたスキル'}）`
+                    });
+                }
                 let skillsHtml = skills.map(s => {
                     const cd = p1.cooldowns[s.id] || 0;
                     const isCd = cd > 0;
