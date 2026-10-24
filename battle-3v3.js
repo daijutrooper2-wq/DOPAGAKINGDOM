@@ -1112,7 +1112,30 @@ function applyHitShake(target) {
         console.log(`[Debug:applyHitShake] Target is string ID '${target}', found element:`, el);
     } else {
         el = getNewBattleCharacterDOMElement(target);
-        console.log("[Debug:applyHitShake] Target is character object, resolved DOM element via getNewBattleCharacterDOMElement:", el);
+        if (!el && typeof getCharacterDOMElement === 'function') {
+            el = getCharacterDOMElement(target);
+        }
+        if (!el && typeof activeNewBattle !== 'undefined' && activeNewBattle) {
+            if (activeNewBattle.allies && activeNewBattle.allies.includes(target)) {
+                const idx = activeNewBattle.allies.indexOf(target);
+                el = document.getElementById(`new-ally-char-${idx}`) || document.getElementById(`ally-char-${idx}`);
+            } else if (activeNewBattle.enemies && activeNewBattle.enemies.includes(target)) {
+                const idx = activeNewBattle.enemies.indexOf(target);
+                el = document.getElementById(`new-enemy-char-${idx}`) || document.getElementById(`enemy-char-${idx}`);
+            }
+        }
+        if (!el && typeof activeBattle !== 'undefined' && activeBattle) {
+            if (target === activeBattle.p1) el = document.getElementById('p1-canvas') || document.getElementById('p1-char');
+            if (target === activeBattle.p2) el = document.getElementById('p2-canvas') || document.getElementById('p2-char');
+        }
+        if (!el && target.id) {
+            el = document.getElementById(target.id) || document.getElementById(`char-${target.id}`) || document.getElementById(`p1-canvas`) || document.getElementById(`p2-canvas`);
+        }
+        console.log("[Debug:applyHitShake] Target is character object, resolved DOM element:", el);
+    }
+
+    if (!el) {
+        el = document.getElementById('p1-canvas') || document.getElementById('p2-canvas');
     }
 
     if (!el) {

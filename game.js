@@ -2281,6 +2281,9 @@ pasha_dark: {
             triggerHitShake(target) {
                 if (!target) return;
                 target.isShaking = true;
+                if (typeof applyHitShake === 'function') {
+                    applyHitShake(target);
+                }
                 setTimeout(() => {
                     target.isShaking = false;
                     if (this.onStateChange) this.onStateChange(this);
