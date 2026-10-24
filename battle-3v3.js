@@ -960,7 +960,7 @@ function renderNewBattleScreen() {
                                     <span>${c.charName}</span>: <span class="font-mono">${c.hp}/${c.maxHp}</span>
                                     <div class="w-full bg-slate-900 h-1 rounded overflow-hidden"><div class="bg-emerald-400 h-full" style="width: ${pct}%;"></div></div>
                                 </div>
-                                 <div id="new-ally-img-${posIdx}" class="w-full flex-1 flex items-center justify-center">
+                                 <div id="new-ally-img-${posIdx}" class="w-full flex-1 flex items-center justify-center ${activeNewBattleShakingMap && activeNewBattleShakingMap[`ally_${posIdx}`] ? 'char-shake' : ''}">
                                      <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain">
                                  </div>
                             </div>
@@ -984,7 +984,7 @@ function renderNewBattleScreen() {
                                     <span>${c.charName}</span>: <span class="font-mono">${c.hp}/${c.maxHp}</span>
                                     <div class="w-full bg-slate-900 h-1 rounded overflow-hidden"><div class="bg-red-500 h-full" style="width: ${pct}%;"></div></div>
                                 </div>
-                                 <div id="new-enemy-img-${posIdx}" class="w-full flex-1 flex items-center justify-center">
+                                 <div id="new-enemy-img-${posIdx}" class="w-full flex-1 flex items-center justify-center ${activeNewBattleShakingMap && activeNewBattleShakingMap[`enemy_${posIdx}`] ? 'char-shake' : ''}">
                                      <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain" style="transform: scaleX(-1);">
                                  </div>
                             </div>
@@ -1140,26 +1140,35 @@ window.handleNewBattleContinueChoice = handleNewBattleContinueChoice;
 window.selectNewBattleTarget = selectNewBattleTarget;
 window.triggerNewBattleShake = triggerNewBattleShake;
 
-function getNewBattleCharacterImageElement(char) {
+let activeNewBattleShakingMap = {};
+
+function getNewBattleCharacterKey(char) {
     if (!activeNewBattle) return null;
     if (activeNewBattle.allies && activeNewBattle.allies.includes(char)) {
-        const idx = activeNewBattle.allies.indexOf(char);
-        return document.getElementById(`new-ally-img-${idx}`);
+        return `ally_${activeNewBattle.allies.indexOf(char)}`;
     }
     if (activeNewBattle.enemies && activeNewBattle.enemies.includes(char)) {
-        const idx = activeNewBattle.enemies.indexOf(char);
-        return document.getElementById(`new-enemy-img-${idx}`);
+        return `enemy_${activeNewBattle.enemies.indexOf(char)}`;
     }
     return null;
 }
 
 function triggerNewBattleShake(targetChar) {
-    const imgEl = getNewBattleCharacterImageElement(targetChar);
-    if (!imgEl) return;
-    imgEl.classList.remove('char-shake');
-    void imgEl.offsetWidth;
-    imgEl.classList.add('char-shake');
-    setTimeout(() => {
+    const key = getNewBattleCharacterKey(targetChar);
+    if (!key) return;
+
+    activeNewBattleShakingMap[key] = true;
+
+    const imgEl = document.getElementById(`new-${key.replace('_', '-img-')}`);
+    if (imgEl) {
         imgEl.classList.remove('char-shake');
+        void imgEl.offsetWidth;
+        imgEl.classList.add('char-shake');
+    }
+
+    setTimeout(() => {
+        activeNewBattleShakingMap[key] = false;
+        const el = document.getElementById(`new-${key.replace('_', '-img-')}`);
+        if (el) el.classList.remove('char-shake');
     }, 400);
 }
