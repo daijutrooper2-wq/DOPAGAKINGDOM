@@ -416,3 +416,12 @@
             }
         }
 
+        #battle-char-tooltip {
+            position: fixed;
+            z-index: 9998;
+            pointer-events: none;
+            transition: opacity 0.15s ease-in-out;
+            max-width: 280px;
+            width: max-content;
+        }
+

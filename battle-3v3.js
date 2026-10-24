@@ -1041,6 +1041,7 @@ function renderNewBattleScreen() {
         <div class="w-full h-full flex flex-col justify-between bg-slate-950 text-white relative select-none p-1 sm:p-2 overflow-hidden">
             ${skillModalHtml}
             ${choicePopupHtml}
+            <div id="battle-char-tooltip" class="hidden pixel-box bg-slate-900 border-amber-400 p-2 text-xs text-slate-100 shadow-2xl z-[9998] pointer-events-none"></div>
             <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
                 <img src="images/backnormal.webp" alt="backnormal" class="w-full h-full object-cover opacity-80">
             </div>
@@ -1064,7 +1065,13 @@ function renderNewBattleScreen() {
                         const isSelectable = newBattleViewMode === 'target_select' && newBattleTargetSelectType === 'single_ally' && c.hp > 0;
                         const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${posIdx}, true)"` : '';
                         return `
-                            <div id="new-ally-char-${posIdx}" ${clickableAttr} class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center w-24 h-32 relative ${c.hp <= 0 ? 'opacity-40 grayscale' : ''}">
+                            <div id="new-ally-char-${posIdx}" ${clickableAttr} 
+                                 onmouseenter="showBattleCharTooltip(activeNewBattle.allies[${posIdx}], true, event)"
+                                 onmouseleave="hideBattleCharTooltip()"
+                                 ontouchstart="showBattleCharTooltip(activeNewBattle.allies[${posIdx}], true, event)"
+                                 ontouchend="hideBattleCharTooltip()"
+                                 ontouchcancel="hideBattleCharTooltip()"
+                                 class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center w-24 h-32 relative ${c.hp <= 0 ? 'opacity-40 grayscale' : ''}">
                                 <div class="w-full bg-black/85 px-1 py-0.5 rounded border border-white/20 text-[8px] text-emerald-300">
                                     <span>${c.charName}</span>: <span class="font-mono">${c.hp}/${c.maxHp}</span>
                                     <div class="w-full bg-slate-900 h-1 rounded overflow-hidden"><div class="bg-emerald-400 h-full" style="width: ${pct}%;"></div></div>
@@ -1088,7 +1095,13 @@ function renderNewBattleScreen() {
                         const isSelectable = newBattleViewMode === 'target_select' && newBattleTargetSelectType === 'single_enemy' && c.hp > 0;
                         const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${posIdx}, false)"` : '';
                         return `
-                            <div id="new-enemy-char-${posIdx}" ${clickableAttr} class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center w-24 h-32 relative ${c.hp <= 0 ? 'opacity-40 grayscale' : ''}">
+                            <div id="new-enemy-char-${posIdx}" ${clickableAttr} 
+                                 onmouseenter="showBattleCharTooltip(activeNewBattle.enemies[${posIdx}], false, event)"
+                                 onmouseleave="hideBattleCharTooltip()"
+                                 ontouchstart="showBattleCharTooltip(activeNewBattle.enemies[${posIdx}], false, event)"
+                                 ontouchend="hideBattleCharTooltip()"
+                                 ontouchcancel="hideBattleCharTooltip()"
+                                 class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center w-24 h-32 relative ${c.hp <= 0 ? 'opacity-40 grayscale' : ''}">
                                 <div class="w-full bg-black/85 px-1 py-0.5 rounded border border-white/20 text-[8px] text-red-300">
                                     <span>${c.charName}</span>: <span class="font-mono">${c.hp}/${c.maxHp}</span>
                                     <div class="w-full bg-slate-900 h-1 rounded overflow-hidden"><div class="bg-red-500 h-full" style="width: ${pct}%;"></div></div>
@@ -1287,3 +1300,77 @@ function triggerNewBattleShake(targetChar) {
         if (el) el.classList.remove('char-shake');
     }, 400);
 }
+
+function showBattleCharTooltip(c, isAlly, event) {
+    if (typeof newBattleViewMode !== 'undefined' && newBattleViewMode === 'target_select') {
+        hideBattleCharTooltip();
+        return;
+    }
+    const tooltip = document.getElementById('battle-char-tooltip');
+    if (!tooltip || !c) return;
+
+    let statsHtml = `
+        <div class="font-bold text-amber-300 font-pixel text-xs mb-1 border-b border-amber-600/50 pb-1 flex justify-between items-center">
+            <span>${c.charName}</span>
+            <span class="text-[9px] text-slate-400">${c.title || ''}</span>
+        </div>
+        <div class="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[10px] text-slate-200 mb-1.5 font-mono">
+            <div>HP: <b class="text-emerald-400">${c.hp}/${c.maxHp}</b></div>
+            <div>攻撃: <b class="text-amber-400">${c.atk}</b></div>
+            <div>防御: <b class="text-blue-400">${c.def}</b></div>
+            <div>会率: <b class="text-yellow-400">${Math.round((c.critRate || 0.05) * 100)}%</b></div>
+            <div>回避: <b class="text-sky-400">${c.eva || 10}%</b></div>
+        </div>
+        <div class="border-t border-slate-700 pt-1">
+            <div class="text-[9px] font-bold text-amber-200 mb-1">✨ 所持スキル一覧</div>
+            <div class="space-y-1 max-h-32 overflow-y-auto">
+    `;
+
+    c.skills.forEach(s => {
+        let cdText = '';
+        if (isAlly) {
+            const cd = c.cooldowns && c.cooldowns[s.id] ? c.cooldowns[s.id] : 0;
+            if (cd > 0) cdText = ` <span class="text-red-400">(CT:${cd})</span>`;
+        }
+        statsHtml += `
+            <div class="bg-slate-950 p-1 rounded border border-slate-800">
+                <div class="font-bold text-emerald-300 text-[10px]">${s.name}${cdText}</div>
+                <div class="text-[9px] text-slate-300">${s.desc}</div>
+            </div>
+        `;
+    });
+
+    statsHtml += `
+            </div>
+        </div>
+    `;
+
+    tooltip.innerHTML = statsHtml;
+    tooltip.classList.remove('hidden');
+
+    const clientX = event.clientX || (event.touches && event.touches[0] ? event.touches[0].clientX : window.innerWidth / 2);
+    const clientY = event.clientY || (event.touches && event.touches[0] ? event.touches[0].clientY : window.innerHeight / 2);
+
+    let left = clientX + 15;
+    let top = clientY - 40;
+    if (left + 260 > window.innerWidth) {
+        left = clientX - 275;
+    }
+    if (top + 200 > window.innerHeight) {
+        top = window.innerHeight - 210;
+    }
+    if (top < 10) top = 10;
+
+    tooltip.style.left = `${Math.max(10, left)}px`;
+    tooltip.style.top = `${Math.max(10, top)}px`;
+}
+
+function hideBattleCharTooltip() {
+    const tooltip = document.getElementById('battle-char-tooltip');
+    if (tooltip) {
+        tooltip.classList.add('hidden');
+    }
+}
+
+window.showBattleCharTooltip = showBattleCharTooltip;
+window.hideBattleCharTooltip = hideBattleCharTooltip;
