@@ -2058,7 +2058,7 @@ dopagaking: {
                     { id: 'ndaihyo_attack', name: 'バッティング', type: 'attack', power: 1.05, isNormalAttack: true, cooldown: 0, targetType: 'single_enemy', desc: '敵単体に標準ダメージを与える通常攻撃。' },
                     { id: 'ndaihyo_analysis', name: '弱点分析', type: 'debuff_attack', power: 1.30, isNormalAttack: false, cooldown: 2, targetType: 'single_enemy', desc: '敵単体の攻撃力と防御力を次のターン終了まで小低下させる。' },
                     { id: 'ndaihyo_tactics', name: 'パシャ憎絶許', type: 'debuff', cooldown: 4, initialCooldown: 1, targetType: 'all_enemies', desc: '敵全体の攻撃力・防御力を2ターン中低下。相手にパシャ憎がいる場合は攻撃力を大幅低下！' },
-                    { id: 'ndaihyo_mind', name: '消しゴム回復', type: 'heal_cleanse', healRate: 0.20, cooldown: 3, targetType: 'all_allies', desc: '味方全員のHPを小回復し、選択した味方1人のデバフを解除する。' }
+                     { id: 'ndaihyo_mind', name: '消しゴム回復', type: 'heal_cleanse', healRate: 0.20, cooldown: 3, targetType: 'single_ally', desc: '味方全員のHPを小回復し、選択した味方1人のデバフを解除する。' }
                 ]
             },
              pasha: {
@@ -3049,11 +3049,24 @@ pasha_dark: {
                     return;
                 }
                 if (skill.id === 'ndaihyo_mind') {
-                    const hCleanseAmt = Math.floor(attacker.maxHp * 0.20);
-                    attacker.hp = Math.min(attacker.maxHp, attacker.hp + hCleanseAmt);
-                    attacker.buffAtk = Math.max(1.0, attacker.buffAtk);
-                    attacker.buffDef = Math.max(1.0, attacker.buffDef);
-                    this.log(`N高代表 は消しゴムを食った！ 味方全員のHPが回復し、対象のデバフが解除された！`, 'text-emerald-400 font-bold');
+                    const healRate = skill.healRate || 0.20;
+                    const teamList = (this.getCharacterTeam(attacker) === 'ally') ? this.allies : this.enemies;
+                    teamList.forEach(a => {
+                        if (a.hp > 0) {
+                            const hAmt = Math.floor(a.maxHp * healRate);
+                            a.hp = Math.min(a.maxHp, a.hp + hAmt);
+                            this.triggerEffect(this.getCharacterTeam(a) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
+                        }
+                    });
+                    if (defender) {
+                        defender.buffAtk = Math.max(1.0, defender.buffAtk);
+                        defender.buffDef = Math.max(1.0, defender.buffDef);
+                        defender.buffAtkTurns = 0;
+                        this.triggerEffect(this.getCharacterTeam(defender) === 'ally' ? 'Player' : 'Enemy', 'buff', 'デバフ解除');
+                    }
+                    const targetName = defender ? defender.charName : '味方';
+                    this.log(`N高代表 は消しゴム回復を使用した！ 味方全体のHPが回復し、${targetName}のデバフが解除された！`, 'text-emerald-400 font-bold');
+                    audioSystem.playHeal();
                     return;
                 }
                 if (skill.id === 'pasha_flash') {

@@ -326,7 +326,10 @@ class Battle3v3Engine {
                 const defaultOpponent = targetPool[0] || (isAllyTeam ? this.enemies[0] : this.allies[0]);
                 const skillId = this.botAdapter.getDecision(attacker, defaultOpponent);
 
-                const opponents = isAllyTeam ? this.enemies.filter(e => e.hp > 0) : this.allies.filter(a => a.hp > 0);
+                const skill = attacker.skills.find(s => s.id === skillId) || attacker.skills[0];
+                const teamList = isAllyTeam ? this.allies : this.enemies;
+                const opposingTeam = isAllyTeam ? this.enemies : this.allies;
+                const opponents = (skill.targetType === 'single_ally') ? teamList.filter(a => a.hp > 0) : opposingTeam.filter(e => e.hp > 0);
                 if (opponents.length === 0) break;
                 let defender = opponents[Math.floor(Math.random() * opponents.length)];
 
@@ -428,6 +431,29 @@ class Battle3v3Engine {
     applySkill(attacker, defender, skill) {
         this.log(`💥 ${attacker.charName} の 「${skill.name}」！`, 'text-emerald-300 font-bold');
         audioSystem.playCharacterSound(attacker.id);
+
+        if (skill.id === 'ndaihyo_mind') {
+            const healRate = skill.healRate || 0.20;
+            const teamList = (this.getCharacterTeam(attacker) === 'ally') ? this.allies : this.enemies;
+            teamList.forEach(a => {
+                if (a.hp > 0) {
+                    const hAmt = Math.floor(a.maxHp * healRate);
+                    a.hp = Math.min(a.maxHp, a.hp + hAmt);
+                    this.triggerEffect(this.getCharacterTeam(a) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
+                }
+            });
+            if (defender) {
+                defender.buffAtk = Math.max(1.0, defender.buffAtk);
+                defender.buffDef = Math.max(1.0, defender.buffDef);
+                defender.buffAtkTurns = 0;
+                this.triggerEffect(this.getCharacterTeam(defender) === 'ally' ? 'Player' : 'Enemy', 'buff', 'デバフ解除');
+                triggerNewBattleCharacterEffect(defender, 'buff', 'クレンズ');
+            }
+            const targetName = defender ? defender.charName : '味方';
+            this.log(`N高代表 は消しゴム回復を使用した！ 味方全体のHPが回復し、${targetName}のデバフが解除された！`, 'text-emerald-400 font-bold');
+            audioSystem.playHeal();
+            return;
+        }
 
         if (skill.targetType === 'all_enemies' || skill.id === 'ndaihyo_tactics' || skill.id === 'pasha_flash' || skill.id === 'eggplant_burst') {
             const targetTeam = (this.getCharacterTeam(attacker) === 'ally') ? this.enemies : this.allies;
