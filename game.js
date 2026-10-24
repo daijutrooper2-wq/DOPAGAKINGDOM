@@ -370,15 +370,36 @@ static drawDopagaking(p, isCharged) {
                 this.bgmInterval = null;
                 this.bgmStep = 0;
                 this.volume = 0.5;
+                this.hasUserInteracted = false;
+
+                const unlockAudio = () => {
+                    this.hasUserInteracted = true;
+                    if (this.ctx && this.ctx.state === 'suspended') {
+                        this.ctx.resume().catch(() => {});
+                    }
+                    ['click', 'keydown', 'touchstart', 'pointerdown'].forEach(evt => {
+                        window.removeEventListener(evt, unlockAudio);
+                    });
+                };
+                ['click', 'keydown', 'touchstart', 'pointerdown'].forEach(evt => {
+                    window.addEventListener(evt, unlockAudio, { once: true });
+                });
             }
 
             init() {
+                if (!this.enabled || !this.hasUserInteracted) return;
                 if (!this.ctx) {
                     const AudioCtx = window.AudioContext || window.webkitAudioContext;
-                    this.ctx = new AudioCtx();
+                    if (AudioCtx) {
+                        try {
+                            this.ctx = new AudioCtx();
+                        } catch (e) {}
+                    }
                 }
-                if (this.ctx.state === 'suspended') {
-                    this.ctx.resume().catch(() => {});
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    try {
+                        this.ctx.resume().catch(() => {});
+                    } catch (e) {}
                 }
             }
 
