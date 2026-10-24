@@ -1105,23 +1105,27 @@ function triggerNewBattleCharacterEffect(targetChar, type, text) {
     if (!targetEl) return;
 
     const pop = document.createElement('div');
-    pop.className = 'absolute font-pixel font-bold z-[100] floating-text pointer-events-none transform -translate-x-1/2';
+    pop.className = 'absolute font-pixel font-bold floating-text pointer-events-none';
+    pop.style.zIndex = '9999';
+    pop.style.pointerEvents = 'none';
 
     let color = 'text-white text-[10px]';
     if (type === 'miss') {
-        color = 'text-sky-300 text-xs sm:text-sm font-pixel drop-shadow-[0_1px_0_rgba(0,0,0,1)]';
+        color = 'text-sky-300 text-xs sm:text-sm font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
     } else if (type === 'crit') {
-        color = 'text-yellow-300 text-xs sm:text-sm font-bold font-pixel drop-shadow-[0_1px_0_rgba(0,0,0,1)]';
+        color = 'text-yellow-300 text-xs sm:text-sm font-bold font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
     }
 
     pop.classList.add(...color.split(' '));
     pop.innerText = text;
 
-    pop.style.left = `50%`;
-    pop.style.top = `75%`;
+    const rect = targetEl.getBoundingClientRect();
+    pop.style.position = 'fixed';
+    pop.style.left = `${rect.left + rect.width / 2}px`;
+    pop.style.top = `${rect.top - 10}px`;
+    pop.style.transform = 'translateX(-50%)';
 
-    targetEl.style.position = 'relative';
-    targetEl.appendChild(pop);
+    document.body.appendChild(pop);
 
     setTimeout(() => pop.remove(), 1200);
 }

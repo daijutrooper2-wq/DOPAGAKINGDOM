@@ -3653,33 +3653,38 @@ case 'dopa_juggler_skill':
             if (!targetEl) return;
 
             const pop = document.createElement('div');
-            pop.className = 'absolute font-pixel font-bold z-[100] floating-text pointer-events-none transform -translate-x-1/2 -translate-y-1/2';
+            pop.className = 'absolute font-pixel font-bold floating-text pointer-events-none';
+            pop.style.zIndex = '9999';
+            pop.style.pointerEvents = 'none';
 
             let color = 'text-white text-base';
             if (type === 'damage') {
-                color = 'text-red-400 text-base sm:text-lg drop-shadow-[0_2px_0_rgba(0,0,0,1)]';
+                color = 'text-red-400 text-base sm:text-lg drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
             } else if (type === 'heal') {
-                color = 'text-emerald-400 text-base sm:text-lg drop-shadow-[0_2px_0_rgba(0,0,0,1)]';
+                color = 'text-emerald-400 text-base sm:text-lg drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
             } else if (type === 'buff') {
-                color = 'text-amber-300 text-base sm:text-lg drop-shadow-[0_2px_0_rgba(0,0,0,1)]';
+                color = 'text-amber-300 text-base sm:text-lg drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
             } else if (type === 'miss') {
-                color = 'text-sky-300 text-xs sm:text-sm font-pixel drop-shadow-[0_1px_0_rgba(0,0,0,1)]';
+                color = 'text-sky-300 text-xs sm:text-sm font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
             } else if (type === 'crit') {
-                color = 'text-yellow-300 text-xs sm:text-sm font-bold font-pixel drop-shadow-[0_1px_0_rgba(0,0,0,1)]';
+                color = 'text-yellow-300 text-xs sm:text-sm font-bold font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
             }
 
             pop.classList.add(...color.split(' '));
             pop.innerText = text;
 
-            pop.style.left = `50%`;
+            const rect = targetEl.getBoundingClientRect();
+            pop.style.position = 'fixed';
+            pop.style.left = `${rect.left + rect.width / 2}px`;
+            
             if (type === 'miss' || type === 'crit') {
-                pop.style.top = `75%`;
+                pop.style.top = `${rect.top + rect.height / 3}px`;
             } else {
-                pop.style.top = `15%`;
+                pop.style.top = `${rect.top - 10}px`;
             }
+            pop.style.transform = 'translateX(-50%)';
 
-            targetEl.style.position = 'relative';
-            targetEl.appendChild(pop);
+            document.body.appendChild(pop);
 
             setTimeout(() => pop.remove(), 1200);
         }
