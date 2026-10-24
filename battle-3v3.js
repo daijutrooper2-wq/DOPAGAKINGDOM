@@ -210,12 +210,56 @@ class Battle3v3Engine {
             evaDebuff: 0,
             enemyEvaTurns: 0,
             momoEvaTurns: 0,
-            asaiomizuCritTurns: 0
+            asaiomizuCritTurns: 0,
+            pashaPassiveActive: false
         };
+    }
+
+    checkPashaPassive() {
+        const checkTeamForPashaDark = (team) => {
+            return team && team.some(c => c.hp > 0 && c.id === 'pasha_dark');
+        };
+
+        const checkAndApply = (pashaChar, opposingTeam) => {
+            if (!pashaChar || pashaChar.hp <= 0) return;
+            const hasPashaDark = checkTeamForPashaDark(opposingTeam);
+            const wasActive = pashaChar.pashaPassiveActive;
+            pashaChar.pashaPassiveActive = hasPashaDark;
+
+            if (hasPashaDark) {
+                if (!wasActive) {
+                    this.log(`✨ パシャ僧のパッシブスキル発動！対パシャ憎効果によりクリティカル率が上昇した！`, 'text-yellow-300 font-bold');
+                    const side = this.getCharacterTeam(pashaChar) === 'ally' ? 'Player' : 'Enemy';
+                    this.triggerEffect(side, 'buff', 'パッシブ発動!');
+                    if (typeof this.triggerCutin === 'function') {
+                        this.triggerCutin('✨ パッシブスキル発動！', '対パシャ憎効果によりクリティカル率上昇！');
+                    }
+                    if (typeof triggerNewBattleCharacterEffect === 'function') {
+                        triggerNewBattleCharacterEffect(pashaChar, 'buff', 'パッシブ!');
+                    }
+                }
+            }
+        };
+
+        if (this.allies) {
+            this.allies.forEach(a => {
+                if (a.id === 'pasha') {
+                    checkAndApply(a, this.enemies);
+                }
+            });
+        }
+        if (this.enemies) {
+            this.enemies.forEach(e => {
+                if (e.id === 'pasha') {
+                    checkAndApply(e, this.allies);
+                }
+            });
+        }
     }
 
     startBattle() {
         this.log(`⚔️ 3v3バトル開始！ 味方チーム VS 敵チーム`, 'text-amber-300 font-bold');
+        this.checkPashaPassive();
         this.firstStrikerPlayerNum = 1;
         this.startTimer();
         this.startElapsedTimer();
@@ -280,6 +324,8 @@ class Battle3v3Engine {
         this.isProcessing = true;
         this.turnJustStarted = false;
         this.currentTurnLogs = [];
+
+        this.checkPashaPassive();
 
         if (this.isSuddenDeath) {
             this.log(`--- [ ターン ${this.turn} (🔥サドンデス) ] ---`, 'text-red-400 font-bold text-center');
@@ -567,6 +613,9 @@ class Battle3v3Engine {
         let damage = Math.max(8, Math.floor(baseDmg + (Math.random() * 4 - 2)));
 
         let effectiveCritRate = (attacker.critRate || 0.05) + (attacker.critRateBonus || 0);
+        if (attacker.id === 'pasha' && attacker.pashaPassiveActive) {
+            effectiveCritRate += 0.15;
+        }
         if (Math.random() < effectiveCritRate) {
             damage = Math.floor(damage * 1.5);
             audioSystem.playCrit();

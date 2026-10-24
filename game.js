@@ -1915,7 +1915,19 @@ static drawDopagaking(p, isCharged) {
                                 <div class="text-amber-300 font-bold mb-1.5 border-b border-amber-900 pb-1">📖 キャラクター解説</div>
                                 <p class="text-slate-200 leading-relaxed whitespace-pre-line">${c.zukanDesc || c.desc}</p>
                             </div>
+                `;
 
+                if (c.id === 'pasha') {
+                    html += `
+                            <div class="w-full bg-amber-950/60 p-3.5 rounded border border-amber-400 space-y-2 text-xs font-mono flex-shrink-0">
+                                <div class="text-amber-300 font-bold mb-1.5 border-b border-amber-600 pb-1">✨ 固有パッシブスキル: 対・半浸闇化特効</div>
+                                <p class="text-amber-200 leading-relaxed font-bold">【条件】敵チームに「パシャ憎・半浸闇化状態」のキャラクターが存在する場合</p>
+                                <p class="text-slate-200 leading-relaxed">【効果】パッシブスキルが発動し、パシャ僧自身のクリティカル率が常時少量（+15%）上昇する。</p>
+                            </div>
+                    `;
+                }
+
+                html += `
                             <div class="w-full bg-slate-950 p-3.5 rounded border border-amber-800 space-y-2 text-xs font-mono flex-shrink-0">
                                 <div class="text-amber-300 font-bold mb-1.5 border-b border-amber-900 pb-1">⚔ 所持スキル</div>
                                 <div class="space-y-2">
@@ -2435,14 +2447,57 @@ pasha_dark: {
                     evaDebuff: 0,
                     enemyEvaTurns: 0,
                     momoEvaTurns: 0,
-                    asaiomizuCritTurns: 0
+                    asaiomizuCritTurns: 0,
+                    pashaPassiveActive: false
                 };
             }
 
+            checkPashaPassive() {
+                const alliesList = this.allies || [this.p1];
+                const enemiesList = this.enemies || [this.p2];
 
+                const checkTeamForPashaDark = (team) => {
+                    return team && team.some(c => c.hp > 0 && c.id === 'pasha_dark');
+                };
+
+                const checkAndApply = (pashaChar, opposingTeam) => {
+                    if (!pashaChar || pashaChar.hp <= 0) return;
+                    const hasPashaDark = checkTeamForPashaDark(opposingTeam);
+                    const wasActive = pashaChar.pashaPassiveActive;
+                    pashaChar.pashaPassiveActive = hasPashaDark;
+
+                    if (hasPashaDark) {
+                        if (!wasActive) {
+                            this.log(`✨ パシャ僧のパッシブスキル発動！対パシャ憎効果によりクリティカル率が上昇した！`, 'text-yellow-300 font-bold');
+                            const side = (this.allies && this.allies.includes(pashaChar)) || pashaChar === this.p1 ? 'Player' : 'Enemy';
+                            this.triggerEffect(side, 'buff', 'パッシブ発動!');
+                            if (typeof this.triggerCutin === 'function') {
+                                this.triggerCutin('✨ パッシブスキル発動！', '対パシャ憎効果によりクリティカル率上昇！');
+                            }
+                            if (typeof triggerNewBattleCharacterEffect === 'function') {
+                                triggerNewBattleCharacterEffect(pashaChar, 'buff', 'パッシブ!');
+                            } else if (typeof triggerCharacterEffect === 'function') {
+                                triggerCharacterEffect(pashaChar, 'buff', 'パッシブ!');
+                            }
+                        }
+                    }
+                };
+
+                alliesList.forEach(a => {
+                    if (a.id === 'pasha') {
+                        checkAndApply(a, enemiesList);
+                    }
+                });
+                enemiesList.forEach(e => {
+                    if (e.id === 'pasha') {
+                        checkAndApply(e, alliesList);
+                    }
+                });
+            }
 
             startBattle() {
                 this.log(`⚔️ バトル開始！ 【${this.p1.charName}】 VS 【${this.p2.charName}】`, 'text-amber-300 font-bold');
+                this.checkPashaPassive();
                 
                 // 先攻決定ロジック (所持DOPAが多い方が先攻。同額の場合およびBOT戦では50%のランダム判定)
                 let firstStrikerNum = 1;
@@ -2787,6 +2842,8 @@ pasha_dark: {
                 this.isProcessing = true;
                 this.turnJustStarted = false;
                 this.currentTurnLogs = [];
+
+                this.checkPashaPassive();
 
                 if (this.isSuddenDeath) {
                     this.log(`--- [ ターン ${this.turn} (🔥サドンデス) ] ---`, 'text-red-400 font-bold text-center');
@@ -3462,6 +3519,9 @@ case 'dopa_juggler_skill':
 
                 let isCrit = false;
                 let effectiveCritRate = (attacker.critRate || 0.05) + (attacker.critRateBonus || 0);
+                if (attacker.id === 'pasha' && attacker.pashaPassiveActive) {
+                    effectiveCritRate += 0.15;
+                }
                 if (Math.random() < effectiveCritRate) {
                     isCrit = true;
                     damage = Math.floor(damage * 1.5);
