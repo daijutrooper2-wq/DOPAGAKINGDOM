@@ -4653,7 +4653,7 @@ case 'dopa_juggler_skill':
                                             : `absolute bottom-full mb-0.5 left-1/2 -translate-x-1/2 ${hpBarWidthClass} z-40 flex flex-col items-center bg-black/85 backdrop-blur-md px-1 py-0.5 rounded border border-white/20 shadow-lg`;
 
                                          return `
-                                             <div id="ally-char-${origIdx}" ${clickableAttr} class="${posClasses} ${sizeClasses} flex flex-col items-center justify-end transition-all duration-500 ${interactiveStyle} ${deadStyle}">
+                                             <div id="ally-char-${origIdx}" ${clickableAttr} data-char-team="ally" data-char-idx="${origIdx}" class="${posClasses} ${sizeClasses} flex flex-col items-center justify-end transition-all duration-500 ${interactiveStyle} ${deadStyle}">
                                                 ${isCurrentActor ? '<div class="absolute bottom-full mb-7 left-1/2 -translate-x-1/2 text-amber-400 font-bold text-sm sm:text-lg animate-arrow-float z-50 drop-shadow-md">▼</div>' : ''}
                                                 
                                                  <!-- 頭上のステータスUI（完全頭上固定・フロート表示） -->
@@ -4726,8 +4726,8 @@ case 'dopa_juggler_skill':
                                            ? `absolute top-1.5 left-1/2 -translate-x-1/2 ${hpBarWidthClass} z-40 flex flex-col items-center bg-black/85 backdrop-blur-md px-1 py-0.5 rounded border border-white/20 shadow-lg` 
                                            : `absolute bottom-full mb-0.5 left-1/2 -translate-x-1/2 ${hpBarWidthClass} z-40 flex flex-col items-center bg-black/85 backdrop-blur-md px-1 py-0.5 rounded border border-white/20 shadow-lg`;
 
-                                        return `
-                                            <div id="enemy-char-${origIdx}" ${clickableAttr} class="${posClasses} ${sizeClasses} flex flex-col items-center justify-end transition-all duration-500 ${interactiveStyle} ${deadStyle}">
+                                         return `
+                                             <div id="enemy-char-${origIdx}" ${clickableAttr} data-char-team="enemy" data-char-idx="${origIdx}" class="${posClasses} ${sizeClasses} flex flex-col items-center justify-end transition-all duration-500 ${interactiveStyle} ${deadStyle}">
                                                ${isCurrentActor ? '<div class="absolute bottom-full mb-7 left-1/2 -translate-x-1/2 text-amber-400 font-bold text-sm sm:text-lg animate-arrow-float z-50 drop-shadow-md">▼</div>' : ''}
                                                
                                                 <!-- 頭上のステータスUI（完全頭上固定・フロート表示） -->
