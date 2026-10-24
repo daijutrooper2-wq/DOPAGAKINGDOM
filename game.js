@@ -377,6 +377,9 @@ static drawDopagaking(p, isCharged) {
                     const AudioCtx = window.AudioContext || window.webkitAudioContext;
                     this.ctx = new AudioCtx();
                 }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume().catch(() => {});
+                }
             }
 
             toggleSound() {
@@ -5007,6 +5010,12 @@ case 'dopa_juggler_skill':
             if (label) label.innerText = num + '%';
             savePlayerState();
         };
+
+        function selectChar(charId, isOnline = false, sortOrder = 'default', sortDir = 'desc', onlyOwned = false) {
+            playerState.selectedPlayerChar = charId;
+            savePlayerState();
+            renderCharacterSelectScreen(isOnline, sortOrder, sortDir, onlyOwned);
+        }
 
         function renderCharacterSelectScreen(isOnline = false, sortOrder = 'default', sortDir = 'desc', onlyOwned = false) {
             audioSystem.playSelect();
