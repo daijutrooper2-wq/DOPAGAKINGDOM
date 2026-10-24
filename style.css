@@ -14,7 +14,13 @@
         }
 
         #orientation-warning {
-            display: none !important;
+            display: flex !important;
+        }
+
+        @media (orientation: landscape) {
+            #orientation-warning {
+                display: none !important;
+            }
         }
 
         html, body {
