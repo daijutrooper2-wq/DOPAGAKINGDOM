@@ -1065,9 +1065,9 @@ function renderNewBattleScreen() {
                         const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${posIdx}, true)"` : '';
                         return `
                             <div id="new-ally-char-${posIdx}" ${clickableAttr} 
-                                 onmouseenter="showBattleCharTooltip(activeNewBattle.allies[${posIdx}], true, event)"
+                                 onmouseenter="showBattleCharTooltip('ally', ${posIdx}, event)"
                                  onmouseleave="hideBattleCharTooltip()"
-                                 ontouchstart="showBattleCharTooltip(activeNewBattle.allies[${posIdx}], true, event)"
+                                 ontouchstart="showBattleCharTooltip('ally', ${posIdx}, event)"
                                  ontouchend="hideBattleCharTooltip()"
                                  ontouchcancel="hideBattleCharTooltip()"
                                  class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center w-24 h-32 relative ${c.hp <= 0 ? 'opacity-40 grayscale' : ''}">
@@ -1095,9 +1095,9 @@ function renderNewBattleScreen() {
                         const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${posIdx}, false)"` : '';
                         return `
                             <div id="new-enemy-char-${posIdx}" ${clickableAttr} 
-                                 onmouseenter="showBattleCharTooltip(activeNewBattle.enemies[${posIdx}], false, event)"
+                                 onmouseenter="showBattleCharTooltip('enemy', ${posIdx}, event)"
                                  onmouseleave="hideBattleCharTooltip()"
-                                 ontouchstart="showBattleCharTooltip(activeNewBattle.enemies[${posIdx}], false, event)"
+                                 ontouchstart="showBattleCharTooltip('enemy', ${posIdx}, event)"
                                  ontouchend="hideBattleCharTooltip()"
                                  ontouchcancel="hideBattleCharTooltip()"
                                  class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center w-24 h-32 relative ${c.hp <= 0 ? 'opacity-40 grayscale' : ''}">
@@ -1300,11 +1300,22 @@ function triggerNewBattleShake(targetChar) {
     }, 400);
 }
 
-function showBattleCharTooltip(c, isAlly, event) {
+function showBattleCharTooltip(teamOrChar, posIdxOrIsAlly, event) {
     if (typeof newBattleViewMode !== 'undefined' && newBattleViewMode === 'target_select') {
         hideBattleCharTooltip();
         return;
     }
+    let c = null;
+    let isAlly = true;
+
+    if (typeof teamOrChar === 'string' && activeNewBattle) {
+        isAlly = (teamOrChar === 'ally');
+        c = isAlly ? (activeNewBattle.allies && activeNewBattle.allies[posIdxOrIsAlly]) : (activeNewBattle.enemies && activeNewBattle.enemies[posIdxOrIsAlly]);
+    } else {
+        c = teamOrChar;
+        isAlly = posIdxOrIsAlly;
+    }
+
     let tooltip = document.getElementById('battle-char-tooltip');
     if (!tooltip) {
         tooltip = document.createElement('div');
