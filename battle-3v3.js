@@ -211,7 +211,8 @@ class Battle3v3Engine {
             enemyEvaTurns: 0,
             momoEvaTurns: 0,
             asaiomizuCritTurns: 0,
-            pashaPassiveActive: false
+            pashaPassiveActive: false,
+            stunTurns: 0
         };
     }
 
@@ -418,6 +419,14 @@ class Battle3v3Engine {
     executePlayerAction(attacker, defender, skillId) {
         if (attacker.hp <= 0) return;
 
+        if (attacker.stunTurns > 0) {
+            attacker.stunTurns--;
+            this.log(`💫 ${attacker.charName} は行動不能で動けない！`, 'text-amber-400 font-bold');
+            this.triggerEffect(this.getCharacterTeam(attacker) === 'ally' ? 'Player' : 'Enemy', 'miss', '行動不能');
+            triggerNewBattleCharacterEffect(attacker, 'miss', '行動不能');
+            return;
+        }
+
         if (attacker.eggplantReady) {
             skillId = 'momo_eggplant_burst';
         }
@@ -501,7 +510,36 @@ class Battle3v3Engine {
             return;
         }
 
-        if (skill.targetType === 'all_enemies' || skill.id === 'ndaihyo_tactics' || skill.id === 'pasha_flash' || skill.id === 'eggplant_burst') {
+        if (skill.id === 'pasha_flash') {
+            const targetTeam = (this.getCharacterTeam(attacker) === 'ally') ? this.enemies : this.allies;
+            targetTeam.forEach(e => {
+                if (e.hp > 0) {
+                    this.applyDamageSkill(attacker, e, skill);
+                }
+            });
+
+            let stunTarget = defender;
+            if (!stunTarget || stunTarget.hp <= 0) {
+                const livingEnemies = targetTeam.filter(e => e.hp > 0);
+                stunTarget = livingEnemies[Math.floor(Math.random() * livingEnemies.length)];
+            }
+
+            if (stunTarget && stunTarget.hp > 0) {
+                stunTarget.stunTurns = 1;
+                this.triggerEffect(this.getCharacterTeam(stunTarget) === 'ally' ? 'Player' : 'Enemy', 'miss', '行動不能');
+                triggerNewBattleCharacterEffect(stunTarget, 'miss', '行動不能');
+            }
+
+            if (typeof triggerCameraFlashGlobalEffect === 'function') {
+                triggerCameraFlashGlobalEffect();
+            }
+
+            const targetName = stunTarget ? stunTarget.charName : '敵';
+            this.log(`📸 ${attacker.charName}はカメラフラッシュを放った！ 敵全体に小ダメージを与え、${targetName}を1ターンの間行動不能にした！`, 'text-yellow-300 font-bold');
+            return;
+        }
+
+        if (skill.targetType === 'all_enemies' || skill.id === 'ndaihyo_tactics' || skill.id === 'eggplant_burst') {
             const targetTeam = (this.getCharacterTeam(attacker) === 'ally') ? this.enemies : this.allies;
             targetTeam.forEach(e => {
                 if (e.hp > 0) {
@@ -630,7 +668,11 @@ class Battle3v3Engine {
             triggerNewBattleCharacterEffect(defender, 'def', '防御');
             this.triggerEffect(side, 'def', '防御');
         }
-        this.log(`⚔ ${defender.charName} に ${damage} のダメージ！`, 'text-red-400 font-bold');
+        if (skill.isNormalAttack) {
+            this.log(`⚔️ ${attacker.charName}の${skill.name}！ ${defender.charName} に ${damage} のダメージ！`, 'text-red-400 font-bold');
+        } else {
+            this.log(`⚔ ${defender.charName} に ${damage} のダメージ！`, 'text-red-400 font-bold');
+        }
         this.triggerEffect(side, 'damage', `-${damage}`);
         audioSystem.playHit();
         triggerNewBattleShake(defender);
@@ -722,7 +764,7 @@ function selectNewBattleTarget(targetIdx, isAllySide) {
     if (!activeNewBattle) return;
     const skill = activeNewBattle.p1.skills.find(s => s.id === newBattleTargetSelectSkillId) || activeNewBattle.p1.skills.find(s => s.isNormalAttack);
     if (skill && skill.targetType === 'single_ally' && !isAllySide) return;
-    if (skill && skill.targetType === 'single_enemy' && isAllySide) return;
+    if (skill && (skill.targetType === 'single_enemy' || skill.id === 'pasha_flash') && isAllySide) return;
 
     activeNewBattle.p1TargetIndex = targetIdx;
     newBattleViewMode = 'main';
@@ -1255,9 +1297,9 @@ function executeNewBattleAction(actionType) {
 
     isNewBattleSkillModalOpen = false;
     const skill = activeNewBattle.p1.skills.find(s => s.id === actionType);
-    if (skill && (skill.targetType === 'single_enemy' || skill.targetType === 'single_align')) {
+    if (skill && (skill.targetType === 'single_enemy' || skill.targetType === 'single_ally' || skill.id === 'pasha_flash')) {
         newBattleTargetSelectSkillId = actionType;
-        newBattleTargetSelectType = skill.targetType;
+        newBattleTargetSelectType = skill.targetType === 'single_ally' ? 'single_ally' : 'single_enemy';
         newBattleViewMode = 'target_select';
         renderNewBattleScreen();
         return;
@@ -1474,6 +1516,15 @@ function hideBattleCharTooltip() {
         tooltip.style.display = 'none';
     }
 }
+
+function triggerCameraFlashGlobalEffect() {
+    audioSystem.playSpecial();
+    const flashEl = document.createElement('div');
+    flashEl.className = 'fixed inset-0 bg-white animate-screen-flash z-[99999]';
+    document.body.appendChild(flashEl);
+    setTimeout(() => flashEl.remove(), 500);
+}
+window.triggerCameraFlashGlobalEffect = triggerCameraFlashGlobalEffect;
 
 window.showBattleCharTooltip = showBattleCharTooltip;
 window.hideBattleCharTooltip = hideBattleCharTooltip;

@@ -1,3 +1,14 @@
+        @keyframes screen-flash {
+            0% { background-color: rgba(255, 255, 255, 0); }
+            30% { background-color: rgba(255, 255, 255, 0.9); }
+            100% { background-color: rgba(255, 255, 255, 0); }
+        }
+        .animate-screen-flash {
+            animation: screen-flash 0.5s ease-out forwards;
+            pointer-events: none;
+            z-index: 99999;
+        }
+
         /* 画像の長押し・保存・ドラッグ・選択の防止 */
         img, canvas, [style*="background-image"] {
             -webkit-touch-callout: none !important;
