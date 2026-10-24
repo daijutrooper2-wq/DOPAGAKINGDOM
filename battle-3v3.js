@@ -403,7 +403,7 @@ class Battle3v3Engine {
                     } else {
                         e.buffAtk = Math.max(0.2, (e.buffAtk || 1.0) * 0.80);
                         e.buffDef = Math.max(0.2, (e.buffDef || 1.0) * 0.80);
-                        applyHitShake(e);
+                        this.applyHitShake(e);
                         this.log(`📉 ${e.charName} の攻撃力・防御力が低下した！`, 'text-cyan-300 font-bold');
                         this.triggerEffect(this.getCharacterTeam(e) === 'ally' ? 'Player' : 'Enemy', 'damage', 'DEBUFF');
                     }
@@ -421,7 +421,7 @@ class Battle3v3Engine {
             if (defender && defender.hp > 0) {
                 defender.buffAtk = Math.max(0.2, (defender.buffAtk || 1.0) * 0.85);
                 defender.buffDef = Math.max(0.2, (defender.buffDef || 1.0) * 0.85);
-                applyHitShake(defender);
+                this.applyHitShake(defender);
                 this.log(`📉 ${defender.charName} の攻撃力・防御力が低下した！`, 'text-cyan-300 font-bold');
                 this.triggerEffect(this.getCharacterTeam(defender) === 'ally' ? 'Player' : 'Enemy', 'damage', 'DEBUFF');
             }
@@ -432,7 +432,7 @@ class Battle3v3Engine {
             if (defender && defender.hp > 0) {
                 defender.buffAtk = Math.max(0.2, (defender.buffAtk || 1.0) * 0.80);
                 defender.buffDef = Math.max(0.2, (defender.buffDef || 1.0) * 0.80);
-                applyHitShake(defender);
+                this.applyHitShake(defender);
                 this.log(`📉 ${defender.charName} はデバフを受けた！`, 'text-cyan-300 font-bold');
                 this.triggerEffect(this.getCharacterTeam(defender) === 'ally' ? 'Player' : 'Enemy', 'damage', 'DEBUFF');
             }
@@ -495,7 +495,7 @@ class Battle3v3Engine {
         }
 
         defender.hp = Math.max(0, defender.hp - damage);
-        applyHitShake(defender);
+        this.applyHitShake(defender);
         const side = this.getCharacterTeam(defender) === 'ally' ? 'Player' : 'Enemy';
         this.log(`⚔ ${defender.charName} に ${damage} のダメージ！`, 'text-red-400 font-bold');
         this.triggerEffect(side, 'damage', `-${damage}`);
