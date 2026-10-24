@@ -661,6 +661,7 @@ static drawDopagaking(p, isCharged) {
 
         let openingTimer = null;
         let openingKeyHandler = null;
+        let activeBattle = null;
 
         function cleanupOpening() {
             if (openingTimer) {
@@ -5643,6 +5644,10 @@ case 'dopa_juggler_skill':
         window.onZukanSortChange = onZukanSortChange;
         window.toggleZukanSortDir = toggleZukanSortDir;
         window.openGachaLineupModal = openGachaLineupModal;
+
+        function claimDailyBonus() {
+            showToast("デイリーボーナスは現在準備中です！");
+        }
 
         window.claimDailyBonus = claimDailyBonus;
         window.confirmResetPlayerProfile = confirmResetPlayerProfile;
