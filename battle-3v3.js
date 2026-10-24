@@ -392,7 +392,7 @@ class Battle3v3Engine {
                     } else {
                         e.buffAtk = Math.max(0.2, (e.buffAtk || 1.0) * 0.80);
                         e.buffDef = Math.max(0.2, (e.buffDef || 1.0) * 0.80);
-                        this.triggerHitShake(e);
+                        applyHitShake(e);
                         this.log(`📉 ${e.charName} の攻撃力・防御力が低下した！`, 'text-cyan-300 font-bold');
                         this.triggerEffect(this.getCharacterTeam(e) === 'ally' ? 'Player' : 'Enemy', 'damage', 'DEBUFF');
                     }
@@ -410,6 +410,7 @@ class Battle3v3Engine {
             if (defender && defender.hp > 0) {
                 defender.buffAtk = Math.max(0.2, (defender.buffAtk || 1.0) * 0.85);
                 defender.buffDef = Math.max(0.2, (defender.buffDef || 1.0) * 0.85);
+                applyHitShake(defender);
                 this.log(`📉 ${defender.charName} の攻撃力・防御力が低下した！`, 'text-cyan-300 font-bold');
                 this.triggerEffect(this.getCharacterTeam(defender) === 'ally' ? 'Player' : 'Enemy', 'damage', 'DEBUFF');
             }
@@ -420,7 +421,7 @@ class Battle3v3Engine {
             if (defender && defender.hp > 0) {
                 defender.buffAtk = Math.max(0.2, (defender.buffAtk || 1.0) * 0.80);
                 defender.buffDef = Math.max(0.2, (defender.buffDef || 1.0) * 0.80);
-                this.triggerHitShake(defender);
+                applyHitShake(defender);
                 this.log(`📉 ${defender.charName} はデバフを受けた！`, 'text-cyan-300 font-bold');
                 this.triggerEffect(this.getCharacterTeam(defender) === 'ally' ? 'Player' : 'Enemy', 'damage', 'DEBUFF');
             }
@@ -483,7 +484,7 @@ class Battle3v3Engine {
         }
 
         defender.hp = Math.max(0, defender.hp - damage);
-        this.triggerHitShake(defender);
+        applyHitShake(defender);
         const side = this.getCharacterTeam(defender) === 'ally' ? 'Player' : 'Enemy';
         this.log(`⚔ ${defender.charName} に ${damage} のダメージ！`, 'text-red-400 font-bold');
         this.triggerEffect(side, 'damage', `-${damage}`);
@@ -1082,6 +1083,25 @@ function executeNewBattleAction(actionType) {
 function openNewBattleSettingsPanel() {
     audioSystem.playSelect();
     openSettingsPanel();
+}
+
+function applyHitShake(target) {
+    if (!target) return;
+    let el = null;
+    if (target instanceof Element) {
+        el = target;
+    } else if (typeof target === 'string') {
+        el = document.getElementById(target);
+    } else {
+        el = getNewBattleCharacterDOMElement(target);
+    }
+    if (!el) return;
+    el.classList.remove('animate-hit-shake');
+    void el.offsetWidth; // force reflow
+    el.classList.add('animate-hit-shake');
+    setTimeout(() => {
+        el.classList.remove('animate-hit-shake');
+    }, 300);
 }
 
 function getNewBattleCharacterDOMElement(char) {
