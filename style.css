@@ -417,9 +417,9 @@
         }
 
         #battle-char-tooltip {
-            position: fixed;
-            z-index: 9998;
-            pointer-events: none;
+            position: fixed !important;
+            z-index: 99999 !important;
+            pointer-events: none !important;
             transition: opacity 0.15s ease-in-out;
             max-width: 280px;
             width: max-content;

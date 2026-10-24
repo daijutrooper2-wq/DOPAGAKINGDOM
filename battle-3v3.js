@@ -1041,7 +1041,6 @@ function renderNewBattleScreen() {
         <div class="w-full h-full flex flex-col justify-between bg-slate-950 text-white relative select-none p-1 sm:p-2 overflow-hidden">
             ${skillModalHtml}
             ${choicePopupHtml}
-            <div id="battle-char-tooltip" class="hidden pixel-box bg-slate-900 border-amber-400 p-2 text-xs text-slate-100 shadow-2xl z-[9998] pointer-events-none"></div>
             <div class="absolute inset-0 overflow-hidden pointer-events-none z-0">
                 <img src="images/backnormal.webp" alt="backnormal" class="w-full h-full object-cover opacity-80">
             </div>
@@ -1306,8 +1305,14 @@ function showBattleCharTooltip(c, isAlly, event) {
         hideBattleCharTooltip();
         return;
     }
-    const tooltip = document.getElementById('battle-char-tooltip');
-    if (!tooltip || !c) return;
+    let tooltip = document.getElementById('battle-char-tooltip');
+    if (!tooltip) {
+        tooltip = document.createElement('div');
+        tooltip.id = 'battle-char-tooltip';
+        tooltip.className = 'fixed pixel-box bg-slate-900 border-amber-400 p-2 text-xs text-slate-100 shadow-2xl z-[99999] pointer-events-none hidden';
+        document.body.appendChild(tooltip);
+    }
+    if (!c) return;
 
     let statsHtml = `
         <div class="font-bold text-amber-300 font-pixel text-xs mb-1 border-b border-amber-600/50 pb-1 flex justify-between items-center">
@@ -1347,6 +1352,7 @@ function showBattleCharTooltip(c, isAlly, event) {
 
     tooltip.innerHTML = statsHtml;
     tooltip.classList.remove('hidden');
+    tooltip.style.display = 'block';
 
     const clientX = event.clientX || (event.touches && event.touches[0] ? event.touches[0].clientX : window.innerWidth / 2);
     const clientY = event.clientY || (event.touches && event.touches[0] ? event.touches[0].clientY : window.innerHeight / 2);
@@ -1369,6 +1375,7 @@ function hideBattleCharTooltip() {
     const tooltip = document.getElementById('battle-char-tooltip');
     if (tooltip) {
         tooltip.classList.add('hidden');
+        tooltip.style.display = 'none';
     }
 }
 
