@@ -1091,11 +1091,7 @@ function renderNewBattleScreen() {
                         const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${posIdx}, false)"` : '';
                         return `
                             <div id="new-enemy-char-${posIdx}" ${clickableAttr} 
-                                 onmouseenter="showBattleCharTooltip('enemy', ${posIdx}, event)"
-                                 onmouseleave="hideBattleCharTooltip()"
-                                 ontouchstart="showBattleCharTooltip('enemy', ${posIdx}, event)"
-                                 ontouchend="hideBattleCharTooltip()"
-                                 ontouchcancel="hideBattleCharTooltip()"
+                                 data-char-team="enemy" data-char-idx="${posIdx}"
                                  class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center w-24 h-32 relative ${c.hp <= 0 ? 'opacity-40 grayscale' : ''}">
                                 <div class="w-full bg-black/85 px-1 py-0.5 rounded border border-white/20 text-[8px] text-red-300">
                                     <span>${c.charName}</span>: <span class="font-mono">${c.hp}/${c.maxHp}</span>
@@ -1388,3 +1384,52 @@ function hideBattleCharTooltip() {
 
 window.showBattleCharTooltip = showBattleCharTooltip;
 window.hideBattleCharTooltip = hideBattleCharTooltip;
+
+if (typeof window._battleTooltipInitialized === 'undefined') {
+    window._battleTooltipInitialized = true;
+
+    document.addEventListener('mouseover', (e) => {
+        if (!activeNewBattle || activeNewBattle.battleEnded) return;
+        if (typeof newBattleViewMode !== 'undefined' && newBattleViewMode === 'target_select') return;
+        const charCard = e.target.closest('[data-char-team]');
+        if (charCard) {
+            const team = charCard.getAttribute('data-char-team');
+            const idx = parseInt(charCard.getAttribute('data-char-idx'), 10);
+            const c = team === 'ally' ? (activeNewBattle.allies && activeNewBattle.allies[idx]) : (activeNewBattle.enemies && activeNewBattle.enemies[idx]);
+            if (c) {
+                showBattleCharTooltip(c, team === 'ally', e);
+            }
+        }
+    });
+
+    document.addEventListener('mouseout', (e) => {
+        const charCard = e.target.closest('[data-char-team]');
+        if (charCard && (!e.relatedTarget || !charCard.contains(e.relatedTarget))) {
+            hideBattleCharTooltip();
+        }
+    });
+
+    document.addEventListener('touchstart', (e) => {
+        if (!activeNewBattle || activeNewBattle.battleEnded) return;
+        if (typeof newBattleViewMode !== 'undefined' && newBattleViewMode === 'target_select') return;
+        const charCard = e.target.closest('[data-char-team]');
+        if (charCard) {
+            const team = charCard.getAttribute('data-char-team');
+            const idx = parseInt(charCard.getAttribute('data-char-idx'), 10);
+            const c = team === 'ally' ? (activeNewBattle.allies && activeNewBattle.allies[idx]) : (activeNewBattle.enemies && activeNewBattle.enemies[idx]);
+            if (c) {
+                showBattleCharTooltip(c, team === 'ally', e);
+            }
+        } else {
+            hideBattleCharTooltip();
+        }
+    }, { passive: true });
+
+    document.addEventListener('touchend', () => {
+        hideBattleCharTooltip();
+    }, { passive: true });
+
+    document.addEventListener('touchcancel', () => {
+        hideBattleCharTooltip();
+    }, { passive: true });
+}
