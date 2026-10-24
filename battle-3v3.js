@@ -93,11 +93,21 @@ class Battle3v3Engine {
     }
 
     applyHitShake(target) {
-        applyHitShake(target);
+        if (!target) return;
+        if (typeof target === 'object') {
+            target.isShaking = true;
+            if (this.onStateChange) this.onStateChange(this);
+            setTimeout(() => {
+                target.isShaking = false;
+                if (this.onStateChange) this.onStateChange(this);
+            }, 300);
+        } else {
+            applyHitShake(target);
+        }
     }
 
     triggerHitShake(target) {
-        applyHitShake(target);
+        this.applyHitShake(target);
     }
 
     logTeam(actor, msg, colorClass = 'text-slate-200') {
@@ -156,6 +166,7 @@ class Battle3v3Engine {
             def: def,
             critRate: critRate,
             eva: eva,
+            isShaking: false,
             skills: master.skills.map(s => ({ ...s })),
             cooldowns: (() => {
                 const cds = {};
@@ -1087,6 +1098,15 @@ function openNewBattleSettingsPanel() {
 
 function applyHitShake(target) {
     if (!target) return;
+    if (typeof target === 'object' && !(target instanceof Element)) {
+        target.isShaking = true;
+        if (activeNewBattle && activeNewBattle.onStateChange) activeNewBattle.onStateChange(activeNewBattle);
+        setTimeout(() => {
+            target.isShaking = false;
+            if (activeNewBattle && activeNewBattle.onStateChange) activeNewBattle.onStateChange(activeNewBattle);
+        }, 300);
+        return;
+    }
     let el = null;
     if (target instanceof Element) {
         el = target;
