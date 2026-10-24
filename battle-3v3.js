@@ -1116,7 +1116,7 @@ function triggerNewBattleCharacterEffect(targetChar, type, text) {
     pop.innerText = text;
 
     pop.style.left = `50%`;
-    pop.style.bottom = `-5px`;
+    pop.style.top = `82%`;
 
     targetEl.style.position = 'relative';
     targetEl.appendChild(pop);
