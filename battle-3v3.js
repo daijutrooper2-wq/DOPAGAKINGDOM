@@ -390,6 +390,7 @@ class Battle3v3Engine {
 
                         this.log(`📉 ${e.charName} の攻撃力・防御力が低下した！`, 'text-cyan-300 font-bold');
                         this.triggerEffect(this.getCharacterTeam(e) === 'ally' ? 'Player' : 'Enemy', 'damage', 'DEBUFF');
+                        triggerNewBattleShake(e);
                     }
                 }
             });
@@ -408,6 +409,7 @@ class Battle3v3Engine {
 
                 this.log(`📉 ${defender.charName} の攻撃力・防御力が低下した！`, 'text-cyan-300 font-bold');
                 this.triggerEffect(this.getCharacterTeam(defender) === 'ally' ? 'Player' : 'Enemy', 'damage', 'DEBUFF');
+                triggerNewBattleShake(defender);
             }
             return;
         }
@@ -419,6 +421,7 @@ class Battle3v3Engine {
 
                 this.log(`📉 ${defender.charName} はデバフを受けた！`, 'text-cyan-300 font-bold');
                 this.triggerEffect(this.getCharacterTeam(defender) === 'ally' ? 'Player' : 'Enemy', 'damage', 'DEBUFF');
+                triggerNewBattleShake(defender);
             }
             return;
         }
@@ -484,6 +487,7 @@ class Battle3v3Engine {
         this.log(`⚔ ${defender.charName} に ${damage} のダメージ！`, 'text-red-400 font-bold');
         this.triggerEffect(side, 'damage', `-${damage}`);
         audioSystem.playHit();
+        triggerNewBattleShake(defender);
 
         this.checkActiveAllyStatus();
     }
@@ -956,9 +960,9 @@ function renderNewBattleScreen() {
                                     <span>${c.charName}</span>: <span class="font-mono">${c.hp}/${c.maxHp}</span>
                                     <div class="w-full bg-slate-900 h-1 rounded overflow-hidden"><div class="bg-emerald-400 h-full" style="width: ${pct}%;"></div></div>
                                 </div>
-                                <div class="w-full flex-1 flex items-center justify-center">
-                                    <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain">
-                                </div>
+                                 <div id="new-ally-img-${posIdx}" class="w-full flex-1 flex items-center justify-center">
+                                     <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain">
+                                 </div>
                             </div>
                         `;
                     }).join('')}
@@ -980,9 +984,9 @@ function renderNewBattleScreen() {
                                     <span>${c.charName}</span>: <span class="font-mono">${c.hp}/${c.maxHp}</span>
                                     <div class="w-full bg-slate-900 h-1 rounded overflow-hidden"><div class="bg-red-500 h-full" style="width: ${pct}%;"></div></div>
                                 </div>
-                                <div class="w-full flex-1 flex items-center justify-center">
-                                    <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain" style="transform: scaleX(-1);">
-                                </div>
+                                 <div id="new-enemy-img-${posIdx}" class="w-full flex-1 flex items-center justify-center">
+                                     <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain" style="transform: scaleX(-1);">
+                                 </div>
                             </div>
                         `;
                     }).join('')}
@@ -1123,10 +1127,35 @@ function triggerNewBattleCharacterEffect(targetChar, type, text) {
 }
 
 // Window bindings
-window.renderNewCharSelectScreen = renderNewBattleCharSelectScreen;
+window.renderNewCharSelectScreen = renderNewCharSelectScreen;
 window.onNewCharSelectSortChange = onNewCharSelectSortChange;
 window.toggleNewCharSelectSortDir = toggleNewCharSelectSortDir;
 window.toggleNewCharSelectOwnedFilter = toggleNewCharSelectOwnedFilter;
 window.executeNewBattleCourtneyCharge = executeNewBattleCourtneyCharge;
 window.handleNewBattleContinueChoice = handleNewBattleContinueChoice;
 window.selectNewBattleTarget = selectNewBattleTarget;
+window.triggerNewBattleShake = triggerNewBattleShake;
+
+function getNewBattleCharacterImageElement(char) {
+    if (!activeNewBattle) return null;
+    if (activeNewBattle.allies && activeNewBattle.allies.includes(char)) {
+        const idx = activeNewBattle.allies.indexOf(char);
+        return document.getElementById(`new-ally-img-${idx}`);
+    }
+    if (activeNewBattle.enemies && activeNewBattle.enemies.includes(char)) {
+        const idx = activeNewBattle.enemies.indexOf(char);
+        return document.getElementById(`new-enemy-img-${idx}`);
+    }
+    return null;
+}
+
+function triggerNewBattleShake(targetChar) {
+    const imgEl = getNewBattleCharacterImageElement(targetChar);
+    if (!imgEl) return;
+    imgEl.classList.remove('char-shake');
+    void imgEl.offsetWidth;
+    imgEl.classList.add('char-shake');
+    setTimeout(() => {
+        imgEl.classList.remove('char-shake');
+    }, 400);
+}
