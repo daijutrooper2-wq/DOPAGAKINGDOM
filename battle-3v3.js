@@ -1205,18 +1205,18 @@ function renderNewBattleScreen() {
                     ${enemies.map((c, posIdx) => {
                         const pct = Math.max(0, Math.min(100, Math.round((c.hp / c.maxHp) * 100)));
                         const img = getCharImg(c, false);
-                        const isSelectable = newBattleViewMode === 'target_select' && newBattleTargetSelectType === 'single_enemy' && c.hp > 0;
-                        const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${posIdx}, false)"` : '';
+                        const isSelectable = newBattleViewMode === 'target_select' && (newBattleTargetSelectType === 'single_enemy' || newBattleTargetSelectSkillId === 'pasha_flash') && c.hp > 0;
+                        const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${posIdx}, false)" style="cursor: pointer;"` : '';
                         return `
                             <div id="new-enemy-char-${posIdx}" ${clickableAttr} 
                                  data-char-team="enemy" data-char-idx="${posIdx}"
-                                 class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center w-24 h-32 relative ${c.hp <= 0 ? 'opacity-40 grayscale' : ''}">
+                                 class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center w-24 h-32 relative ${c.hp <= 0 ? 'opacity-40 grayscale' : ''} ${isSelectable ? 'ring-4 ring-amber-400 animate-pulse bg-amber-950/40 rounded p-1' : ''}">
                                 <div class="w-full bg-black/85 px-1 py-0.5 rounded border border-white/20 text-[8px] text-red-300">
                                     <span>${c.charName}</span>: <span class="font-mono">${c.hp}/${c.maxHp}</span>
                                     <div class="w-full bg-slate-900 h-1 rounded overflow-hidden"><div class="bg-red-500 h-full" style="width: ${pct}%;"></div></div>
                                 </div>
                                  <div id="new-enemy-img-${posIdx}" class="w-full flex-1 flex items-center justify-center ${c.isShaking ? 'char-shake' : ''}">
-                                     <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain" style="transform: scaleX(-1);">
+                                     <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain pointer-events-none" style="transform: scaleX(-1);">
                                  </div>
                             </div>
                         `;
