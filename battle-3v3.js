@@ -1071,7 +1071,7 @@ function renderNewBattleScreen() {
                                     <span>${c.charName}</span>: <span class="font-mono">${c.hp}/${c.maxHp}</span>
                                     <div class="w-full bg-slate-900 h-1 rounded overflow-hidden"><div class="bg-emerald-400 h-full" style="width: ${pct}%;"></div></div>
                                 </div>
-                                 <div id="new-ally-img-${posIdx}" class="w-full flex-1 flex items-center justify-center ${activeNewBattleShakingMap && activeNewBattleShakingMap[`ally_${posIdx}`] ? 'char-shake' : ''}">
+                                 <div id="new-ally-img-${posIdx}" class="w-full flex-1 flex items-center justify-center">
                                      <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain">
                                  </div>
                             </div>
@@ -1097,7 +1097,7 @@ function renderNewBattleScreen() {
                                     <span>${c.charName}</span>: <span class="font-mono">${c.hp}/${c.maxHp}</span>
                                     <div class="w-full bg-slate-900 h-1 rounded overflow-hidden"><div class="bg-red-500 h-full" style="width: ${pct}%;"></div></div>
                                 </div>
-                                 <div id="new-enemy-img-${posIdx}" class="w-full flex-1 flex items-center justify-center ${activeNewBattleShakingMap && activeNewBattleShakingMap[`enemy_${posIdx}`] ? 'char-shake' : ''}">
+                                 <div id="new-enemy-img-${posIdx}" class="w-full flex-1 flex items-center justify-center">
                                      <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain" style="transform: scaleX(-1);">
                                  </div>
                             </div>
@@ -1259,8 +1259,6 @@ window.handleNewBattleContinueChoice = handleNewBattleContinueChoice;
 window.selectNewBattleTarget = selectNewBattleTarget;
 window.triggerNewBattleShake = triggerNewBattleShake;
 
-let activeNewBattleShakingMap = {};
-
 function getNewBattleCharacterKey(char) {
     if (!activeNewBattle || !char) return null;
     const allyIdx = activeNewBattle.allies.findIndex(a => a === char || (a && char && a.id === char.id && a.name === char.name));
@@ -1274,22 +1272,23 @@ function triggerNewBattleShake(targetChar) {
     const key = getNewBattleCharacterKey(targetChar);
     if (!key) return;
 
-    activeNewBattleShakingMap[key] = true;
-
     const [team, idxStr] = key.split('_');
     const elId = `new-${team}-img-${idxStr}`;
-    const imgEl = document.getElementById(elId);
-    if (imgEl) {
-        imgEl.classList.remove('char-shake');
-        void imgEl.offsetWidth;
-        imgEl.classList.add('char-shake');
-    }
 
     setTimeout(() => {
-        activeNewBattleShakingMap[key] = false;
-        const el = document.getElementById(elId);
-        if (el) el.classList.remove('char-shake');
-    }, 400);
+        const imgEl = document.getElementById(elId);
+        if (imgEl) {
+            imgEl.classList.remove('char-shake');
+            void imgEl.offsetWidth;
+            imgEl.classList.add('char-shake');
+
+            setTimeout(() => {
+                if (imgEl) {
+                    imgEl.classList.remove('char-shake');
+                }
+            }, 350);
+        }
+    }, 20);
 }
 
 function showBattleCharTooltip(teamOrChar, posIdxOrIsAlly, event) {
