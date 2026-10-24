@@ -941,7 +941,7 @@ function renderNewBattleScreen() {
                 </div>
             </div>
 
-            <div class="flex-1 flex items-center justify-between px-2 py-2 relative z-10 overflow-hidden w-full">
+            <div class="flex-1 flex items-center justify-between px-2 py-2 relative z-10 overflow-visible w-full">
                 <!-- 味方チーム -->
                 <div class="relative w-[47%] h-full flex items-center justify-center">
                     <div class="absolute left-1 top-1 text-[9px] text-emerald-400 font-pixel font-bold z-30">🛡️ 味方</div>
@@ -1097,28 +1097,29 @@ function getNewBattleCharacterDOMElement(char) {
 
 function triggerNewBattleCharacterEffect(targetChar, type, text) {
     const targetEl = getNewBattleCharacterDOMElement(targetChar);
+    console.log("回避/クリティカルエフェクト実行 (battle-3v3.js):", { targetChar, type, text, targetEl });
     if (!targetEl) return;
 
     const pop = document.createElement('div');
-    pop.className = 'absolute font-pixel font-bold z-50 floating-text pointer-events-none transform -translate-x-1/2';
+    pop.className = 'absolute font-pixel font-bold z-[100] floating-text pointer-events-none transform -translate-x-1/2';
 
     let color = 'text-white text-[10px]';
     if (type === 'miss') {
-        color = 'text-sky-300 text-[10px] sm:text-xs font-pixel drop-shadow-[0_1px_0_rgba(0,0,0,1)]';
+        color = 'text-sky-300 text-xs sm:text-sm font-pixel drop-shadow-[0_1px_0_rgba(0,0,0,1)]';
     } else if (type === 'crit') {
-        color = 'text-yellow-300 text-[10px] sm:text-xs font-bold font-pixel drop-shadow-[0_1px_0_rgba(0,0,0,1)]';
+        color = 'text-yellow-300 text-xs sm:text-sm font-bold font-pixel drop-shadow-[0_1px_0_rgba(0,0,0,1)]';
     }
 
     pop.classList.add(...color.split(' '));
     pop.innerText = text;
 
     pop.style.left = `50%`;
-    pop.style.top = `82%`;
+    pop.style.top = `75%`;
 
     targetEl.style.position = 'relative';
     targetEl.appendChild(pop);
 
-    setTimeout(() => pop.remove(), 1100);
+    setTimeout(() => pop.remove(), 1200);
 }
 
 // Window bindings

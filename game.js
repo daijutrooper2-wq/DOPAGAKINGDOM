@@ -3649,10 +3649,11 @@ case 'dopa_juggler_skill':
 
         function triggerCharacterEffect(targetChar, type, text) {
             const targetEl = getCharacterDOMElement(targetChar);
+            console.log("キャラエフェクト実行 (game.js):", { targetChar, type, text, targetEl });
             if (!targetEl) return;
 
             const pop = document.createElement('div');
-            pop.className = 'absolute font-pixel font-bold z-50 floating-text pointer-events-none transform -translate-x-1/2 -translate-y-1/2';
+            pop.className = 'absolute font-pixel font-bold z-[100] floating-text pointer-events-none transform -translate-x-1/2 -translate-y-1/2';
 
             let color = 'text-white text-base';
             if (type === 'damage') {
@@ -3672,7 +3673,7 @@ case 'dopa_juggler_skill':
 
             pop.style.left = `50%`;
             if (type === 'miss' || type === 'crit') {
-                pop.style.top = `85%`;
+                pop.style.top = `75%`;
             } else {
                 pop.style.top = `15%`;
             }
@@ -4497,7 +4498,7 @@ case 'dopa_juggler_skill':
                     </div>
 
                     <!-- 2. 中央エリア：味方3体と敵3体の密着隊列バトルステージ (シャッフル・前面移動 & 枠線撤去) -->
-                    <div class="flex-1 flex items-center justify-between px-2 sm:px-6 py-2 relative z-10 overflow-hidden w-full max-w-full">
+                    <div class="flex-1 flex items-center justify-between px-2 sm:px-6 py-2 relative z-10 overflow-visible w-full max-w-full">
                         <!-- 左側：味方チーム -->
                         <div class="relative w-[47%] sm:w-[48%] h-full flex items-center justify-center">
                             <div class="absolute left-1 top-1 text-[9px] text-emerald-400 font-pixel font-bold z-30">🛡️ 味方チーム (隊列)</div>
