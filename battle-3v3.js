@@ -945,7 +945,7 @@ function renderNewBattleScreen() {
             if (isA) return 'asaiomizu/asaiomizu3.webp';
             return charData.image || player.image;
         }
-        if (isA) return isPlayerSide ? 'asaiomizu/asaiomizu2.webp' : 'asaiomizu/asaiomizu1.webp';
+        if (isA) return 'asaiomizu/asaiomizu2.webp';
         return charData.allImage || charData.image || player.image;
     };
 

@@ -4390,7 +4390,7 @@ case 'dopa_juggler_skill':
                     return charData.chargedImage;
                 }
 
-                if (isA) return isPlayerSide ? 'asaiomizu/asaiomizu2.webp' : 'asaiomizu/asaiomizu1.webp';
+                if (isA) return 'asaiomizu/asaiomizu2.webp';
 
                 return charData.allImage || charData.image || player.image;
             };
