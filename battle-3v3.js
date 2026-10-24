@@ -92,23 +92,7 @@ class Battle3v3Engine {
         return 'system';
     }
 
-    applyHitShake(target) {
-        if (!target) return;
-        if (typeof target === 'object') {
-            target.isShaking = true;
-            if (this.onStateChange) this.onStateChange(this);
-            setTimeout(() => {
-                target.isShaking = false;
-                if (this.onStateChange) this.onStateChange(this);
-            }, 300);
-        } else {
-            applyHitShake(target);
-        }
-    }
 
-    triggerHitShake(target) {
-        this.applyHitShake(target);
-    }
 
     logTeam(actor, msg, colorClass = 'text-slate-200') {
         const teamType = this.getCharacterTeam(actor);
@@ -166,7 +150,7 @@ class Battle3v3Engine {
             def: def,
             critRate: critRate,
             eva: eva,
-            isShaking: false,
+
             skills: master.skills.map(s => ({ ...s })),
             cooldowns: (() => {
                 const cds = {};
@@ -403,7 +387,7 @@ class Battle3v3Engine {
                     } else {
                         e.buffAtk = Math.max(0.2, (e.buffAtk || 1.0) * 0.80);
                         e.buffDef = Math.max(0.2, (e.buffDef || 1.0) * 0.80);
-                        this.applyHitShake(e);
+
                         this.log(`📉 ${e.charName} の攻撃力・防御力が低下した！`, 'text-cyan-300 font-bold');
                         this.triggerEffect(this.getCharacterTeam(e) === 'ally' ? 'Player' : 'Enemy', 'damage', 'DEBUFF');
                     }
@@ -421,7 +405,7 @@ class Battle3v3Engine {
             if (defender && defender.hp > 0) {
                 defender.buffAtk = Math.max(0.2, (defender.buffAtk || 1.0) * 0.85);
                 defender.buffDef = Math.max(0.2, (defender.buffDef || 1.0) * 0.85);
-                this.applyHitShake(defender);
+
                 this.log(`📉 ${defender.charName} の攻撃力・防御力が低下した！`, 'text-cyan-300 font-bold');
                 this.triggerEffect(this.getCharacterTeam(defender) === 'ally' ? 'Player' : 'Enemy', 'damage', 'DEBUFF');
             }
@@ -432,7 +416,7 @@ class Battle3v3Engine {
             if (defender && defender.hp > 0) {
                 defender.buffAtk = Math.max(0.2, (defender.buffAtk || 1.0) * 0.80);
                 defender.buffDef = Math.max(0.2, (defender.buffDef || 1.0) * 0.80);
-                this.applyHitShake(defender);
+
                 this.log(`📉 ${defender.charName} はデバフを受けた！`, 'text-cyan-300 font-bold');
                 this.triggerEffect(this.getCharacterTeam(defender) === 'ally' ? 'Player' : 'Enemy', 'damage', 'DEBUFF');
             }
@@ -495,7 +479,7 @@ class Battle3v3Engine {
         }
 
         defender.hp = Math.max(0, defender.hp - damage);
-        this.applyHitShake(defender);
+
         const side = this.getCharacterTeam(defender) === 'ally' ? 'Player' : 'Enemy';
         this.log(`⚔ ${defender.charName} に ${damage} のダメージ！`, 'text-red-400 font-bold');
         this.triggerEffect(side, 'damage', `-${damage}`);
@@ -967,7 +951,7 @@ function renderNewBattleScreen() {
                         const isSelectable = newBattleViewMode === 'target_select' && newBattleTargetSelectType === 'single_ally' && c.hp > 0;
                         const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${posIdx}, true)"` : '';
                         return `
-                            <div id="new-ally-char-${posIdx}" ${clickableAttr} class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center w-24 h-32 relative ${c.hp <= 0 ? 'opacity-40 grayscale' : ''} ${c.isShaking ? 'animate-hit-shake-3v3' : ''}">
+                            <div id="new-ally-char-${posIdx}" ${clickableAttr} class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center w-24 h-32 relative ${c.hp <= 0 ? 'opacity-40 grayscale' : ''}">
                                 <div class="w-full bg-black/85 px-1 py-0.5 rounded border border-white/20 text-[8px] text-emerald-300">
                                     <span>${c.charName}</span>: <span class="font-mono">${c.hp}/${c.maxHp}</span>
                                     <div class="w-full bg-slate-900 h-1 rounded overflow-hidden"><div class="bg-emerald-400 h-full" style="width: ${pct}%;"></div></div>
@@ -991,7 +975,7 @@ function renderNewBattleScreen() {
                         const isSelectable = newBattleViewMode === 'target_select' && newBattleTargetSelectType === 'single_enemy' && c.hp > 0;
                         const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${posIdx}, false)"` : '';
                         return `
-                            <div id="new-enemy-char-${posIdx}" ${clickableAttr} class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center w-24 h-32 relative ${c.hp <= 0 ? 'opacity-40 grayscale' : ''} ${c.isShaking ? 'animate-hit-shake-3v3' : ''}">
+                            <div id="new-enemy-char-${posIdx}" ${clickableAttr} class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center w-24 h-32 relative ${c.hp <= 0 ? 'opacity-40 grayscale' : ''}">
                                 <div class="w-full bg-black/85 px-1 py-0.5 rounded border border-white/20 text-[8px] text-red-300">
                                     <span>${c.charName}</span>: <span class="font-mono">${c.hp}/${c.maxHp}</span>
                                     <div class="w-full bg-slate-900 h-1 rounded overflow-hidden"><div class="bg-red-500 h-full" style="width: ${pct}%;"></div></div>
@@ -1096,68 +1080,7 @@ function openNewBattleSettingsPanel() {
     openSettingsPanel();
 }
 
-function applyHitShake(target) {
-    console.log("[Debug:applyHitShake] Called with target:", target);
-    if (!target) {
-        console.warn("[Debug:applyHitShake] target is null or undefined");
-        return;
-    }
 
-    let el = null;
-    if (target instanceof Element) {
-        el = target;
-        console.log("[Debug:applyHitShake] Target is direct Element instance");
-    } else if (typeof target === 'string') {
-        el = document.getElementById(target);
-        console.log(`[Debug:applyHitShake] Target is string ID '${target}', found element:`, el);
-    } else {
-        el = getNewBattleCharacterDOMElement(target);
-        if (!el && typeof getCharacterDOMElement === 'function') {
-            el = getCharacterDOMElement(target);
-        }
-        if (!el && typeof activeNewBattle !== 'undefined' && activeNewBattle) {
-            if (activeNewBattle.allies && activeNewBattle.allies.includes(target)) {
-                const idx = activeNewBattle.allies.indexOf(target);
-                el = document.getElementById(`new-ally-char-${idx}`) || document.getElementById(`ally-char-${idx}`);
-            } else if (activeNewBattle.enemies && activeNewBattle.enemies.includes(target)) {
-                const idx = activeNewBattle.enemies.indexOf(target);
-                el = document.getElementById(`new-enemy-char-${idx}`) || document.getElementById(`enemy-char-${idx}`);
-            }
-        }
-        if (!el && typeof activeBattle !== 'undefined' && activeBattle) {
-            if (target === activeBattle.p1) el = document.getElementById('p1-canvas') || document.getElementById('p1-char');
-            if (target === activeBattle.p2) el = document.getElementById('p2-canvas') || document.getElementById('p2-char');
-        }
-        if (!el && target.id) {
-            el = document.getElementById(target.id) || document.getElementById(`char-${target.id}`) || document.getElementById(`p1-canvas`) || document.getElementById(`p2-canvas`);
-        }
-        console.log("[Debug:applyHitShake] Target is character object, resolved DOM element:", el);
-    }
-
-    if (!el) {
-        el = document.getElementById('p1-canvas') || document.getElementById('p2-canvas');
-    }
-
-    if (!el) {
-        console.error("[Debug:applyHitShake] FAILED to resolve DOM element for target:", target);
-        return;
-    }
-
-    console.log("[Debug:applyHitShake] DOM Element found - ID:", el.id, "classList before:", el.classList.toString());
-
-    // Remove class to reset animation state if already shaking
-    el.classList.remove('animate-hit-shake-3v3');
-    // Force browser reflow to restart CSS animation reliably
-    void el.offsetWidth;
-
-    el.classList.add('animate-hit-shake-3v3');
-    console.log("[Debug:applyHitShake] Added 'animate-hit-shake-3v3' class. classList after:", el.classList.toString());
-
-    setTimeout(() => {
-        el.classList.remove('animate-hit-shake-3v3');
-        console.log("[Debug:applyHitShake] Removed 'animate-hit-shake-3v3' class after timeout.");
-    }, 300);
-}
 
 function getNewBattleCharacterDOMElement(char) {
     if (!activeNewBattle) return null;

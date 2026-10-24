@@ -2278,17 +2278,7 @@ pasha_dark: {
                 return 'system';
             }
 
-            triggerHitShake(target) {
-                if (!target) return;
-                target.isShaking = true;
-                if (typeof applyHitShake === 'function') {
-                    applyHitShake(target);
-                }
-                setTimeout(() => {
-                    target.isShaking = false;
-                    if (this.onStateChange) this.onStateChange(this);
-                }, 300);
-            }
+
 
             logTeam(actor, msg, colorClass = 'text-slate-200') {
                 const teamType = this.getCharacterTeam(actor);
@@ -2976,7 +2966,7 @@ pasha_dark: {
                     this.applyDamageSkill(attacker, defender, skill);
                     defender.buffAtk *= 0.86;
                     defender.buffDef *= 0.86;
-                    this.triggerHitShake(defender);
+    
                     this.log(`N高代表 は【弱点分析】を行った！ ${defender.charName} の攻撃力と防御力が低下！`, 'text-cyan-300 font-bold');
                     return;
                 }
@@ -2992,7 +2982,7 @@ pasha_dark: {
                                 e.buffAtk *= 0.80;
                                 e.buffDef *= 0.80;
                             }
-                            this.triggerHitShake(e);
+
                         }
                     });
                     this.log(`N高代表 はパシャ憎へのムカつきを放った！ 敵全体の攻撃力と防御力が低下！`, 'text-cyan-300 font-bold');
@@ -3061,7 +3051,7 @@ pasha_dark: {
                     this.triggerCutin(`👑 王位継承発動！！`, `${chosenMaster.name}の力 × 4 ＝ ${inheritDmg} ダメージ！`);
                     
                     defender.hp = Math.max(0, defender.hp - inheritDmg);
-                    this.triggerHitShake(defender);
+    
                     this.log(`👑🔥 ドパガキングの「王位継承」発動！！ ${chosenMaster.name}の力を借りて ${defender.charName} に ${inheritDmg} の大ダメージを与えた！！`, 'text-amber-400 font-black text-base');
                     this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'damage', `-${inheritDmg}`);
 
@@ -3099,7 +3089,7 @@ case 'dopa_juggler_skill':
             // 0～50の完全ランダムダメージ
             const jugglerDmg = Math.floor(Math.random() * 51);
             defender.hp = Math.max(0, defender.hp - jugglerDmg);
-            this.triggerHitShake(defender);
+
             this.log(`🃏 ドパガキングの「ジャグラー」！ 完全ランダムダメージ ⇒ ${defender.charName} に ${jugglerDmg} のダメージ！`, 'text-purple-300 font-bold');
             this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'damage', `-${jugglerDmg}`);
             audioSystem.playHit();
@@ -3124,14 +3114,14 @@ case 'dopa_juggler_skill':
             // 95%で自分に10ダメージ、5%で相手に1000ダメージ
             if (Math.random() < 0.05) {
                 defender.hp = Math.max(0, defender.hp - 1000);
-                this.triggerHitShake(defender);
+
                 this.log(`✨⚡【神頼み 5%的中！！】 ${defender.charName} に 1000 の超絶ダメージ！！`, 'text-yellow-300 font-black font-pixel text-base');
                 this.triggerCutin('⚡ 神頼み 5%的中！！', '奇跡の1000ダメージ炸裂！');
                 this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'damage', '-1000');
                 audioSystem.playSpecial();
             } else {
                 attacker.hp = Math.max(1, attacker.hp - 10);
-                this.triggerHitShake(attacker);
+
                 this.log(`🎲 ${attacker.charName} のキャラクター「神頼み」… 運が悪く、自分に 10 のダメージを受けた！`, 'text-red-400 font-bold');
                 this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'damage', '-10');
                 audioSystem.playHit();
@@ -3151,7 +3141,7 @@ case 'dopa_juggler_skill':
                         audioSystem.playSpecial();
                         this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'damage', `🔥 ${releaseDmg} DMG!`);
                         defender.hp = Math.max(0, defender.hp - releaseDmg);
-                        this.triggerHitShake(defender);
+        
                         this.log(`💖🔥 コートニーの 「FEEL SO HOT ///」解放！！ (溜め ${charges}回) ⇒ ${defender.charName} に ${releaseDmg} の爆発ダメージ！！`, 'text-pink-400 font-black text-base');
                         attacker.courtneyChargeCount = 0;
                         break;
@@ -3159,7 +3149,7 @@ case 'dopa_juggler_skill':
                         let yoseruDmg = Math.max(8, Math.floor(attacker.atk * 0.9 - defender.def * 0.3));
                         defender.hp = Math.max(0, defender.hp - yoseruDmg);
                         defender.buffDef = 0.0;
-                        this.triggerHitShake(defender);
+        
                         this.log(`💋 ${attacker.charName} の「ヨセル」！ ${yoseruDmg} ダメージを与え、1ターンの間 ${defender.charName} の防御力を 0 にした！`, 'text-pink-300 font-bold');
                         this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'damage', `-${yoseruDmg}`);
                         audioSystem.playHit();
@@ -3425,7 +3415,7 @@ case 'dopa_juggler_skill':
                 }
 
                 defender.hp = Math.max(0, defender.hp - damage);
-                this.triggerHitShake(defender);
+
                 const side = defender === this.p1 ? 'Player' : 'Enemy';
                 let damageLog = `⚔ ${defender.charName} に ${damage} のダメージ！`;
                 if (attacker.id === 'ndaihyo' && skill.isNormalAttack) {
@@ -4565,7 +4555,7 @@ case 'dopa_juggler_skill':
                                                  </div>
 
                                                <!-- 全身スプライト（四角い枠線なし・背景直接配置） -->
-                                               <div class="w-full flex-1 flex items-center justify-center relative drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)] ${c.isShaking ? 'animate-hit-shake' : ''}">
+                                               <div class="w-full flex-1 flex items-center justify-center relative drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)]">
                                                    <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain">
                                                    ${isLeader && posIdx === 0 ? '<div class="absolute bottom-0 right-0 bg-emerald-600 text-white px-1.5 py-0.5 rounded text-[8px] font-pixel shadow">LEADER</div>' : ''}
                                                    <!-- スタンプ風バッジ（左下あたり） -->
