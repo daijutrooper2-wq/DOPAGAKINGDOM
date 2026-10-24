@@ -2248,6 +2248,28 @@ pasha_dark: {
                 this.battleLogs = [];
                 this.onlineSyncStarted = false;
                 this.latestRoomData = null;
+
+                this.elapsedSeconds = 0;
+                this.elapsedTimerId = null;
+                this.onElapsedTimerUpdate = null;
+            }
+
+            startElapsedTimer() {
+                this.stopElapsedTimer();
+                this.elapsedSeconds = 0;
+                this.elapsedTimerId = setInterval(() => {
+                    this.elapsedSeconds++;
+                    if (this.onElapsedTimerUpdate) {
+                        this.onElapsedTimerUpdate(this.elapsedSeconds);
+                    }
+                }, 1000);
+            }
+
+            stopElapsedTimer() {
+                if (this.elapsedTimerId) {
+                    clearInterval(this.elapsedTimerId);
+                    this.elapsedTimerId = null;
+                }
             }
 
             checkActiveAllyStatus() {
@@ -2257,10 +2279,12 @@ pasha_dark: {
                     if (this.allies.every(a => a.hp <= 0)) {
                         this.battleEnded = true;
                         this.stopTimer();
+                        this.stopElapsedTimer();
                         if (this.onBattleEnd) this.onBattleEnd('💀 敵チームの勝利！');
                         return true;
                     } else {
                         this.stopTimer();
+                        this.stopElapsedTimer();
                         this.waitingForChoice = true;
                         if (this.onStateChange) this.onStateChange(this);
                         return true;
@@ -2435,6 +2459,7 @@ pasha_dark: {
                 } else {
                     this.startTimer();
                 }
+                this.startElapsedTimer();
                 
                 if (this.onStateChange) this.onStateChange(this);
             }
@@ -2634,6 +2659,14 @@ pasha_dark: {
 
             startTimer() {
                 this.stopTimer();
+                if (this.p1.hp > 0 && this.p1.eggplantReady && !this.p1Action && !this.battleEnded) {
+                    setTimeout(() => {
+                        if (this.p1.eggplantReady && !this.p1Action) {
+                            this.submitAction(1, 'momo_eggplant_burst');
+                        }
+                    }, 400);
+                    return;
+                }
                 this.turnTimer = 15;
                 if (this.onTimerUpdate) this.onTimerUpdate(this.turnTimer);
 
@@ -2871,6 +2904,10 @@ pasha_dark: {
 
           executePlayerAction(attacker, defender, skillId) {
                 if (attacker.hp <= 0) return;
+
+                if (attacker.eggplantReady) {
+                    skillId = 'momo_eggplant_burst';
+                }
 
                 if (attacker.isResting) {
                     attacker.isResting = false;
@@ -3457,8 +3494,8 @@ case 'dopa_juggler_skill':
 
             executeCounter(defender, attacker) {
                 if (defender.hp <= 0) return;
-                this.log(`⚡ ${defender.charName} のナルシストカウンター発動！`, 'text-cyan-300 font-bold');
-                this.triggerCutin(`⚡ ${defender.charName} のカウンター！`, '攻撃を見切り、華麗に差し返す！');
+                this.log(`⚡ ${defender.charName}のカウンター発動！ ${attacker.charName} に少量ダメージを与えた！`, 'text-cyan-300 font-bold');
+                triggerCharacterEffect(defender, 'buff', 'カウンター');
                 const counterSkill = defender.skills.find(s => s.isNormalAttack) || defender.skills[0];
                 this.applyDamageSkill(defender, attacker, counterSkill, true);
             }
@@ -3505,6 +3542,7 @@ case 'dopa_juggler_skill':
                     this.battleEnded = true;
                     this.winnerText = winnerText;
                     this.stopTimer();
+                    this.stopElapsedTimer();
 
                     let result = 'draw';
                     if (this.p1.hp > 0 && this.p2.hp <= 0) {
@@ -4165,6 +4203,12 @@ case 'dopa_juggler_skill':
         }
         window.executeNewBattleCourtneyCharge = executeNewBattleCourtneyCharge;
 
+        function formatElapsedTime(totalSeconds) {
+            const m = Math.floor(totalSeconds / 60);
+            const s = totalSeconds % 60;
+            return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
         function startNewBattleMode(playerCharId = 'asaiomizu', enemyCharId = 'asaiomizu') {
             audioSystem.playSelect();
             newBattleViewMode = 'main';
@@ -4172,6 +4216,7 @@ case 'dopa_juggler_skill':
 
             if (activeNewBattle) {
                 activeNewBattle.stopTimer();
+                activeNewBattle.stopElapsedTimer();
                 activeNewBattle = null;
             }
 
@@ -4187,6 +4232,13 @@ case 'dopa_juggler_skill':
                     timerEl.innerText = sec;
                     if (sec <= 5) timerEl.className = 'font-pixel text-xs sm:text-sm font-bold text-red-500 animate-ping';
                     else timerEl.className = 'font-pixel text-xs sm:text-sm font-bold text-emerald-400';
+                }
+            };
+
+            activeNewBattle.onElapsedTimerUpdate = (sec) => {
+                const elapsedEl = document.getElementById('new-battle-elapsed-timer');
+                if (elapsedEl) {
+                    elapsedEl.innerText = formatElapsedTime(sec);
                 }
             };
 
@@ -4269,6 +4321,7 @@ case 'dopa_juggler_skill':
                 activeNewBattle.waitingForChoice = false;
                 activeNewBattle.battleEnded = true;
                 activeNewBattle.stopTimer();
+                activeNewBattle.stopElapsedTimer();
                 activeNewBattle.winnerText = '💀 敵チームの勝利！';
                 if (activeNewBattle.onBattleEnd) {
                     activeNewBattle.onBattleEnd(activeNewBattle.winnerText);
@@ -4489,22 +4542,27 @@ case 'dopa_juggler_skill':
                         <img src="images/backnormal.webp" alt="backnormal" class="w-full h-full object-cover opacity-80">
                     </div>
                     <!-- 1. 上部エリア（タイトル・行動状態・ターン・制限時間） -->
-                    <div class="w-full flex items-center justify-between gap-2 px-3 py-1.5 bg-slate-900/95 rounded-lg border border-slate-700 shadow-md z-20 shrink-0">
-                        <div class="flex items-center gap-1.5 text-xs font-pixel text-amber-300 shrink-0">
-                            <span>⚔️ 3v3バトルモード</span>
+                    <div class="w-full flex items-center justify-between gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 bg-slate-900/95 rounded-lg border border-slate-700 shadow-md z-20 shrink-0">
+                        <div class="flex items-center gap-1 text-[10px] sm:text-xs font-pixel text-amber-300 shrink-0">
+                            <span>⚔️ 3v3</span>
                         </div>
                         <div class="flex items-center justify-center flex-1 px-1">
                             ${actorIndicator}
                         </div>
-                        <div class="flex items-center gap-2 text-xs sm:text-sm font-mono shrink-0">
-                            <div class="flex items-center gap-1">
+                        <div class="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-mono shrink-0">
+                            <div class="flex items-center gap-0.5 text-sky-400">
+                                <span>⏱</span>
+                                <strong id="new-battle-elapsed-timer" class="font-pixel">${activeNewBattle ? formatElapsedTime(activeNewBattle.elapsedSeconds) : '00:00'}</strong>
+                            </div>
+                            <span class="text-slate-600">|</span>
+                            <div class="flex items-center gap-0.5">
                                 <span class="text-slate-400">T:</span>
                                 <strong id="new-battle-turn" class="text-amber-400 font-pixel">${activeNewBattle.turn}</strong>
                             </div>
-                            <span>|</span>
-                            <div class="flex items-center gap-1">
-                                <span class="text-slate-400">制限:</span>
-                                <strong id="new-battle-timer" class="text-emerald-400 font-pixel">${activeNewBattle.turnTimer}</strong><span>s</span>
+                            <span class="text-slate-600">|</span>
+                            <div class="flex items-center gap-0.5">
+                                <span class="text-slate-400">限:</span>
+                                <strong id="new-battle-timer" class="text-emerald-400 font-pixel">${activeNewBattle.turnTimer}</strong>s
                             </div>
                         </div>
                     </div>

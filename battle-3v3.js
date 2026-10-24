@@ -64,6 +64,28 @@ class Battle3v3Engine {
 
         this.currentTurnLogs = [];
         this.battleLogs = [];
+
+        this.elapsedSeconds = 0;
+        this.elapsedTimerId = null;
+        this.onElapsedTimerUpdate = null;
+    }
+
+    startElapsedTimer() {
+        this.stopElapsedTimer();
+        this.elapsedSeconds = 0;
+        this.elapsedTimerId = setInterval(() => {
+            this.elapsedSeconds++;
+            if (this.onElapsedTimerUpdate) {
+                this.onElapsedTimerUpdate(this.elapsedSeconds);
+            }
+        }, 1000);
+    }
+
+    stopElapsedTimer() {
+        if (this.elapsedTimerId) {
+            clearInterval(this.elapsedTimerId);
+            this.elapsedTimerId = null;
+        }
     }
 
     checkActiveAllyStatus() {
@@ -73,10 +95,12 @@ class Battle3v3Engine {
             if (this.allies.every(a => a.hp <= 0)) {
                 this.battleEnded = true;
                 this.stopTimer();
+                this.stopElapsedTimer();
                 if (this.onBattleEnd) this.onBattleEnd('💀 敵チームの勝利！');
                 return true;
             } else {
                 this.stopTimer();
+                this.stopElapsedTimer();
                 this.waitingForChoice = true;
                 if (this.onStateChange) this.onStateChange(this);
                 return true;
@@ -193,11 +217,20 @@ class Battle3v3Engine {
         this.log(`⚔️ 3v3バトル開始！ 味方チーム VS 敵チーム`, 'text-amber-300 font-bold');
         this.firstStrikerPlayerNum = 1;
         this.startTimer();
+        this.startElapsedTimer();
         if (this.onStateChange) this.onStateChange(this);
     }
 
     startTimer() {
         this.stopTimer();
+        if (this.p1.hp > 0 && this.p1.eggplantReady && !this.p1Action && !this.waitingForOpponent && !this.battleEnded) {
+            setTimeout(() => {
+                if (this.p1.eggplantReady && !this.p1Action) {
+                    this.submitAction(1, 'momo_eggplant_burst');
+                }
+            }, 400);
+            return;
+        }
         this.turnTimer = 15;
         if (this.onTimerUpdate) this.onTimerUpdate(this.turnTimer);
 
@@ -335,6 +368,10 @@ class Battle3v3Engine {
     executePlayerAction(attacker, defender, skillId) {
         if (attacker.hp <= 0) return;
 
+        if (attacker.eggplantReady) {
+            skillId = 'momo_eggplant_burst';
+        }
+
         if (attacker.isResting) {
             attacker.isResting = false;
             this.log(`💤 ${attacker.charName} は前ターンの反動で動けない！`, 'text-slate-400 font-bold');
@@ -362,6 +399,19 @@ class Battle3v3Engine {
         }
 
         if (!skill) skill = attacker.skills[0];
+
+        if (skill.id === 'momo_prep' || skill.type === 'charge') {
+            attacker.isMiniZou = true;
+            attacker.eggplantReady = true;
+            this.log(`🐘 ${attacker.charName} は「ミニぞうさん」に変身し、大量のナスを蓄積した！`, 'text-purple-300 font-bold');
+            this.log(`✨ 次ターン、自動的に「超ナスちん乱舞」が発動する！`, 'text-amber-300 font-bold');
+            this.triggerEffect(this.getCharacterTeam(attacker) === 'ally' ? 'Player' : 'Enemy', 'buff', 'ゾウ変身！');
+            audioSystem.playBuff();
+            if (skill.cooldown > 0) {
+                attacker.cooldowns[skill.id] = skill.cooldown + 1;
+            }
+            return;
+        }
 
         if (skill.cooldown > 0 && skill.id !== 'asaiomizu_copied' && skill.id !== 'momo_eggplant_burst') {
             attacker.cooldowns[skill.id] = skill.cooldown + 1;
@@ -395,8 +445,24 @@ class Battle3v3Engine {
                 }
             });
             if (skill.id === 'eggplant_burst') {
+                this.log(`🐘 ${attacker.charName} の「超ナスちん乱舞」発動！！ 3ターンの間、全味方のクリティカル大幅UP ＆ 敵全体の回避率中DOWN！`, 'text-purple-300 font-bold');
+                const alliesList = (this.getCharacterTeam(attacker) === 'ally') ? this.allies : this.enemies;
+                alliesList.forEach(a => {
+                    if (a.hp > 0) {
+                        a.critRateBonus = (a.critRateBonus || 0) + 0.35;
+                        a.critBuffTurns = 3;
+                    }
+                });
+                const enemiesList = (this.getCharacterTeam(attacker) === 'ally') ? this.enemies : this.allies;
+                enemiesList.forEach(e => {
+                    if (e.hp > 0) {
+                        e.evaDebuff = (e.evaDebuff || 0) + 15;
+                        e.enemyEvaTurns = 3;
+                    }
+                });
                 attacker.isMiniZou = false;
                 attacker.eggplantReady = false;
+                this.log(`✨ ${attacker.charName} は元の姿に戻った。`, 'text-slate-400');
             }
             return;
         }
@@ -494,6 +560,18 @@ class Battle3v3Engine {
         triggerNewBattleShake(defender);
 
         this.checkActiveAllyStatus();
+
+        if (!isCounter && defender.id === 'asaiomizu' && defender.hp > 0 && Math.random() < 0.5) {
+            this.executeCounter(defender, attacker);
+        }
+    }
+
+    executeCounter(defender, attacker) {
+        if (defender.hp <= 0) return;
+        this.log(`⚡ ${defender.charName}のカウンター発動！ ${attacker.charName} に少量ダメージを与えた！`, 'text-cyan-300 font-bold');
+        triggerNewBattleCharacterEffect(defender, 'buff', 'カウンター');
+        const counterSkill = defender.skills.find(s => s.isNormalAttack) || defender.skills[0];
+        this.applyDamageSkill(defender, attacker, counterSkill, true);
     }
 
     async checkWinner() {
@@ -522,6 +600,7 @@ class Battle3v3Engine {
         if (isEnded) {
             this.battleEnded = true;
             this.stopTimer();
+            this.stopElapsedTimer();
             if (this.onBattleEnd) this.onBattleEnd(winnerText);
             return true;
         }
@@ -541,6 +620,14 @@ class Battle3v3Engine {
             if (p.buffAtkTurns > 0) {
                 p.buffAtkTurns--;
                 if (p.buffAtkTurns === 0) p.buffAtk = 1.0;
+            }
+            if (p.critBuffTurns > 0) {
+                p.critBuffTurns--;
+                if (p.critBuffTurns === 0) p.critRateBonus = 0;
+            }
+            if (p.enemyEvaTurns > 0) {
+                p.enemyEvaTurns--;
+                if (p.enemyEvaTurns === 0) p.evaDebuff = 0;
             }
         });
 
@@ -704,6 +791,12 @@ function executeNewBattleCourtneyCharge() {
     }
 }
 
+function formatElapsedTime(totalSeconds) {
+    const m = Math.floor(totalSeconds / 60);
+    const s = totalSeconds % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
 function startNewBattleMode(playerCharId = 'asaiomizu', enemyCharId = 'asaiomizu') {
     audioSystem.playSelect();
     newBattleViewMode = 'main';
@@ -711,6 +804,7 @@ function startNewBattleMode(playerCharId = 'asaiomizu', enemyCharId = 'asaiomizu
 
     if (activeNewBattle) {
         activeNewBattle.stopTimer();
+        activeNewBattle.stopElapsedTimer();
         activeNewBattle = null;
     }
 
@@ -726,6 +820,13 @@ function startNewBattleMode(playerCharId = 'asaiomizu', enemyCharId = 'asaiomizu
             timerEl.innerText = sec;
             if (sec <= 5) timerEl.className = 'font-pixel text-xs sm:text-sm font-bold text-red-500 animate-ping';
             else timerEl.className = 'font-pixel text-xs sm:text-sm font-bold text-emerald-400';
+        }
+    };
+
+    activeNewBattle.onElapsedTimerUpdate = (sec) => {
+        const elapsedEl = document.getElementById('new-battle-elapsed-timer');
+        if (elapsedEl) {
+            elapsedEl.innerText = formatElapsedTime(sec);
         }
     };
 
@@ -795,6 +896,7 @@ function handleNewBattleContinueChoice(action) {
         activeNewBattle.waitingForChoice = false;
         activeNewBattle.battleEnded = true;
         activeNewBattle.stopTimer();
+        activeNewBattle.stopElapsedTimer();
         if (activeNewBattle.onBattleEnd) activeNewBattle.onBattleEnd('💀 敵チームの勝利！');
         renderNewBattleScreen();
     } else if (action === 'switch') {
@@ -944,6 +1046,7 @@ function renderNewBattleScreen() {
                 <div class="flex items-center gap-1.5 text-xs font-pixel text-amber-300"><span>⚔️ 3v3バトルモード</span></div>
                 <div class="flex items-center justify-center flex-1">${actorIndicator}</div>
                 <div class="flex items-center gap-2 text-xs font-mono">
+                    <span>時間:<strong id="new-battle-elapsed-timer" class="text-sky-400 font-pixel">${activeNewBattle ? formatElapsedTime(activeNewBattle.elapsedSeconds) : '00:00'}</strong></span>
                     <span>T:<strong id="new-battle-turn" class="text-amber-400 font-pixel">${activeNewBattle.turn}</strong></span>
                     <span>制限:<strong id="new-battle-timer" class="text-emerald-400 font-pixel">${activeNewBattle.turnTimer}</strong>s</span>
                 </div>
