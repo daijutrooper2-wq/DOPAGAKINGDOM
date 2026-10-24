@@ -92,13 +92,12 @@ class Battle3v3Engine {
         return 'system';
     }
 
+    applyHitShake(target) {
+        applyHitShake(target);
+    }
+
     triggerHitShake(target) {
-        if (!target) return;
-        target.isShaking = true;
-        setTimeout(() => {
-            target.isShaking = false;
-            if (this.onStateChange) this.onStateChange(this);
-        }, 300);
+        applyHitShake(target);
     }
 
     logTeam(actor, msg, colorClass = 'text-slate-200') {
