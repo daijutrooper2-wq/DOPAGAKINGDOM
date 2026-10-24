@@ -5106,6 +5106,19 @@ case 'dopa_juggler_skill':
         };
 
         window.addEventListener('DOMContentLoaded', async () => {
+            window.addEventListener('resize', () => {
+                const app = document.getElementById('app');
+                if (app) {
+                    app.style.height = window.innerHeight + 'px';
+                }
+            });
+            window.addEventListener('orientationchange', () => {
+                setTimeout(() => {
+                    window.scrollTo(0, 0);
+                    window.dispatchEvent(new Event('resize'));
+                }, 300);
+            });
+
             // 全キャラクターの画像・専用画像を事前プリロード
             Object.values(CHARACTER_DATA).forEach(c => {
                 if (c.image) CharacterRenderer.getImage(c.image);

@@ -33,10 +33,9 @@
             height: 100%;
             width: 100dvw;
             height: 100dvh;
+            min-height: 100dvh;
             margin: 0;
             padding: 0;
-            position: fixed;
-            inset: 0;
             touch-action: none;
             padding-top: env(safe-area-inset-top);
             padding-right: env(safe-area-inset-right);
@@ -277,9 +276,8 @@
                 height: 100% !important;
                 width: 100dvw !important;
                 height: 100dvh !important;
+                min-height: 100dvh !important;
                 overflow: hidden !important;
-                position: fixed !important;
-                inset: 0 !important;
                 touch-action: none !important;
                 box-sizing: border-box !important;
             }
