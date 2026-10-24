@@ -1127,7 +1127,7 @@ function triggerNewBattleCharacterEffect(targetChar, type, text) {
 }
 
 // Window bindings
-window.renderNewCharSelectScreen = renderNewCharSelectScreen;
+window.renderNewCharSelectScreen = renderNewBattleCharSelectScreen;
 window.onNewCharSelectSortChange = onNewCharSelectSortChange;
 window.toggleNewCharSelectSortDir = toggleNewCharSelectSortDir;
 window.toggleNewCharSelectOwnedFilter = toggleNewCharSelectOwnedFilter;
