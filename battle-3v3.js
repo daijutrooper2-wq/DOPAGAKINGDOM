@@ -1288,11 +1288,19 @@ function triggerNewBattleShake(targetChar) {
     }, 350);
 }
 
+let battleTooltipTimer = null;
+
 function showBattleCharTooltip(teamOrChar, posIdxOrIsAlly, event) {
     if (typeof newBattleViewMode !== 'undefined' && newBattleViewMode === 'target_select') {
         hideBattleCharTooltip();
         return;
     }
+    
+    if (battleTooltipTimer) {
+        clearTimeout(battleTooltipTimer);
+        battleTooltipTimer = null;
+    }
+
     let c = null;
     let isAlly = true;
 
@@ -1308,8 +1316,18 @@ function showBattleCharTooltip(teamOrChar, posIdxOrIsAlly, event) {
     if (!tooltip) {
         tooltip = document.createElement('div');
         tooltip.id = 'battle-char-tooltip';
-        tooltip.className = 'fixed pixel-box bg-slate-900 border-amber-400 p-2 text-xs text-slate-100 shadow-2xl z-[99999] pointer-events-none hidden';
+        tooltip.className = 'fixed pixel-box bg-slate-900 border-amber-400 p-2 text-xs text-slate-100 shadow-2xl z-[99999]';
         document.body.appendChild(tooltip);
+
+        tooltip.addEventListener('mouseenter', () => {
+            if (battleTooltipTimer) {
+                clearTimeout(battleTooltipTimer);
+                battleTooltipTimer = null;
+            }
+        });
+        tooltip.addEventListener('mouseleave', () => {
+            hideBattleCharTooltip();
+        });
     }
     if (!c) return;
 
@@ -1327,7 +1345,7 @@ function showBattleCharTooltip(teamOrChar, posIdxOrIsAlly, event) {
         </div>
         <div class="border-t border-slate-700 pt-1">
             <div class="text-[9px] font-bold text-amber-200 mb-1">✨ 所持スキル一覧</div>
-            <div class="space-y-1 max-h-32 overflow-y-auto">
+            <div class="space-y-1 tooltip-skill-scroll">
     `;
 
     c.skills.forEach(s => {
@@ -1353,8 +1371,8 @@ function showBattleCharTooltip(teamOrChar, posIdxOrIsAlly, event) {
     tooltip.classList.remove('hidden');
     tooltip.style.display = 'block';
 
-    const clientX = event.clientX || (event.touches && event.touches[0] ? event.touches[0].clientX : window.innerWidth / 2);
-    const clientY = event.clientY || (event.touches && event.touches[0] ? event.touches[0].clientY : window.innerHeight / 2);
+    const clientX = event.clientX || (event.touches && event.touches[0] ? event.touches[0].clientX : (event.changedTouches && event.changedTouches[0] ? event.changedTouches[0].clientX : window.innerWidth / 2));
+    const clientY = event.clientY || (event.touches && event.touches[0] ? event.touches[0].clientY : (event.changedTouches && event.changedTouches[0] ? event.changedTouches[0].clientY : window.innerHeight / 2));
 
     let left = clientX + 15;
     let top = clientY - 40;
@@ -1371,6 +1389,10 @@ function showBattleCharTooltip(teamOrChar, posIdxOrIsAlly, event) {
 }
 
 function hideBattleCharTooltip() {
+    if (battleTooltipTimer) {
+        clearTimeout(battleTooltipTimer);
+        battleTooltipTimer = null;
+    }
     const tooltip = document.getElementById('battle-char-tooltip');
     if (tooltip) {
         tooltip.classList.add('hidden');
@@ -1400,7 +1422,11 @@ if (typeof window._battleTooltipInitialized === 'undefined') {
 
     document.addEventListener('mouseout', (e) => {
         const charCard = e.target.closest('[data-char-team]');
-        if (charCard && (!e.relatedTarget || !charCard.contains(e.relatedTarget))) {
+        if (charCard) {
+            const tooltip = document.getElementById('battle-char-tooltip');
+            if (tooltip && e.relatedTarget && tooltip.contains(e.relatedTarget)) {
+                return;
+            }
             hideBattleCharTooltip();
         }
     });
@@ -1409,23 +1435,27 @@ if (typeof window._battleTooltipInitialized === 'undefined') {
         if (!activeNewBattle || activeNewBattle.battleEnded) return;
         if (typeof newBattleViewMode !== 'undefined' && newBattleViewMode === 'target_select') return;
         const charCard = e.target.closest('[data-char-team]');
+        const tooltip = document.getElementById('battle-char-tooltip');
+
         if (charCard) {
             const team = charCard.getAttribute('data-char-team');
             const idx = parseInt(charCard.getAttribute('data-char-idx'), 10);
             const c = team === 'ally' ? (activeNewBattle.allies && activeNewBattle.allies[idx]) : (activeNewBattle.enemies && activeNewBattle.enemies[idx]);
             if (c) {
                 showBattleCharTooltip(c, team === 'ally', e);
+                battleTooltipTimer = setTimeout(() => {
+                    hideBattleCharTooltip();
+                }, 2500);
+            }
+        } else if (tooltip && tooltip.contains(e.target)) {
+            if (battleTooltipTimer) {
+                clearTimeout(battleTooltipTimer);
+                battleTooltipTimer = setTimeout(() => {
+                    hideBattleCharTooltip();
+                }, 2500);
             }
         } else {
             hideBattleCharTooltip();
         }
-    }, { passive: true });
-
-    document.addEventListener('touchend', () => {
-        hideBattleCharTooltip();
-    }, { passive: true });
-
-    document.addEventListener('touchcancel', () => {
-        hideBattleCharTooltip();
     }, { passive: true });
 }

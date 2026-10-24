@@ -419,9 +419,18 @@
         #battle-char-tooltip {
             position: fixed !important;
             z-index: 99999 !important;
-            pointer-events: none !important;
+            pointer-events: auto !important;
             transition: opacity 0.15s ease-in-out;
             max-width: 280px;
             width: max-content;
+            touch-action: pan-y !important;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        #battle-char-tooltip .tooltip-skill-scroll {
+            max-height: 150px;
+            overflow-y: auto !important;
+            touch-action: pan-y !important;
+            -webkit-overflow-scrolling: touch;
         }
 
