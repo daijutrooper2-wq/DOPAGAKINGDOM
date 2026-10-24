@@ -1660,7 +1660,7 @@ static drawDopagaking(p, isCharged) {
                 const baseCrit = Math.round((master.critRate || 0.05) * 100);
                 const baseEva = master.eva;
                 const baseSum = baseHp + baseAtk + baseDef + baseCrit + baseEva;
-                const diff = 250 - baseSum;
+                const diff = 240 - baseSum;
                 playerState.newBattleCustomStats[charId] = {
                     hp: baseHp + diff,
                     atk: baseAtk,
@@ -1681,7 +1681,7 @@ static drawDopagaking(p, isCharged) {
             let minVal = 1;
             let maxVal = 300;
             if (statKey === 'hp') { minVal = 50; maxVal = 300; }
-            else if (statKey === 'atk') { minVal = 5; maxVal = 80; }
+            else if (statKey === 'atk') { minVal = 5; maxVal = 45; }
             else if (statKey === 'def') { minVal = 5; maxVal = 80; }
             else if (statKey === 'critRate') { minVal = 1; maxVal = 40; }
             else if (statKey === 'eva') { minVal = 1; maxVal = 60; }
@@ -1690,7 +1690,7 @@ static drawDopagaking(p, isCharged) {
             if (newVal < minVal || newVal > maxVal) return;
 
             const newTotal = currentTotal + delta;
-            if (newTotal > 250) return;
+            if (newTotal > 240) return;
 
             stats[statKey] = newVal;
             savePlayerState();
@@ -1771,8 +1771,10 @@ static drawDopagaking(p, isCharged) {
                             <button onclick="
                                 const cust = getNewBattleCustomStats('${c.id}');
                                 const total = cust.hp + cust.atk + cust.def + cust.critRate + cust.eva;
-                                if (total !== 250) {
-                                    showModal('ポイント未調整', 'ステータスポイントの合計が250ポイントになっていません（現在: ' + total + 'Pt）。250ポイントに調整してください！');
+                                if (cust.atk > 45) {
+                                    showModal('攻撃力オーバー', '攻撃力は最大45までです（現在: ' + cust.atk + '）。45以下に調整してください！');
+                                } else if (total > 240) {
+                                    showModal('ポイント超過', 'ステータスポイントの合計が240ポイントを超えています（現在: ' + total + 'Pt）。240ポイント以下に調整してください！');
                                 } else {
                                     window.selectedNewBattleChar = '${c.id}';
                                     renderNewBattleCharSelectScreen('${sortOrder}', '${sortDir}', ${onlyOwned});
@@ -1809,15 +1811,36 @@ static drawDopagaking(p, isCharged) {
                 if (isEligibleCustom) {
                     const custStats = getNewBattleCustomStats(c.id);
                     const totalUsed = custStats.hp + custStats.atk + custStats.def + custStats.critRate + custStats.eva;
-                    const remPts = 250 - totalUsed;
+                    const remPts = 240 - totalUsed;
                     const sortOrder = arg1 || 'default';
                     const sortDir = arg2 || 'desc';
                     const onlyOwned = !!arg3;
 
+                    const hpMin = 50, hpMax = 300;
+                    const atkMin = 5, atkMax = 45;
+                    const defMin = 5, defMax = 80;
+                    const critMin = 1, critMax = 40;
+                    const evaMin = 1, evaMax = 60;
+
+                    const hpMinusDisabled = custStats.hp <= hpMin;
+                    const hpPlusDisabled = totalUsed + 5 > 240 || custStats.hp + 5 > hpMax;
+
+                    const atkMinusDisabled = custStats.atk <= atkMin;
+                    const atkPlusDisabled = custStats.atk >= atkMax || totalUsed + 1 > 240;
+
+                    const defMinusDisabled = custStats.def <= defMin;
+                    const defPlusDisabled = totalUsed + 1 > 240 || custStats.def + 1 > defMax;
+
+                    const critMinusDisabled = custStats.critRate <= critMin;
+                    const critPlusDisabled = totalUsed + 1 > 240 || custStats.critRate + 1 > critMax;
+
+                    const evaMinusDisabled = custStats.eva <= evaMin;
+                    const evaPlusDisabled = totalUsed + 1 > 240 || custStats.eva + 1 > evaMax;
+
                     html += `
                                 <div class="w-full bg-slate-950 p-3.5 rounded border border-amber-800 space-y-2.5 text-xs font-mono flex-shrink-0">
                                     <div class="flex justify-between items-center border-b border-amber-900 pb-1">
-                                        <span class="text-amber-300 font-bold">📊 ステータス自由割り当て (250Pt)</span>
+                                        <span class="text-amber-300 font-bold">📊 ステータス自由割り当て (最大240Pt)</span>
                                         <span class="text-xs">残り: <span id="rem-pts" class="${remPts < 0 ? 'text-red-400' : (remPts === 0 ? 'text-emerald-400' : 'text-amber-300')} font-bold">${remPts}</span> Pt</span>
                                     </div>
                                     <div class="space-y-1.5">
@@ -1826,8 +1849,8 @@ static drawDopagaking(p, isCharged) {
                                             <span class="text-slate-300 font-bold">HP</span>
                                             <div class="flex items-center gap-2">
                                                 <span class="text-emerald-400 font-bold w-10 text-right">${custStats.hp}</span>
-                                                <button onclick="adjustNewBattleStat('${c.id}', 'hp', -5, '${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-0.5 text-xs bg-slate-800">-5</button>
-                                                <button onclick="adjustNewBattleStat('${c.id}', 'hp', 5, '${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-0.5 text-xs bg-slate-800">+5</button>
+                                                <button ${hpMinusDisabled ? 'disabled class="pixel-btn px-2 py-0.5 text-xs bg-slate-900 text-slate-600 border-slate-800 opacity-50 cursor-not-allowed"' : `onclick="adjustNewBattleStat('${c.id}', 'hp', -5, '${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-0.5 text-xs bg-slate-800"`}>-5</button>
+                                                <button ${hpPlusDisabled ? 'disabled class="pixel-btn px-2 py-0.5 text-xs bg-slate-900 text-slate-600 border-slate-800 opacity-50 cursor-not-allowed"' : `onclick="adjustNewBattleStat('${c.id}', 'hp', 5, '${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-0.5 text-xs bg-slate-800"`}>+5</button>
                                             </div>
                                         </div>
                                         <!-- 攻撃力 -->
@@ -1835,8 +1858,8 @@ static drawDopagaking(p, isCharged) {
                                             <span class="text-slate-300 font-bold">攻撃力</span>
                                             <div class="flex items-center gap-2">
                                                 <span class="text-red-400 font-bold w-10 text-right">${custStats.atk}</span>
-                                                <button onclick="adjustNewBattleStat('${c.id}', 'atk', -1, '${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-0.5 text-xs bg-slate-800">-1</button>
-                                                <button onclick="adjustNewBattleStat('${c.id}', 'atk', 1, '${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-0.5 text-xs bg-slate-800">+1</button>
+                                                <button ${atkMinusDisabled ? 'disabled class="pixel-btn px-2 py-0.5 text-xs bg-slate-900 text-slate-600 border-slate-800 opacity-50 cursor-not-allowed"' : `onclick="adjustNewBattleStat('${c.id}', 'atk', -1, '${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-0.5 text-xs bg-slate-800"`}>-1</button>
+                                                <button ${atkPlusDisabled ? 'disabled class="pixel-btn px-2 py-0.5 text-xs bg-slate-900 text-slate-600 border-slate-800 opacity-50 cursor-not-allowed"' : `onclick="adjustNewBattleStat('${c.id}', 'atk', 1, '${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-0.5 text-xs bg-slate-800"`}>+1</button>
                                             </div>
                                         </div>
                                         <!-- 防御力 -->
@@ -1844,8 +1867,8 @@ static drawDopagaking(p, isCharged) {
                                             <span class="text-slate-300 font-bold">防御力</span>
                                             <div class="flex items-center gap-2">
                                                 <span class="text-blue-400 font-bold w-10 text-right">${custStats.def}</span>
-                                                <button onclick="adjustNewBattleStat('${c.id}', 'def', -1, '${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-0.5 text-xs bg-slate-800">-1</button>
-                                                <button onclick="adjustNewBattleStat('${c.id}', 'def', 1, '${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-0.5 text-xs bg-slate-800">+1</button>
+                                                <button ${defMinusDisabled ? 'disabled class="pixel-btn px-2 py-0.5 text-xs bg-slate-900 text-slate-600 border-slate-800 opacity-50 cursor-not-allowed"' : `onclick="adjustNewBattleStat('${c.id}', 'def', -1, '${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-0.5 text-xs bg-slate-800"`}>-1</button>
+                                                <button ${defPlusDisabled ? 'disabled class="pixel-btn px-2 py-0.5 text-xs bg-slate-900 text-slate-600 border-slate-800 opacity-50 cursor-not-allowed"' : `onclick="adjustNewBattleStat('${c.id}', 'def', 1, '${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-0.5 text-xs bg-slate-800"`}>+1</button>
                                             </div>
                                         </div>
                                         <!-- クリティカル率 -->
@@ -1853,8 +1876,8 @@ static drawDopagaking(p, isCharged) {
                                             <span class="text-slate-300 font-bold">クリティカル率</span>
                                             <div class="flex items-center gap-2">
                                                 <span class="text-yellow-400 font-bold w-10 text-right">${custStats.critRate}%</span>
-                                                <button onclick="adjustNewBattleStat('${c.id}', 'critRate', -1, '${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-0.5 text-xs bg-slate-800">-1</button>
-                                                <button onclick="adjustNewBattleStat('${c.id}', 'critRate', 1, '${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-0.5 text-xs bg-slate-800">+1</button>
+                                                <button ${critMinusDisabled ? 'disabled class="pixel-btn px-2 py-0.5 text-xs bg-slate-900 text-slate-600 border-slate-800 opacity-50 cursor-not-allowed"' : `onclick="adjustNewBattleStat('${c.id}', 'critRate', -1, '${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-0.5 text-xs bg-slate-800"`}>-1</button>
+                                                <button ${critPlusDisabled ? 'disabled class="pixel-btn px-2 py-0.5 text-xs bg-slate-900 text-slate-600 border-slate-800 opacity-50 cursor-not-allowed"' : `onclick="adjustNewBattleStat('${c.id}', 'critRate', 1, '${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-0.5 text-xs bg-slate-800"`}>+1</button>
                                             </div>
                                         </div>
                                         <!-- 回避率 -->
@@ -1862,8 +1885,8 @@ static drawDopagaking(p, isCharged) {
                                             <span class="text-slate-300 font-bold">回避率</span>
                                             <div class="flex items-center gap-2">
                                                 <span class="text-purple-400 font-bold w-10 text-right">${custStats.eva}%</span>
-                                                <button onclick="adjustNewBattleStat('${c.id}', 'eva', -1, '${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-0.5 text-xs bg-slate-800">-1</button>
-                                                <button onclick="adjustNewBattleStat('${c.id}', 'eva', 1, '${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-0.5 text-xs bg-slate-800">+1</button>
+                                                <button ${evaMinusDisabled ? 'disabled class="pixel-btn px-2 py-0.5 text-xs bg-slate-900 text-slate-600 border-slate-800 opacity-50 cursor-not-allowed"' : `onclick="adjustNewBattleStat('${c.id}', 'eva', -1, '${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-0.5 text-xs bg-slate-800"`}>-1</button>
+                                                <button ${evaPlusDisabled ? 'disabled class="pixel-btn px-2 py-0.5 text-xs bg-slate-900 text-slate-600 border-slate-800 opacity-50 cursor-not-allowed"' : `onclick="adjustNewBattleStat('${c.id}', 'eva', 1, '${sortOrder}', '${sortDir}', ${onlyOwned})" class="pixel-btn px-2 py-0.5 text-xs bg-slate-800"`}>+1</button>
                                             </div>
                                         </div>
                                     </div>
