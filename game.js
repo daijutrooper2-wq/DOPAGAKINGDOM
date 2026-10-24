@@ -129,26 +129,12 @@
                 const charData = CHARACTER_DATA[targetCharId] || CHARACTER_DATA[charId] || EXTRA_ICONS[targetCharId] || EXTRA_ICONS[charId];
                 let imagePath = null;
                 if (charData) {
-                    if (!isBattleCanvas) {
-                        imagePath = charData.image || charData.allImage;
+                    if (isBattleCanvas) {
+                        // 【元祖対人バトルモード完全分離】キャラクター選択画面で使われているアイコン画像を必ず使用する
+                        imagePath = charData.image;
                     } else {
-                        if (isDead) {
-                            if (charData.dieImage) {
-                                imagePath = charData.dieImage;
-                            } else if (charId === 'asaiomizu') {
-                                imagePath = 'asaiomizu/asaiomizu3.webp';
-                            } else {
-                                imagePath = charData.image;
-                            }
-                        } else if ((isMiniZou || isCharged || charId.includes('charged') || charId === 'dopagaking_crown') && charData.chargedImage) {
-                            imagePath = charData.chargedImage;
-                        } else {
-                            imagePath = charData.allImage || charData.image;
-                        }
+                        imagePath = charData.image || charData.allImage;
                     }
-                }
-                if (charId === 'dopagaking_crown') {
-                    imagePath = CHARACTER_DATA['dopagaking']?.chargedImage || CHARACTER_DATA['dopagaking']?.image;
                 }
 
                 const img = this.getImage(imagePath);
