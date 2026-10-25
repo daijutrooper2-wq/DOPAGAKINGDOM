@@ -641,15 +641,18 @@ class Battle3v3Engine {
                 attacker.buffDef *= 1.40;
                 attacker.defendBuffTurns = 3;
             }
-            this.log(`岩盤星人 は【フリースタイル】をかました！ 3ターンの間、味方全員の防御力が大幅UP！`, 'text-emerald-300 font-bold');
+            this.log(`🎤 ${attacker.charName} の【フリースタイル】！ 魂のラップで3ターンの間、味方全員の防御力が大幅に強化された！`, 'text-emerald-300 font-bold text-base');
             audioSystem.playBuff();
+            if (typeof this.triggerCutin === 'function') {
+                this.triggerCutin('🎤 フリースタイル発動！', '魂のラップで味方全員の防御力大幅強化！');
+            }
             return;
         }
 
         if (skill.id === 'iwaba_song') {
             const target = defender || attacker;
             target.tempEvadeNext = true;
-            this.log(`岩盤星人 の【ソウルソング】！ ${target.charName} に攻撃1回無効化バリアが付与された！`, 'text-emerald-300 font-bold');
+            this.log(`🎵 ${attacker.charName} の【ソウルソング】！ ${target.charName} に攻撃1回無効化バリアが付与された！`, 'text-emerald-300 font-bold text-base');
             audioSystem.playSpecial();
             this.triggerEffect(this.getCharacterTeam(target) === 'ally' ? 'Player' : 'Enemy', 'buff', '無効化バリア');
             triggerNewBattleCharacterEffect(target, 'buff', '無効化バリア');
@@ -673,8 +676,11 @@ class Battle3v3Engine {
                 attacker.hp = Math.min(attacker.maxHp, attacker.hp + hAmt);
                 attacker.eva = Math.min(60, (attacker.eva || 10) + 10);
             }
-            this.log(`岩盤星人 は【岩盤浴ブースト】で温まった！ 味方全員のHPが持続回復＆回避率が上昇！`, 'text-emerald-300 font-bold');
+            this.log(`♨️ ${attacker.charName} の【岩盤浴ブースト】！ 温まり効果で味方全員のHPが回復し回避率が上昇した！`, 'text-emerald-300 font-bold text-base');
             audioSystem.playHeal();
+            if (typeof this.triggerCutin === 'function') {
+                this.triggerCutin('♨️ 岩盤浴ブースト！', '味方全員のHP回復 ＆ 回避率上昇！');
+            }
             return;
         }
 
@@ -909,7 +915,12 @@ class Battle3v3Engine {
             Object.keys(p.cooldowns).forEach(key => {
                 if (p.cooldowns[key] > 0) p.cooldowns[key]--;
             });
-            if (p.defendBuffTurns > 0) p.defendBuffTurns--;
+            if (p.defendBuffTurns > 0) {
+                p.defendBuffTurns--;
+                if (p.defendBuffTurns === 0) {
+                    p.buffDef = 1.0;
+                }
+            }
             if (p.buffAtkTurns > 0) {
                 p.buffAtkTurns--;
                 if (p.buffAtkTurns === 0) p.buffAtk = 1.0;
