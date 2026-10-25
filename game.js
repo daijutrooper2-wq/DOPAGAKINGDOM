@@ -5728,10 +5728,10 @@ case 'dopa_juggler_skill':
             audioSystem.playSelect();
             const container = document.getElementById('screen-container');
             container.innerHTML = `
-                <div class="flex flex-col items-center w-full max-w-3xl space-y-4 py-4 px-2 overflow-y-auto overflow-x-auto h-full max-h-full">
-                    <h2 class="text-xl sm:text-2xl font-bold text-amber-300 font-pixel shrink-0 text-center">📊 現環境データ (META ANALYSIS)</h2>
+                <div class="flex flex-col items-center w-full max-w-3xl space-y-4 py-4 px-2">
+                    <h2 class="text-xl sm:text-2xl font-bold text-amber-300 font-pixel text-center">📊 現環境データ (META ANALYSIS)</h2>
                     
-                    <div class="pixel-box-gold p-4 bg-amber-950/90 w-full space-y-3 shrink-0">
+                    <div class="pixel-box-gold p-4 bg-amber-950/90 w-full space-y-3">
                         <div class="flex flex-wrap items-center justify-between gap-2 border-b border-amber-800 pb-3">
                             <div class="flex items-center gap-2">
                                 <span class="text-xs text-amber-200 font-bold">集計期間:</span>
@@ -5758,7 +5758,7 @@ case 'dopa_juggler_skill':
                         </div>
                     </div>
 
-                    <button onclick="renderHomeScreen()" class="pixel-btn px-6 py-2 text-xs font-bold shrink-0">ホームに戻る</button>
+                    <button onclick="renderHomeScreen()" class="pixel-btn px-6 py-2 text-xs font-bold">ホームに戻る</button>
                 </div>
             `;
 
