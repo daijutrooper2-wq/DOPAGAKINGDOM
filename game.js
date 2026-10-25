@@ -2856,6 +2856,21 @@ pasha_dark: {
                 this.turnJustStarted = false;
                 this.currentTurnLogs = [];
 
+                const allFighters = [...(this.allies || [this.p1]), ...(this.enemies || [this.p2])];
+                allFighters.forEach(p => {
+                    if (p.hp > 0 && p.darknessPowerTurns && p.darknessPowerTurns > 0) {
+                        p.darknessPowerTurns--;
+                        const hAmt = Math.floor(Math.random() * 21) + 10;
+                        p.hp = Math.min(p.maxHp, p.hp + hAmt);
+                        this.log(`🦇 ${p.charName} の暗黒パワーにより、ターン開始時にHPが ${hAmt} 回復した！（残り ${p.darknessPowerTurns}T）`, 'text-purple-300 font-bold');
+                        this.triggerEffect(this.getCharacterTeam(p) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
+                        if (typeof triggerNewBattleCharacterEffect === 'function') {
+                            triggerNewBattleCharacterEffect(p, 'heal', `+${hAmt}`);
+                        }
+                        audioSystem.playHeal();
+                    }
+                });
+
                 this.checkPashaPassive();
 
                 if (this.isSuddenDeath) {
@@ -3221,7 +3236,20 @@ pasha_dark: {
                     return;
                 }
                 if (skill.id === 'pasha_darkness') {
-                    this.log(`パシャ憎 は右手の封印を解除！ ${defender.charName} に暗黒の自動回復効果が付与された！`, 'text-purple-300 font-bold');
+                    const target = defender || attacker;
+                    target.darknessPowerTurns = 3;
+                    const hAmt = Math.floor(Math.random() * 21) + 10;
+                    target.hp = Math.min(target.maxHp, target.hp + hAmt);
+                    this.log(`🦇 ${attacker.charName} は暗黒封印を解除し、${target.charName} に暗黒パワーを付与した！ HPが ${hAmt} 回復し、3ターンの間毎ターン開始時にHPがランダム回復する！`, 'text-purple-300 font-bold text-base');
+                    audioSystem.playSpecial();
+                    this.triggerEffect(this.getCharacterTeam(target) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
+                    if (typeof triggerNewBattleCharacterEffect === 'function') {
+                        triggerNewBattleCharacterEffect(target, 'heal', `+${hAmt}`);
+                        triggerNewBattleCharacterEffect(target, 'buff', '暗黒パワー');
+                    }
+                    if (typeof this.triggerCutin === 'function') {
+                        this.triggerCutin('🦇 暗黒封印解除！', `${target.charName} に暗黒パワー付与＆持続回復！`);
+                    }
                     return;
                 }
                 if (skill.id === 'iwaba_rap') {
@@ -3817,6 +3845,15 @@ case 'dopa_juggler_skill':
                     this.currentTurnLogs[this.currentTurnLogs.length - 1].effect = { side, type, text };
                 }
                 if (this.onVisualEffect) this.onVisualEffect(side, type, text);
+                let targetChar = null;
+                if (side === 'Player') {
+                    targetChar = this.currentAttacker && this.getCharacterTeam && this.getCharacterTeam(this.currentAttacker) === 'ally' ? this.currentAttacker : (this.p1 || this.allies?.[0]);
+                } else if (side === 'Enemy') {
+                    targetChar = this.currentAttacker && this.getCharacterTeam && this.getCharacterTeam(this.currentAttacker) === 'enemy' ? this.currentAttacker : (this.p2 || this.enemies?.[0]);
+                }
+                if (targetChar && typeof triggerCharacterEffect === 'function') {
+                    triggerCharacterEffect(targetChar, type, text);
+                }
             }
 
             triggerCutin(title, subtitle) {
@@ -4962,6 +4999,9 @@ case 'dopa_juggler_skill':
                 } else {
                     badges += `<span class="bg-red-950/95 text-red-300 border-2 border-red-400 px-1 py-0.5 rounded text-[8px] font-mono font-bold shadow-md transform rotate-2 inline-block">防御DOWN</span>`;
                 }
+            }
+            if (p.darknessPowerTurns && p.darknessPowerTurns > 0) {
+                badges += `<span class="bg-purple-950/95 text-purple-300 border-2 border-purple-400 px-1 py-0.5 rounded text-[8px] font-mono font-bold shadow-md transform rotate-2 inline-block">暗黒パワー [${p.darknessPowerTurns}T]</span>`;
             }
             if (p.defendBuffTurns && p.defendBuffTurns > 0) {
                 badges += `<span class="bg-amber-950/95 text-amber-300 border-2 border-amber-400 px-1 py-0.5 rounded text-[8px] font-mono font-bold shadow-md transform -rotate-2 inline-block">鉄壁 [${p.defendBuffTurns}T]</span>`;
@@ -6213,3 +6253,23 @@ case 'dopa_juggler_skill':
             preventContextMenuForMedia();
         });
         mediaObserver.observe(document.body, { childList: true, subtree: true });
+
+        // スマホ横画面等での画面拡大（ピンチズーム・ダブルタップズーム）の完全防止
+        document.addEventListener('gesturestart', (e) => {
+            e.preventDefault();
+        }, { passive: false });
+        document.addEventListener('gesturechange', (e) => {
+            e.preventDefault();
+        }, { passive: false });
+        document.addEventListener('gestureend', (e) => {
+            e.preventDefault();
+        }, { passive: false });
+
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', (e) => {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, { passive: false });
