@@ -3626,6 +3626,7 @@ case 'dopa_juggler_skill':
                     triggerCharacterEffect(defender, 'def', '防御');
                     this.triggerEffect(side, 'def', '防御');
                 }
+                triggerCharacterEffect(defender, 'damage', `-${damage}`);
                 let damageLog = `⚔ ${defender.charName} に ${damage} のダメージ！`;
                 if (attacker.id === 'ndaihyo' && skill.isNormalAttack) {
                     damageLog = `N高代表 の【バッティング】！ ${defender.charName} に ${damage} のダメージ！`;

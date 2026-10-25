@@ -497,6 +497,7 @@ class Battle3v3Engine {
                     const hAmt = Math.floor(a.maxHp * healRate);
                     a.hp = Math.min(a.maxHp, a.hp + hAmt);
                     this.triggerEffect(this.getCharacterTeam(a) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
+                    triggerNewBattleCharacterEffect(a, 'heal', `+${hAmt}`);
                 }
             });
             if (defender) {
@@ -555,6 +556,7 @@ class Battle3v3Engine {
                     const hAmt = Math.floor(a.maxHp * healRate);
                     a.hp = Math.min(a.maxHp, a.hp + hAmt);
                     this.triggerEffect(this.getCharacterTeam(a) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
+                    triggerNewBattleCharacterEffect(a, 'heal', `+${hAmt}`);
                 }
             });
 
@@ -577,6 +579,7 @@ class Battle3v3Engine {
                     targetDead.hp = revivedHp;
 
                     this.triggerEffect(this.getCharacterTeam(targetDead) === 'ally' ? 'Player' : 'Enemy', 'heal', '復活！');
+                    triggerNewBattleCharacterEffect(targetDead, 'heal', '復活！');
                     if (typeof triggerNewBattleCharacterEffect === 'function') {
                         triggerNewBattleCharacterEffect(targetDead, 'buff', '復活');
                     }
@@ -719,6 +722,7 @@ class Battle3v3Engine {
             triggerNewBattleCharacterEffect(defender, 'def', '防御');
             this.triggerEffect(side, 'def', '防御');
         }
+        triggerNewBattleCharacterEffect(defender, 'damage', `-${damage}`);
         if (skill.isNormalAttack) {
             this.log(`⚔️ ${attacker.charName}の${skill.name}！ ${defender.charName} に ${damage} のダメージ！`, 'text-red-400 font-bold');
         } else {
@@ -1384,7 +1388,7 @@ function getNewBattleCharacterDOMElement(char) {
 
 function triggerNewBattleCharacterEffect(targetChar, type, text) {
     const targetEl = getNewBattleCharacterDOMElement(targetChar);
-    console.log("回避/クリティカルエフェクト実行 (battle-3v3.js):", { targetChar, type, text, targetEl });
+    console.log("エフェクト実行 (battle-3v3.js):", { targetChar, type, text, targetEl });
     if (!targetEl) return;
 
     const pop = document.createElement('div');
@@ -1399,6 +1403,12 @@ function triggerNewBattleCharacterEffect(targetChar, type, text) {
         color = 'text-yellow-300 text-xs sm:text-sm font-bold font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
     } else if (type === 'def' || type === 'defense') {
         color = 'text-blue-300 text-xs sm:text-sm font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
+    } else if (type === 'damage') {
+        color = 'text-red-400 text-sm sm:text-base font-bold font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
+    } else if (type === 'heal') {
+        color = 'text-emerald-400 text-sm sm:text-base font-bold font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
+    } else if (type === 'buff') {
+        color = 'text-amber-300 text-xs sm:text-sm font-bold font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
     }
 
     pop.classList.add(...color.split(' '));
@@ -1409,6 +1419,8 @@ function triggerNewBattleCharacterEffect(targetChar, type, text) {
     pop.style.left = `${rect.left + rect.width / 2}px`;
     if (type === 'miss' || type === 'crit' || type === 'def' || type === 'defense') {
         pop.style.top = `${rect.top + rect.height / 3}px`;
+    } else if (type === 'damage' || type === 'heal') {
+        pop.style.top = `${rect.top + rect.height / 4}px`;
     } else {
         pop.style.top = `${rect.top - 10}px`;
     }
