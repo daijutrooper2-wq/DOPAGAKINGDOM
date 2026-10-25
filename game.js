@@ -3281,13 +3281,16 @@ pasha_dark: {
                 if (skill.id === 'iwaba_song') {
                     const target = defender || attacker;
                     target.tempEvadeNext = true;
-                    this.log(`🎵 ${attacker.charName} の【ソウルソング】！ ${target.charName} に攻撃1回無効化バリアが付与された！`, 'text-emerald-300 font-bold text-base');
+                    this.log(`🎵 ${attacker.charName} の【ソウルソング】！ 魂の歌声が響き渡り、${target.charName} は次の相手からの攻撃を1回だけ完全に無効化するバリアを纏った！`, 'text-emerald-300 font-bold text-base');
                     if (typeof audioSystem !== 'undefined' && audioSystem.playSpecial) {
                         audioSystem.playSpecial();
                     }
                     this.triggerEffect(this.getCharacterTeam(target) === 'ally' ? 'Player' : 'Enemy', 'buff', '無効化バリア');
                     if (typeof triggerNewBattleCharacterEffect === 'function') {
-                        triggerNewBattleCharacterEffect(target, 'buff', '無効化バリア');
+                        triggerNewBattleCharacterEffect(target, 'buff', '無効化バリア[1回]');
+                    }
+                    if (typeof this.triggerCutin === 'function') {
+                        this.triggerCutin('🎵 ソウルソング発動！', `${target.charName} に攻撃1回無効化バリア付与！`);
                     }
                     return;
                 }
@@ -3616,10 +3619,10 @@ case 'dopa_juggler_skill':
 
                 if (defender.tempEvadeNext && !isStealth) {
                     defender.tempEvadeNext = false;
-                    this.log(`✨ ${defender.charName} は「アエグ」等の効果により次の攻撃を完全に回避した！`, 'text-pink-300 font-bold');
+                    this.log(`✨ ${defender.charName} は【ソウルソング】の無効化バリアにより、相手からの攻撃を1回完全に無効化した！`, 'text-emerald-300 font-bold text-base');
                     audioSystem.playEvade();
-                    triggerCharacterEffect(defender, 'miss', '回避');
-                    this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'miss', '絶対回避!');
+                    triggerCharacterEffect(defender, 'miss', '完全無効化!');
+                    this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'miss', '完全無効化!');
                     return;
                 }
 
@@ -3831,13 +3834,6 @@ case 'dopa_juggler_skill':
 
             endTurnPhase() {
                 const allFighters = [...(this.allies || [this.p1]), ...(this.enemies || [this.p2])];
-                allFighters.forEach(p => {
-                    if (p.tempEvadeNext) {
-                        this.log(`✨ ${p.charName} の完全回避体制は、相手がそのターン中に攻撃してこなかったため効果が切れた。`, 'text-slate-400 text-[11px]');
-                        p.tempEvadeNext = false;
-                    }
-                });
-
                 this.turn++;
 
                 allFighters.forEach(p => {
