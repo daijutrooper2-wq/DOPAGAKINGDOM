@@ -4186,7 +4186,7 @@ case 'dopa_juggler_skill':
             if (!activeNewBattle) return;
             const skill = activeNewBattle.p1.skills.find(s => s.id === newBattleTargetSelectSkillId) || activeNewBattle.p1.skills.find(s => s.isNormalAttack);
             if (skill && skill.targetType === 'single_ally' && !isAllySide) return;
-            if (skill && skill.targetType === 'single_enemy' && isAllySide) return;
+            if (skill && (skill.targetType === 'single_enemy' || skill.id === 'pasha_flash') && isAllySide) return;
 
             activeNewBattle.p1TargetIndex = targetIdx;
             newBattleViewMode = 'main';
@@ -5045,9 +5045,9 @@ case 'dopa_juggler_skill':
             isNewBattleSkillModalOpen = false;
 
             const skill = activeNewBattle.p1.skills.find(s => s.id === actionType) || (actionType === activeNewBattle.p1.skills.find(s => s.isNormalAttack)?.id ? activeNewBattle.p1.skills.find(s => s.isNormalAttack) : null);
-            if (activeNewBattle.isNewBattle && skill && (skill.targetType === 'single_enemy' || skill.targetType === 'single_ally')) {
+            if (activeNewBattle.isNewBattle && skill && (skill.targetType === 'single_enemy' || skill.targetType === 'single_ally' || skill.id === 'pasha_flash')) {
                 newBattleTargetSelectSkillId = actionType;
-                newBattleTargetSelectType = skill.targetType;
+                newBattleTargetSelectType = skill.targetType === 'single_ally' ? 'single_ally' : 'single_enemy';
                 newBattleViewMode = 'target_select';
                 renderNewBattleScreen();
                 return;
