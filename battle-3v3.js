@@ -831,6 +831,15 @@ class Battle3v3Engine {
 
     triggerEffect(side, type, text) {
         if (this.onVisualEffect) this.onVisualEffect(side, type, text);
+        let targetChar = null;
+        if (side === 'Player') {
+            targetChar = this.currentAttacker && this.getCharacterTeam(this.currentAttacker) === 'ally' ? this.currentAttacker : this.p1;
+        } else if (side === 'Enemy') {
+            targetChar = this.currentAttacker && this.getCharacterTeam(this.currentAttacker) === 'enemy' ? this.currentAttacker : (this.enemies && this.enemies[0] ? this.enemies[0] : null);
+        }
+        if (targetChar && typeof triggerNewBattleCharacterEffect === 'function') {
+            triggerNewBattleCharacterEffect(targetChar, type, text);
+        }
     }
 }
 
