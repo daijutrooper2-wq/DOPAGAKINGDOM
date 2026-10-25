@@ -2200,7 +2200,12 @@ pasha_dark: {
                         }
                     }
 
-                    const availableSkills = botChar.skills.filter(s => (botChar.cooldowns?.[s.id] || 0) === 0);
+                    const availableSkills = botChar.skills.filter(s => {
+                        const cd = botChar.cooldowns?.[s.id] || 0;
+                        if (cd > 0) return false;
+                        if (s.id === 'pasha_roll' && (botChar.pashaRollUsedCount || 0) >= 2) return false;
+                        return true;
+                    });
                     const skills = availableSkills.length > 0 ? availableSkills : botChar.skills;
                     const hpRatio = botChar.hp / botChar.maxHp;
 
