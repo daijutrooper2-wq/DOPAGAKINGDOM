@@ -1053,13 +1053,13 @@ function handleNewBattleEnd() {
     const p2 = activeNewBattle.p2;
 
     setTimeout(() => {
-        const stage = document.getElementById('screen-container');
-        if (!stage) return;
+        const existing = document.getElementById('battle-result-overlay');
+        if (existing) existing.remove();
 
         const livingAllies = activeNewBattle.allies.filter(a => a.hp > 0);
         if (livingAllies.length === 0) {
             audioSystem.playDefeat();
-            stage.innerHTML += `
+            const html = `
                 <div id="battle-result-overlay" class="fixed inset-0 bg-black/90 z-[9999] flex flex-col items-center justify-center p-4 sm:p-6 text-center opacity-0 transition-opacity duration-1000">
                     <div class="pixel-box-dark p-6 sm:p-8 bg-slate-950/95 border-red-500 shadow-2xl max-w-md w-full flex flex-col items-center">
                         <div class="text-4xl sm:text-6xl font-pixel font-black text-red-500 mb-3 animate-pulse">LOSE</div>
@@ -1070,13 +1070,14 @@ function handleNewBattleEnd() {
                     </div>
                 </div>
             `;
+            document.body.insertAdjacentHTML('beforeend', html);
             setTimeout(() => {
                 const overlay = document.getElementById('battle-result-overlay');
                 if (overlay) overlay.classList.remove('opacity-0');
             }, 50);
         } else {
             audioSystem.playVictory();
-            stage.innerHTML += `
+            const html = `
                 <div id="battle-result-overlay" class="fixed inset-0 bg-black/90 z-[9999] flex flex-col items-center justify-center p-4 sm:p-6 text-center animate-cutin">
                     <div class="pixel-box-gold p-6 sm:p-8 bg-amber-950/95 border-amber-400 shadow-2xl max-w-md w-full flex flex-col items-center">
                         <div class="text-4xl sm:text-6xl font-pixel font-black text-amber-300 mb-2 animate-bounce">WIN</div>
@@ -1087,6 +1088,7 @@ function handleNewBattleEnd() {
                     </div>
                 </div>
             `;
+            document.body.insertAdjacentHTML('beforeend', html);
         }
     }, 1000);
 }

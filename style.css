@@ -406,19 +406,28 @@
 
         #battle-result-overlay {
             position: fixed !important;
-            inset: 0 !important;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            width: 100dvw !important;
+            height: 100dvh !important;
             display: flex !important;
             flex-direction: column !important;
             align-items: center !important;
             justify-content: center !important;
             z-index: 9999 !important;
             box-sizing: border-box !important;
+            background-color: rgba(0, 0, 0, 0.9) !important;
         }
 
         @media (orientation: landscape) {
             #battle-result-overlay {
                 position: fixed !important;
-                inset: 0 !important;
+                top: 50% !important;
+                left: 50% !important;
+                transform: translate(-50%, -50%) !important;
+                width: 100dvw !important;
+                height: 100dvh !important;
                 display: flex !important;
                 flex-direction: column !important;
                 align-items: center !important;
@@ -427,8 +436,10 @@
                 box-sizing: border-box !important;
             }
             #battle-result-overlay > div {
-                max-height: 90dvh !important;
+                max-height: 85dvh !important;
+                max-width: 90vw !important;
                 overflow-y: auto !important;
+                margin: auto !important;
             }
         }
 
