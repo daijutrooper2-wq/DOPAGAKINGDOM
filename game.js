@@ -2454,6 +2454,7 @@ pasha_dark: {
                     momoEvaTurns: 0,
                     asaiomizuCritTurns: 0,
                     pashaPassiveActive: false,
+                    stunTurns: 0,
                     pashaRollUsedCount: 0,
                     pashaRollReviveCount: 0
                 };
@@ -2991,6 +2992,16 @@ pasha_dark: {
 
           executePlayerAction(attacker, defender, skillId) {
                 if (attacker.hp <= 0) return;
+
+                if (attacker.stunTurns > 0) {
+                    attacker.stunTurns--;
+                    this.log(`💫 ${attacker.charName} は行動不能で動けない！`, 'text-amber-400 font-bold');
+                    this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'miss', '行動不能');
+                    if (typeof triggerNewBattleCharacterEffect === 'function') {
+                        triggerNewBattleCharacterEffect(attacker, 'miss', '行動不能');
+                    }
+                    return;
+                }
 
                 if (attacker.eggplantReady) {
                     skillId = 'momo_eggplant_burst';
@@ -4960,6 +4971,9 @@ case 'dopa_juggler_skill':
             }
             if (p.isResting) {
                 badges += `<span class="bg-slate-800/95 text-slate-300 border-2 border-slate-500 px-1 py-0.5 rounded text-[8px] font-mono font-bold shadow-md transform rotate-1 inline-block">休み</span>`;
+            }
+            if (p.stunTurns && p.stunTurns > 0) {
+                badges += `<span class="bg-red-950/95 text-red-300 border-2 border-red-400 px-1 py-0.5 rounded text-[8px] font-mono font-bold shadow-md transform -rotate-2 inline-block">行動不能 [${p.stunTurns}T]</span>`;
             }
             if (p.eggplantReady) {
                 badges += `<span class="bg-purple-950/95 text-purple-300 border-2 border-purple-400 px-1 py-0.5 rounded text-[8px] font-mono font-bold shadow-md transform -rotate-3 inline-block">ゾウ変身</span>`;
