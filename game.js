@@ -5213,6 +5213,13 @@ case 'dopa_juggler_skill':
                                 🗑️ データを初期化
                             </button>
                         </div>
+
+                        <div class="flex justify-between items-center bg-slate-950 p-2 rounded border border-amber-600/70">
+                            <span class="text-amber-300 font-bold">管理者ページ:</span>
+                            <button onclick="openAdminPasswordModal()" class="pixel-btn pixel-btn-warning text-xs px-3 py-1 font-bold">
+                                🔒 管理者パネル
+                            </button>
+                        </div>
                     </div>
                 `;
             }
@@ -5474,6 +5481,110 @@ case 'dopa_juggler_skill':
                 closeModal();
                 renderOpeningScreen();
             }, 1500);
+        }
+
+        function openAdminPasswordModal() {
+            audioSystem.playSelect();
+            closeSettingsPanel();
+            const titleEl = document.getElementById('modal-title');
+            const bodyEl = document.getElementById('modal-body');
+            const overlay = document.getElementById('modal-overlay');
+            const actionsEl = document.getElementById('modal-actions');
+            if (titleEl) titleEl.innerText = "🔒 管理者認証";
+            if (bodyEl) {
+                bodyEl.innerHTML = `
+                    <div class="space-y-3 py-2 text-center">
+                        <p class="text-xs text-amber-300">管理者パスワードを入力してください。</p>
+                        <input type="password" id="admin-password-input" placeholder="パスワード (1234)" class="pixel-box bg-slate-950 px-3 py-2 text-center text-amber-400 text-sm font-mono w-full max-w-xs mx-auto outline-none border-amber-600">
+                        <div id="admin-pass-error" class="text-red-400 text-xs font-mono hidden">パスワードが違います</div>
+                    </div>
+                `;
+            }
+            if (actionsEl) {
+                actionsEl.innerHTML = `
+                    <button onclick="closeModal()" class="pixel-btn px-4 py-2 font-bold text-xs">キャンセル</button>
+                    <button onclick="verifyAdminPassword()" class="pixel-btn pixel-btn-primary px-6 py-2 font-bold text-xs">認証する</button>
+                `;
+            }
+            if (overlay) {
+                overlay.classList.remove('hidden');
+                document.body.classList.add('modal-open');
+            }
+            setTimeout(() => {
+                const input = document.getElementById('admin-password-input');
+                if (input) {
+                    input.focus();
+                    input.onkeydown = (e) => {
+                        if (e.key === 'Enter') verifyAdminPassword();
+                    };
+                }
+            }, 100);
+        }
+
+        function verifyAdminPassword() {
+            audioSystem.playSelect();
+            const input = document.getElementById('admin-password-input');
+            const errEl = document.getElementById('admin-pass-error');
+            if (input && input.value === '1234') {
+                closeModal();
+                openAdminPanel();
+            } else {
+                if (errEl) errEl.classList.remove('hidden');
+                if (input) {
+                    input.classList.add('border-red-500');
+                    input.value = '';
+                }
+            }
+        }
+
+        function openAdminPanel() {
+            audioSystem.playSelect();
+            const titleEl = document.getElementById('modal-title');
+            const bodyEl = document.getElementById('modal-body');
+            const overlay = document.getElementById('modal-overlay');
+            const actionsEl = document.getElementById('modal-actions');
+            if (titleEl) titleEl.innerText = "🛠️ 管理者パネル";
+            if (bodyEl) {
+                bodyEl.innerHTML = `
+                    <div class="space-y-4 py-2">
+                        <div class="pixel-box bg-slate-950 p-3 space-y-2 border-amber-600">
+                            <h4 class="text-amber-300 font-bold text-xs font-pixel">👑 キャラクター全解放</h4>
+                            <p class="text-[11px] text-slate-300">すべてのキャラクターおよびアイコンを強制解放します。</p>
+                            <button onclick="adminUnlockAllChars()" class="pixel-btn pixel-btn-primary text-xs px-4 py-1.5 font-bold w-full">
+                                ✨ すべてのキャラを解放する
+                            </button>
+                        </div>
+
+                        <div class="pixel-box bg-slate-950 p-3 space-y-2 border-amber-600">
+                            <h4 class="text-amber-300 font-bold text-xs font-pixel">📊 現環境データの閲覧</h4>
+                            <p class="text-[11px] text-slate-300">現在のメタデータ（勝率ランキング・相性表・インサイト）を閲覧します。</p>
+                            <button onclick="closeModal(); renderMetaScreen();" class="pixel-btn pixel-btn-warning text-xs px-4 py-1.5 font-bold w-full">
+                                📊 現環境データを表示する
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+            if (actionsEl) {
+                actionsEl.innerHTML = `<button onclick="closeModal()" class="pixel-btn px-6 py-2 font-bold text-xs">閉じる</button>`;
+            }
+            if (overlay) {
+                overlay.classList.remove('hidden');
+                document.body.classList.add('modal-open');
+            }
+        }
+
+        async function adminUnlockAllChars() {
+            audioSystem.playSelect();
+            const allCharIds = Object.keys(CHARACTER_DATA);
+            const allExtraIconIds = Object.keys(EXTRA_ICONS);
+            const allIconIds = [...allCharIds, ...allExtraIconIds];
+
+            playerState.unlockedChars = [...allCharIds];
+            playerState.unlockedIcons = [...allIconIds];
+            await savePlayerState();
+
+            showModal("管理者モード", "✨ すべてのキャラクターおよびアイコンを解放しました！");
         }
 
         function savePlayerName() {
@@ -5908,6 +6019,10 @@ case 'dopa_juggler_skill':
         window.openFriendModal = openFriendModal;
         window.openSettingsModal = openSettingsModal;
         window.playOpeningAgain = playOpeningAgain;
+        window.openAdminPasswordModal = openAdminPasswordModal;
+        window.verifyAdminPassword = verifyAdminPassword;
+        window.openAdminPanel = openAdminPanel;
+        window.adminUnlockAllChars = adminUnlockAllChars;
         function showToast(message) {
             let toast = document.getElementById('app-toast');
             if (!toast) {
