@@ -76,8 +76,9 @@
         #screen-container,
         #modal-body,
         #settings-slide-panel,
-        .overflow-y-auto {
-            touch-action: pan-y !important;
+        .overflow-y-auto,
+        .overflow-x-auto {
+            touch-action: pan-x pan-y !important;
             -webkit-overflow-scrolling: touch;
         }
 

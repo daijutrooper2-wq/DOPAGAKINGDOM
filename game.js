@@ -5728,37 +5728,40 @@ case 'dopa_juggler_skill':
             audioSystem.playSelect();
             const container = document.getElementById('screen-container');
             container.innerHTML = `
-                <div class="flex flex-col items-center w-full max-w-3xl space-y-4 py-4 px-2">
-                    <h2 class="text-xl sm:text-2xl font-bold text-amber-300 font-pixel text-center">📊 現環境データ (META ANALYSIS)</h2>
+                <div class="flex flex-col items-center w-full max-w-4xl mx-auto py-2 px-2 h-full overflow-hidden">
+                    <div class="flex justify-between items-center w-full px-1 flex-shrink-0 mb-2">
+                        <h2 class="text-base sm:text-xl font-bold text-amber-300 font-pixel">📊 現環境データ (META ANALYSIS)</h2>
+                        <button onclick="renderHomeScreen()" class="pixel-btn px-4 py-1 text-xs font-bold">ホームに戻る</button>
+                    </div>
                     
-                    <div class="pixel-box-gold p-4 bg-amber-950/90 w-full space-y-3">
-                        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-amber-800 pb-3">
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs text-amber-200 font-bold">集計期間:</span>
-                                <select id="meta-period-select" onchange="loadAndRenderMeta()" class="pixel-box bg-slate-950 text-amber-300 text-xs px-2 py-1 outline-none border-amber-600">
-                                    <option value="all">全期間 (All Time)</option>
-                                    <option value="30">直近 30日</option>
-                                    <option value="7">直近 7日</option>
-                                </select>
+                    <div class="flex-1 min-h-0 w-full overflow-y-auto pr-1 space-y-4">
+                        <div class="pixel-box-gold p-4 bg-amber-950/90 w-full space-y-3">
+                            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-amber-800 pb-3">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs text-amber-200 font-bold">集計期間:</span>
+                                    <select id="meta-period-select" onchange="loadAndRenderMeta()" class="pixel-box bg-slate-950 text-amber-300 text-xs px-2 py-1 outline-none border-amber-600">
+                                        <option value="all">全期間 (All Time)</option>
+                                        <option value="30">直近 30日</option>
+                                        <option value="7">直近 7日</option>
+                                    </select>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs text-amber-200 font-bold">対戦モード:</span>
+                                    <select id="meta-mode-select" onchange="loadAndRenderMeta()" class="pixel-box bg-slate-950 text-amber-300 text-xs px-2 py-1 outline-none border-amber-600">
+                                        <option value="all">すべて (All)</option>
+                                        <option value="pvp">オンライン対戦 (PvP)</option>
+                                        <option value="bot">BOT戦 (Solo)</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs text-amber-200 font-bold">対戦モード:</span>
-                                <select id="meta-mode-select" onchange="loadAndRenderMeta()" class="pixel-box bg-slate-950 text-amber-300 text-xs px-2 py-1 outline-none border-amber-600">
-                                    <option value="all">すべて (All)</option>
-                                    <option value="pvp">オンライン対戦 (PvP)</option>
-                                    <option value="bot">BOT戦 (Solo)</option>
-                                </select>
-                            </div>
-                        </div>
 
-                        <div id="meta-content-area" class="space-y-4">
-                            <div class="text-center py-8 text-amber-300 font-mono animate-pulse">
-                                🔄 グローバル環境データを読み込み中...
+                            <div id="meta-content-area" class="space-y-4">
+                                <div class="text-center py-8 text-amber-300 font-mono animate-pulse">
+                                    🔄 グローバル環境データを読み込み中...
+                                </div>
                             </div>
                         </div>
                     </div>
-
-                    <button onclick="renderHomeScreen()" class="pixel-btn px-6 py-2 text-xs font-bold">ホームに戻る</button>
                 </div>
             `;
 
