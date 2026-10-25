@@ -285,9 +285,8 @@
                 margin: 0 !important;
                 width: 100% !important;
                 height: 100% !important;
-                width: 100dvw !important;
-                height: 100dvh !important;
-                min-height: 100dvh !important;
+                max-width: 100% !important;
+                max-height: 100% !important;
                 overflow: hidden !important;
                 touch-action: none !important;
                 box-sizing: border-box !important;
@@ -302,14 +301,16 @@
                 border-radius: 0 !important;
                 width: 100% !important;
                 height: 100% !important;
-                width: 100dvw !important;
-                height: 100dvh !important;
+                max-width: 100% !important;
+                max-height: 100% !important;
                 display: flex !important;
                 flex-direction: column !important;
                 justify-content: space-between !important;
+                align-items: center !important;
                 overflow: hidden !important;
                 touch-action: none !important;
                 box-sizing: border-box !important;
+                margin: 0 auto !important;
             }
             #screen-container {
                 overflow: hidden !important;
@@ -319,11 +320,12 @@
                 flex: 1 !important;
                 display: flex !important;
                 flex-direction: column !important;
-                align-items: stretch !important;
-                justify-content: space-between !important;
+                align-items: center !important;
+                justify-content: center !important;
                 width: 100% !important;
                 max-width: 100% !important;
                 box-sizing: border-box !important;
+                margin: 0 auto !important;
             }
             #screen-container > div {
                 width: 100% !important;
@@ -335,6 +337,8 @@
                 display: flex !important;
                 flex-direction: column !important;
                 justify-content: space-between !important;
+                align-items: center !important;
+                margin: 0 auto !important;
             }
             .landscape-battle-container {
                 display: flex !important;
@@ -348,14 +352,19 @@
                 touch-action: none !important;
                 padding: 2px 4px !important;
                 box-sizing: border-box !important;
+                margin: 0 auto !important;
             }
             .landscape-battle-upper {
                 width: 100% !important;
                 max-width: 900px !important;
+                margin-left: auto !important;
+                margin-right: auto !important;
             }
             .landscape-battle-lower {
                 width: 100% !important;
                 max-width: 900px !important;
+                margin-left: auto !important;
+                margin-right: auto !important;
             }
         }
 
