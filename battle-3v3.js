@@ -231,7 +231,7 @@ class Battle3v3Engine {
 
             if (hasPashaDark) {
                 if (!wasActive) {
-                    this.log(`✨ パシャ僧のパッシブスキル発動！対パシャ憎効果によりクリティカル率が上昇した！`, 'text-yellow-300 font-bold');
+                    this.log(`✨ パシャ憎のパッシブスキル発動！対パシャ憎効果によりクリティカル率が上昇した！`, 'text-yellow-300 font-bold');
                     const side = this.getCharacterTeam(pashaChar) === 'ally' ? 'Player' : 'Enemy';
                     this.triggerEffect(side, 'buff', 'パッシブ発動!');
                     if (typeof this.triggerCutin === 'function') {
@@ -537,7 +537,7 @@ class Battle3v3Engine {
             }
 
             const targetName = stunTarget ? stunTarget.charName : '敵';
-            this.log(`📸 ${attacker.charName}はカメラフラッシュを放った！ 敵全体に小ダメージを与え、${targetName}を1ターンの間行動不能にした！`, 'text-yellow-300 font-bold');
+            this.log(`${attacker.charName}はカメラフラッシュを放った！ 敵全体に小ダメージを与え、${targetName}を1ターンの間行動不能にした！`, 'text-yellow-300 font-bold');
             return;
         }
 

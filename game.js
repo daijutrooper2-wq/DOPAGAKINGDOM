@@ -833,7 +833,7 @@ static drawDopagaking(p, isCharged) {
                                     </div>
                                     <div class="pixel-box p-3 bg-slate-900 flex flex-col items-center animate-cutin border-purple-400">
                                         <canvas id="op-cvs-pasha" width="92" height="92" class="pixel-box bg-slate-950 mb-1"></canvas>
-                                        <span class="text-xs font-bold text-purple-300">パシャ僧</span>
+                                        <span class="text-xs font-bold text-purple-300">パシャ憎</span>
                                     </div>
                                     <div class="pixel-box p-3 bg-slate-900 flex flex-col items-center animate-cutin border-amber-400">
                                         <canvas id="op-cvs-dopagaking" width="92" height="92" class="pixel-box bg-slate-950 mb-1"></canvas>
@@ -1920,9 +1920,14 @@ static drawDopagaking(p, isCharged) {
                 if (c.id === 'pasha') {
                     html += `
                             <div class="w-full bg-amber-950/60 p-3.5 rounded border border-amber-400 space-y-2 text-xs font-mono flex-shrink-0">
+                                <div class="text-amber-300 font-bold mb-1.5 border-b border-amber-600 pb-1">✨ 固有スキル1: カメラフラッシュ仕様</div>
+                                <p class="text-amber-200 leading-relaxed font-bold">【解放条件】開幕1ターン待機（2ターン目以降に使用可能）</p>
+                                <p class="text-slate-200 leading-relaxed">【効果詳細】敵全体に小ダメージを与え、選択した敵1体を1ターンの間行動不能にする（CD: 3T）。</p>
+                            </div>
+                            <div class="w-full bg-amber-950/60 p-3.5 rounded border border-amber-400 space-y-2 text-xs font-mono flex-shrink-0">
                                 <div class="text-amber-300 font-bold mb-1.5 border-b border-amber-600 pb-1">✨ 固有パッシブスキル: 対・半浸闇化特効</div>
                                 <p class="text-amber-200 leading-relaxed font-bold">【条件】敵チームに「パシャ憎・半浸闇化状態」のキャラクターが存在する場合</p>
-                                <p class="text-slate-200 leading-relaxed">【効果】パッシブスキルが発動し、パシャ僧自身のクリティカル率が常時少量（+15%）上昇する。</p>
+                                <p class="text-slate-200 leading-relaxed">【効果】パッシブスキルが発動し、パシャ憎自身のクリティカル率が常時少量（+15%）上昇する。</p>
                             </div>
                     `;
                 }
@@ -2075,7 +2080,7 @@ dopagaking: {
             },
              pasha: {
                 id: 'pasha',
-                name: 'パシャ僧',
+                name: 'パシャ憎',
                 title: '暗黒スマホ僧侶',
                 type: '闇属性 / サポーター・回復特化',
                 hp: 178, atk: 24, def: 19, critRate: 0.06, eva: 21,
@@ -2085,7 +2090,7 @@ dopagaking: {
                 desc: 'スマホとカメラを駆使するサポーター・回復特化。パッシブ: 敵チームに「パシャ憎・半浸闇化状態」がいる場合、自身のクリティカル率が常に少量上昇する。',
                 skills: [
                     { id: 'pasha_attack', name: '睨みつける', type: 'attack', power: 1.0, isNormalAttack: true, cooldown: 0, targetType: 'single_enemy', desc: '敵単体に標準ダメージを与える通常攻撃。' },
-                    { id: 'pasha_flash', name: 'カメラフラッシュ', type: 'attack', power: 1.35, isNormalAttack: false, cooldown: 3, initialCooldown: 1, targetType: 'all_enemies', desc: '敵全体に小ダメージ＋選択した敵1体を1ターンの間行動不能にする。' },
+                    { id: 'pasha_flash', name: 'カメラフラッシュ', type: 'attack', power: 1.35, isNormalAttack: false, cooldown: 3, initialCooldown: 1, targetType: 'all_enemies', desc: '敵全体に小ダメージを与え、選択した敵1体を1ターンの間行動不能にする（開幕1T待機 / CD: 3T）。' },
                     { id: 'pasha_roll', name: 'カメラロール', type: 'heal', healRate: 0.40, cooldown: 5, initialCooldown: 2, targetType: 'all_allies', desc: '味方全員のHPを大きく回復。低確率で倒れた味方1人をHP40%で復活（1試合2回まで）。' },
                     { id: 'pasha_darkness', name: '暗黒封印解除', type: 'special', power: 1.85, isNormalAttack: false, cooldown: 3, targetType: 'single_ally', desc: '選択した味方1人に暗黒パワーを付与。3ターンの間、毎ターン開始時にHPが少量ずつランダム回復する。' }
                 ]
@@ -2470,7 +2475,7 @@ pasha_dark: {
 
                     if (hasPashaDark) {
                         if (!wasActive) {
-                            this.log(`✨ パシャ僧のパッシブスキル発動！対パシャ憎効果によりクリティカル率が上昇した！`, 'text-yellow-300 font-bold');
+                            this.log(`✨ パシャ憎のパッシブスキル発動！対パシャ憎効果によりクリティカル率が上昇した！`, 'text-yellow-300 font-bold');
                             const side = (this.allies && this.allies.includes(pashaChar)) || pashaChar === this.p1 ? 'Player' : 'Enemy';
                             this.triggerEffect(side, 'buff', 'パッシブ発動!');
                             if (typeof this.triggerCutin === 'function') {
@@ -3135,9 +3140,20 @@ pasha_dark: {
                             this.applyDamageSkill(attacker, e, skill);
                         }
                     });
-                    if (Math.random() < 0.5) {
-                        this.log(`強烈な光で敵全体は目を眩まされ、1ターン行動不能になった！`, 'text-purple-300 font-bold');
+                    let stunTarget = defender;
+                    if (!stunTarget || stunTarget.hp <= 0) {
+                        const livingEnemies = targetTeam.filter(e => e.hp > 0);
+                        stunTarget = livingEnemies[Math.floor(Math.random() * livingEnemies.length)];
                     }
+                    if (stunTarget && stunTarget.hp > 0) {
+                        stunTarget.stunTurns = 1;
+                        this.triggerEffect(this.getCharacterTeam(stunTarget) === 'ally' ? 'Player' : 'Enemy', 'miss', '行動不能');
+                    }
+                    if (typeof triggerCameraFlashGlobalEffect === 'function') {
+                        triggerCameraFlashGlobalEffect();
+                    }
+                    const targetName = stunTarget ? stunTarget.charName : '敵';
+                    this.log(`${attacker.charName}はカメラフラッシュを放った！ 敵全体に小ダメージを与え、${targetName}を1ターンの間行動不能にした！`, 'text-yellow-300 font-bold');
                     return;
                 }
                 if (skill.id === 'pasha_roll') {
@@ -3189,7 +3205,7 @@ pasha_dark: {
                     return;
                 }
                 if (skill.id === 'pasha_darkness') {
-                    this.log(`パシャ僧 は右手の封印を解除！ ${defender.charName} に暗黒の自動回復効果が付与された！`, 'text-purple-300 font-bold');
+                    this.log(`パシャ憎 は右手の封印を解除！ ${defender.charName} に暗黒の自動回復効果が付与された！`, 'text-purple-300 font-bold');
                     return;
                 }
                 if (skill.id === 'iwaba_rap') {
@@ -3249,7 +3265,7 @@ pasha_dark: {
                 if (attacker.id === 'pasha' && !attacker.isDarkMode && attacker.hp <= attacker.maxHp * 0.5) {
                     attacker.isDarkMode = true;
                     attacker.buffAtk *= 1.4;
-                    this.log(`✖ パシャ僧のHPが半減！「ダークモード」発動！（攻撃力大幅UP）`, 'text-purple-400 font-bold');
+                    this.log(`✖ パシャ憎のHPが半減！「ダークモード」発動！（攻撃力大幅UP）`, 'text-purple-400 font-bold');
                     this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'buff', 'DARK MODE');
                 }
 
@@ -3520,9 +3536,9 @@ case 'dopa_juggler_skill':
                     defender.hp = Math.max(0, defender.hp - killerDamage);
                     const targetSide = defender === this.p1 ? 'Player' : 'Enemy';
 
-                    this.log(`🎯💥【パシャ僧キラー発動！！】`, 'text-yellow-300 font-black font-pixel text-sm text-center');
-                    this.log(`N高代表の頭脳分析がパシャ僧の弱点を完全に見破った！ 現在HPの50% (${killerDamage} DMG) を粉砕！！`, 'text-red-400 font-bold');
-                    this.triggerCutin('🎯 パシャ僧キラー発動！！', '弱点分析完了！ 現在HP 50% を粉砕！');
+                    this.log(`🎯💥【パシャ憎キラー発動！！】`, 'text-yellow-300 font-black font-pixel text-sm text-center');
+                    this.log(`N高代表の頭脳分析がパシャ憎の弱点を完全に見破った！ 現在HPの50% (${killerDamage} DMG) を粉砕！！`, 'text-red-400 font-bold');
+                    this.triggerCutin('🎯 パシャ憎キラー発動！！', '弱点分析完了！ 現在HP 50% を粉砕！');
                     this.triggerEffect(targetSide, 'damage', `-${killerDamage} (50%)`);
                     audioSystem.playSpecial();
                     return;
@@ -3603,7 +3619,7 @@ case 'dopa_juggler_skill':
                 if (attacker.id === 'ndaihyo' && skill.isNormalAttack) {
                     damageLog = `N高代表 の【バッティング】！ ${defender.charName} に ${damage} のダメージ！`;
                 } else if (attacker.id === 'pasha' && skill.isNormalAttack) {
-                    damageLog = `パシャ僧 の【睨みつける】！ ${defender.charName} に ${damage} のダメージ！`;
+                    damageLog = `パシャ憎 の【睨みつける】！ ${defender.charName} に ${damage} のダメージ！`;
                 } else if (attacker.id === 'iwaba' && skill.isNormalAttack) {
                     damageLog = `岩盤星人 の【ブレイクダンス】！ ${defender.charName} に ${damage} のダメージ！`;
                     if (Math.random() < 0.2) {
