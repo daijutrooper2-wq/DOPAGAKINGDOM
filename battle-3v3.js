@@ -212,7 +212,9 @@ class Battle3v3Engine {
             momoEvaTurns: 0,
             asaiomizuCritTurns: 0,
             pashaPassiveActive: false,
-            stunTurns: 0
+            stunTurns: 0,
+            pashaRollUsedCount: 0,
+            pashaRollReviveCount: 0
         };
     }
 
@@ -536,6 +538,55 @@ class Battle3v3Engine {
 
             const targetName = stunTarget ? stunTarget.charName : '敵';
             this.log(`📸 ${attacker.charName}はカメラフラッシュを放った！ 敵全体に小ダメージを与え、${targetName}を1ターンの間行動不能にした！`, 'text-yellow-300 font-bold');
+            return;
+        }
+
+        if (skill.id === 'pasha_roll') {
+            if ((attacker.pashaRollUsedCount || 0) >= 2) {
+                this.log(`⚠️ ${attacker.charName} の カメラロール は1試合に最大2回までしか使用できません！`, 'text-amber-300 font-bold');
+                return;
+            }
+            attacker.pashaRollUsedCount = (attacker.pashaRollUsedCount || 0) + 1;
+
+            const healRate = skill.healRate || 0.40;
+            const teamList = (this.getCharacterTeam(attacker) === 'ally') ? this.allies : this.enemies;
+            teamList.forEach(a => {
+                if (a.hp > 0) {
+                    const hAmt = Math.floor(a.maxHp * healRate);
+                    a.hp = Math.min(a.maxHp, a.hp + hAmt);
+                    this.triggerEffect(this.getCharacterTeam(a) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
+                }
+            });
+
+            this.log(`${attacker.charName}はカメラロールを使用した！ 味方全体のHPが大きく回復した！`, 'text-emerald-400 font-bold text-base');
+            audioSystem.playHeal();
+            if (typeof triggerCameraFlashGlobalEffect === 'function') {
+                triggerCameraFlashGlobalEffect();
+            }
+            if (typeof this.triggerCutin === 'function') {
+                this.triggerCutin('📸 カメラロール発動！', '味方全体が大回復 ＆ 思い出のシャッター！');
+            }
+
+            const deadAllies = teamList.filter(a => a.hp <= 0);
+            const maxReviveTotal = 2;
+            if (deadAllies.length > 0 && (attacker.pashaRollReviveCount || 0) < maxReviveTotal) {
+                if (Math.random() < 0.30) {
+                    attacker.pashaRollReviveCount = (attacker.pashaRollReviveCount || 0) + 1;
+                    const targetDead = deadAllies[Math.floor(Math.random() * deadAllies.length)];
+                    const revivedHp = Math.floor(targetDead.maxHp * 0.40);
+                    targetDead.hp = revivedHp;
+
+                    this.triggerEffect(this.getCharacterTeam(targetDead) === 'ally' ? 'Player' : 'Enemy', 'heal', '復活！');
+                    if (typeof triggerNewBattleCharacterEffect === 'function') {
+                        triggerNewBattleCharacterEffect(targetDead, 'buff', '復活');
+                    }
+                    const remainingRevive = maxReviveTotal - attacker.pashaRollReviveCount;
+                    if (typeof this.triggerCutin === 'function') {
+                        this.triggerCutin('✨ カメラロールの奇跡！', `${targetDead.charName}がHP40%で復活！`);
+                    }
+                    this.log(`カメラロールの奇跡が起きた！ 倒れていた${targetDead.charName}がHP40%で復活した！（残り復活回数: ${remainingRevive}回）`, 'text-yellow-300 font-bold text-base');
+                }
+            }
             return;
         }
 
@@ -1116,11 +1167,12 @@ function renderNewBattleScreen() {
         const skills = p1.skills.filter(s => !s.isNormalAttack);
         let skillsHtml = skills.map(s => {
             const cd = p1.cooldowns[s.id] || 0;
-            const disabled = cd > 0;
+            const isPashaRollLimit = (s.id === 'pasha_roll' && (p1.pashaRollUsedCount || 0) >= 2);
+            const disabled = cd > 0 || isPashaRollLimit;
             return `
                 <button onclick="${disabled ? '' : `executeNewBattleAction('${s.id}')`}" class="pixel-box bg-slate-900 border ${disabled ? 'border-slate-700 opacity-60 cursor-not-allowed' : 'border-emerald-400 hover:border-emerald-300 cursor-pointer'} p-3 text-left shadow flex flex-col justify-between w-full">
                     <div class="flex justify-between items-center w-full mb-1">
-                        <span class="font-pixel text-xs text-emerald-300 font-bold">${s.name} ${cd > 0 ? `(CT:${cd})` : ''}</span>
+                        <span class="font-pixel text-xs text-emerald-300 font-bold">${s.name} ${cd > 0 ? `(CT:${cd})` : ''} ${s.id === 'pasha_roll' ? `(残り使用: ${2 - (p1.pashaRollUsedCount || 0)}回)` : ''}</span>
                     </div>
                     <div class="text-[11px] text-slate-200 font-mono">${s.desc}</div>
                 </button>

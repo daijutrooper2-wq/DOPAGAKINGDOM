@@ -2448,7 +2448,9 @@ pasha_dark: {
                     enemyEvaTurns: 0,
                     momoEvaTurns: 0,
                     asaiomizuCritTurns: 0,
-                    pashaPassiveActive: false
+                    pashaPassiveActive: false,
+                    pashaRollUsedCount: 0,
+                    pashaRollReviveCount: 0
                 };
             }
 
@@ -3139,9 +3141,51 @@ pasha_dark: {
                     return;
                 }
                 if (skill.id === 'pasha_roll') {
-                    const healAmt = Math.floor(attacker.maxHp * 0.40);
-                    attacker.hp = Math.min(attacker.maxHp, attacker.hp + healAmt);
-                    this.log(`パシャ僧 は思い出の写真を見た！ 味方全員のHPが大きく回復！`, 'text-emerald-400 font-bold');
+                    if ((attacker.pashaRollUsedCount || 0) >= 2) {
+                        this.log(`⚠️ ${attacker.charName} の カメラロール は1試合に最大2回までしか使用できません！`, 'text-amber-300 font-bold');
+                        return;
+                    }
+                    attacker.pashaRollUsedCount = (attacker.pashaRollUsedCount || 0) + 1;
+
+                    const healRate = skill.healRate || 0.40;
+                    const teamList = (this.getCharacterTeam(attacker) === 'ally') ? this.allies : this.enemies;
+                    teamList.forEach(a => {
+                        if (a.hp > 0) {
+                            const hAmt = Math.floor(a.maxHp * healRate);
+                            a.hp = Math.min(a.maxHp, a.hp + hAmt);
+                            this.triggerEffect(this.getCharacterTeam(a) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
+                        }
+                    });
+
+                    this.log(`${attacker.charName}はカメラロールを使用した！ 味方全体のHPが大きく回復した！`, 'text-emerald-400 font-bold text-base');
+                    audioSystem.playHeal();
+                    if (typeof triggerCameraFlashGlobalEffect === 'function') {
+                        triggerCameraFlashGlobalEffect();
+                    }
+                    if (typeof this.triggerCutin === 'function') {
+                        this.triggerCutin('📸 カメラロール発動！', '味方全体が大回復 ＆ 思い出のシャッター！');
+                    }
+
+                    const deadAllies = teamList.filter(a => a.hp <= 0);
+                    const maxReviveTotal = 2;
+                    if (deadAllies.length > 0 && (attacker.pashaRollReviveCount || 0) < maxReviveTotal) {
+                        if (Math.random() < 0.30) {
+                            attacker.pashaRollReviveCount = (attacker.pashaRollReviveCount || 0) + 1;
+                            const targetDead = deadAllies[Math.floor(Math.random() * deadAllies.length)];
+                            const revivedHp = Math.floor(targetDead.maxHp * 0.40);
+                            targetDead.hp = revivedHp;
+
+                            this.triggerEffect(this.getCharacterTeam(targetDead) === 'ally' ? 'Player' : 'Enemy', 'heal', '復活！');
+                            if (typeof triggerNewBattleCharacterEffect === 'function') {
+                                triggerNewBattleCharacterEffect(targetDead, 'buff', '復活');
+                            }
+                            const remainingRevive = maxReviveTotal - attacker.pashaRollReviveCount;
+                            if (typeof this.triggerCutin === 'function') {
+                                this.triggerCutin('✨ カメラロールの奇跡！', `${targetDead.charName}がHP40%で復活！`);
+                            }
+                            this.log(`カメラロールの奇跡が起きた！ 倒れていた${targetDead.charName}がHP40%で復活した！（残り復活回数: ${remainingRevive}回）`, 'text-yellow-300 font-bold text-base');
+                        }
+                    }
                     return;
                 }
                 if (skill.id === 'pasha_darkness') {
@@ -4587,7 +4631,8 @@ case 'dopa_juggler_skill':
                 let skillsHtml = skills.map(s => {
                     const cd = p1.cooldowns[s.id] || 0;
                     const isCd = cd > 0;
-                    const disabled = isCd || (p1.id === 'dopagaking' && s.id === 'dopa_inheritance' && (p1.dopaChargeCount || 0) < 5);
+                    const isPashaRollLimit = (s.id === 'pasha_roll' && (p1.pashaRollUsedCount || 0) >= 2);
+                    const disabled = isCd || isPashaRollLimit || (p1.id === 'dopagaking' && s.id === 'dopa_inheritance' && (p1.dopaChargeCount || 0) < 5);
                     return `
                         <button onclick="${disabled ? '' : `executeNewBattleAction('${s.id}')`}" class="pixel-box bg-slate-900 border ${disabled ? 'border-slate-700 opacity-60 cursor-not-allowed' : 'border-emerald-400 hover:border-emerald-300 cursor-pointer'} p-3 text-left shadow flex flex-col justify-between w-full transition-all">
                             <div class="flex justify-between items-center w-full mb-1">
@@ -4595,6 +4640,7 @@ case 'dopa_juggler_skill':
                                     <span>✨</span>
                                     <span>${s.name}</span>
                                     ${isCd ? `<span class="text-amber-400 text-xs font-mono">(CT:${cd})</span>` : ''}
+                                    ${s.id === 'pasha_roll' ? `<span class="text-sky-400 text-xs font-mono">(残り使用: ${2 - (p1.pashaRollUsedCount || 0)}回)</span>` : ''}
                                 </span>
                                 ${disabled && isCd ? `<span class="text-xs text-red-400 font-mono font-bold">CT:${cd}</span>` : ''}
                             </div>
