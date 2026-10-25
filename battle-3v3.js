@@ -593,6 +593,25 @@ class Battle3v3Engine {
             return;
         }
 
+        if (skill.type === 'heal' || skill.type === 'heal_cleanse' || skill.type === 'heal_buff' || skill.id === 'courtney_aegu' || skill.type === 'courtney_aegu_skill' || skill.type === 'momo_chie_skill') {
+            const healRate = skill.healRate || 0.35;
+            const hAmt = Math.floor(attacker.maxHp * healRate);
+            attacker.hp = Math.min(attacker.maxHp, attacker.hp + hAmt);
+            this.log(`💚 ${attacker.charName} は HPを ${hAmt} 回復！`, 'text-emerald-400 font-bold');
+            this.triggerEffect(this.getCharacterTeam(attacker) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
+            audioSystem.playHeal();
+            if (skill.id === 'courtney_aegu' || skill.type === 'courtney_aegu_skill') {
+                attacker.tempEvadeNext = true;
+                this.triggerEffect(this.getCharacterTeam(attacker) === 'ally' ? 'Player' : 'Enemy', 'buff', '完全回避構え');
+            }
+            if (skill.type === 'heal_buff' || skill.type === 'momo_chie_skill') {
+                attacker.buffDef *= 1.35;
+                attacker.eva = Math.min(60, (attacker.eva || 10) + 15);
+                this.triggerEffect(this.getCharacterTeam(attacker) === 'ally' ? 'Player' : 'Enemy', 'buff', '回避・防御UP!');
+            }
+            return;
+        }
+
         if (skill.targetType === 'all_enemies' || skill.id === 'ndaihyo_tactics' || skill.id === 'eggplant_burst') {
             const targetTeam = (this.getCharacterTeam(attacker) === 'ally') ? this.enemies : this.allies;
             targetTeam.forEach(e => {
