@@ -3652,6 +3652,15 @@ case 'dopa_juggler_skill':
                     damage = Math.floor(damage * 1.35);
                 }
 
+                let extraHitTriggered = false;
+                if (attacker.id === 'iwaba' && skill.isNormalAttack) {
+                    if (Math.random() < 0.2) {
+                        extraHitTriggered = true;
+                        let extraDmg = Math.floor(damage * 0.6);
+                        damage += extraDmg;
+                    }
+                }
+
                 defender.hp = Math.max(0, defender.hp - damage);
 
                 const side = defender === this.p1 ? 'Player' : 'Enemy';
@@ -3667,12 +3676,9 @@ case 'dopa_juggler_skill':
                     damageLog = `パシャ憎 の【睨みつける】！ ${defender.charName} に ${damage} のダメージ！`;
                 } else if (attacker.id === 'iwaba' && skill.isNormalAttack) {
                     damageLog = `岩盤星人 の【ブレイクダンス】！ ${defender.charName} に ${damage} のダメージ！`;
-                    if (Math.random() < 0.2) {
-                        this.log(`【連動発動！】 岩盤星人 のノリノリな連続ダンス攻撃がヒット！`, 'text-emerald-300 font-bold');
-                        let extraDmg = Math.floor(damage * 0.6);
-                        defender.hp = Math.max(0, defender.hp - extraDmg);
-                        damage += extraDmg;
-                    }
+                }
+                if (extraHitTriggered) {
+                    this.log(`【連動発動！】 岩盤星人 のノリノリな連続ダンス攻撃がヒット！`, 'text-emerald-300 font-bold');
                 }
                 this.log(`${damageLog}${isCrit ? ' (🔥会心)' : ''}${this.isSuddenDeath ? ' (🔥サドンデスUP)' : ''}`, 'text-red-400 font-bold');
                 this.triggerEffect(side, 'damage', `-${damage}`);

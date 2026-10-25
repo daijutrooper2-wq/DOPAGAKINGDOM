@@ -626,6 +626,58 @@ class Battle3v3Engine {
             return;
         }
 
+        if (skill.id === 'iwaba_rap') {
+            const teamList = (this.getCharacterTeam(attacker) === 'ally') ? this.allies : this.enemies;
+            if (teamList) {
+                teamList.forEach(a => {
+                    if (a.hp > 0) {
+                        a.buffDef *= 1.40;
+                        a.defendBuffTurns = 3;
+                        this.triggerEffect(this.getCharacterTeam(a) === 'ally' ? 'Player' : 'Enemy', 'buff', '防御UP!');
+                        triggerNewBattleCharacterEffect(a, 'buff', '防御UP!');
+                    }
+                });
+            } else {
+                attacker.buffDef *= 1.40;
+                attacker.defendBuffTurns = 3;
+            }
+            this.log(`岩盤星人 は【フリースタイル】をかました！ 3ターンの間、味方全員の防御力が大幅UP！`, 'text-emerald-300 font-bold');
+            audioSystem.playBuff();
+            return;
+        }
+
+        if (skill.id === 'iwaba_song') {
+            const target = defender || attacker;
+            target.tempEvadeNext = true;
+            this.log(`岩盤星人 の【ソウルソング】！ ${target.charName} に攻撃1回無効化バリアが付与された！`, 'text-emerald-300 font-bold');
+            audioSystem.playSpecial();
+            this.triggerEffect(this.getCharacterTeam(target) === 'ally' ? 'Player' : 'Enemy', 'buff', '無効化バリア');
+            triggerNewBattleCharacterEffect(target, 'buff', '無効化バリア');
+            return;
+        }
+
+        if (skill.id === 'iwaba_bath') {
+            const teamList = (this.getCharacterTeam(attacker) === 'ally') ? this.allies : this.enemies;
+            if (teamList) {
+                teamList.forEach(a => {
+                    if (a.hp > 0) {
+                        const hAmt = Math.floor(a.maxHp * 0.20);
+                        a.hp = Math.min(a.maxHp, a.hp + hAmt);
+                        a.eva = Math.min(60, (a.eva || 10) + 10);
+                        this.triggerEffect(this.getCharacterTeam(a) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
+                        triggerNewBattleCharacterEffect(a, 'heal', `+${hAmt}`);
+                    }
+                });
+            } else {
+                const hAmt = Math.floor(attacker.maxHp * 0.20);
+                attacker.hp = Math.min(attacker.maxHp, attacker.hp + hAmt);
+                attacker.eva = Math.min(60, (attacker.eva || 10) + 10);
+            }
+            this.log(`岩盤星人 は【岩盤浴ブースト】で温まった！ 味方全員のHPが持続回復＆回避率が上昇！`, 'text-emerald-300 font-bold');
+            audioSystem.playHeal();
+            return;
+        }
+
         if (skill.type === 'heal' || skill.type === 'heal_cleanse' || skill.type === 'heal_buff' || skill.id === 'courtney_aegu' || skill.type === 'courtney_aegu_skill' || skill.type === 'momo_chie_skill') {
             const healRate = skill.healRate || 0.35;
             const hAmt = Math.floor(attacker.maxHp * healRate);
@@ -767,6 +819,15 @@ class Battle3v3Engine {
             triggerNewBattleCharacterEffect(defender, 'crit', 'クリティカル！');
         }
 
+        let extraHitTriggered = false;
+        if (attacker.id === 'iwaba' && skill.isNormalAttack) {
+            if (Math.random() < 0.2) {
+                extraHitTriggered = true;
+                let extraDmg = Math.floor(damage * 0.6);
+                damage += extraDmg;
+            }
+        }
+
         defender.hp = Math.max(0, defender.hp - damage);
 
         const side = this.getCharacterTeam(defender) === 'ally' ? 'Player' : 'Enemy';
@@ -775,11 +836,18 @@ class Battle3v3Engine {
             this.triggerEffect(side, 'def', '防御');
         }
         triggerNewBattleCharacterEffect(defender, 'damage', `-${damage}`);
-        if (skill.isNormalAttack) {
-            this.log(`⚔️ ${attacker.charName}の${skill.name}！ ${defender.charName} に ${damage} のダメージ！`, 'text-red-400 font-bold');
-        } else {
-            this.log(`⚔ ${defender.charName} に ${damage} のダメージ！`, 'text-red-400 font-bold');
+        let damageLog = skill.isNormalAttack ? `⚔️ ${attacker.charName}の${skill.name}！ ${defender.charName} に ${damage} のダメージ！` : `⚔ ${defender.charName} に ${damage} のダメージ！`;
+        if (attacker.id === 'ndaihyo' && skill.isNormalAttack) {
+            damageLog = `N高代表 の【バッティング】！ ${defender.charName} に ${damage} のダメージ！`;
+        } else if (attacker.id === 'pasha' && skill.isNormalAttack) {
+            damageLog = `パシャ憎 の【睨みつける】！ ${defender.charName} に ${damage} のダメージ！`;
+        } else if (attacker.id === 'iwaba' && skill.isNormalAttack) {
+            damageLog = `岩盤星人 の【ブレイクダンス】！ ${defender.charName} に ${damage} のダメージ！`;
         }
+        if (extraHitTriggered) {
+            this.log(`【連動発動！】 岩盤星人 のノリノリな連続ダンス攻撃がヒット！`, 'text-emerald-300 font-bold');
+        }
+        this.log(damageLog, 'text-red-400 font-bold');
         this.triggerEffect(side, 'damage', `-${damage}`);
         audioSystem.playHit();
         triggerNewBattleShake(defender);
