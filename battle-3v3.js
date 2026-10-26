@@ -706,7 +706,25 @@ class Battle3v3Engine {
             return;
         }
 
-        if (skill.type === 'heal' || skill.type === 'heal_cleanse' || skill.type === 'heal_buff' || skill.id === 'courtney_aegu' || skill.type === 'courtney_aegu_skill' || skill.type === 'momo_chie_skill') {
+        if (skill.type === 'momo_chie_skill') {
+            const hChie = Math.floor(attacker.maxHp * (skill.healRate || 0.35));
+            attacker.hp = Math.min(attacker.maxHp, attacker.hp + hChie);
+            attacker.eva = (attacker.eva || 10) + 20;
+            attacker.momoEvaTurns = 2;
+            this.log(`🩷 ${attacker.charName} は「チエを呼ぶ」！ HPが ${hChie} 回復し、2ターンの間回避率が大幅アップ！`, 'text-pink-300 font-bold');
+            this.triggerEffect(this.getCharacterTeam(attacker) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hChie}`);
+            audioSystem.playHeal();
+            if (typeof triggerNewBattleCharacterEffect === 'function') {
+                triggerNewBattleCharacterEffect(attacker, 'heal', `+${hChie}`);
+                triggerNewBattleCharacterEffect(attacker, 'buff', '回避UP[2T]');
+            }
+            if (typeof this.triggerCutin === 'function') {
+                this.triggerCutin('🩷 チエを呼ぶ！', 'HP小回復 ＆ 2ターン回避率大幅アップ！');
+            }
+            return;
+        }
+
+        if (skill.type === 'heal' || skill.type === 'heal_cleanse' || skill.type === 'heal_buff' || skill.id === 'courtney_aegu' || skill.type === 'courtney_aegu_skill') {
             const healRate = skill.healRate || 0.35;
             const hAmt = Math.floor(attacker.maxHp * healRate);
             attacker.hp = Math.min(attacker.maxHp, attacker.hp + hAmt);
@@ -717,7 +735,7 @@ class Battle3v3Engine {
                 attacker.tempEvadeNext = true;
                 this.triggerEffect(this.getCharacterTeam(attacker) === 'ally' ? 'Player' : 'Enemy', 'buff', '完全回避構え');
             }
-            if (skill.type === 'heal_buff' || skill.type === 'momo_chie_skill') {
+            if (skill.type === 'heal_buff') {
                 attacker.buffDef *= 1.35;
                 attacker.eva = Math.min(60, (attacker.eva || 10) + 15);
                 this.triggerEffect(this.getCharacterTeam(attacker) === 'ally' ? 'Player' : 'Enemy', 'buff', '回避・防御UP!');
@@ -953,6 +971,10 @@ class Battle3v3Engine {
             if (p.enemyEvaTurns > 0) {
                 p.enemyEvaTurns--;
                 if (p.enemyEvaTurns === 0) p.evaDebuff = 0;
+            }
+            if (p.momoEvaTurns > 0) {
+                p.momoEvaTurns--;
+                if (p.momoEvaTurns === 0) p.eva -= 20;
             }
         });
 
