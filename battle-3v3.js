@@ -214,7 +214,8 @@ class Battle3v3Engine {
             pashaPassiveActive: false,
             stunTurns: 0,
             pashaRollUsedCount: 0,
-            pashaRollReviveCount: 0
+            pashaRollReviveCount: 0,
+            iwabaBathTurns: 0
         };
     }
 
@@ -340,6 +341,21 @@ class Battle3v3Engine {
                     triggerNewBattleCharacterEffect(p, 'heal', `+${hAmt}`);
                 }
                 audioSystem.playHeal();
+            }
+            if (p.hp > 0 && p.iwabaBathTurns && p.iwabaBathTurns > 0) {
+                p.iwabaBathTurns--;
+                const hAmt = Math.floor(p.maxHp * 0.15);
+                p.hp = Math.min(p.maxHp, p.hp + hAmt);
+                this.log(`♨️ ${p.charName} の【岩盤浴ブースト】により、ターン開始時にHPが ${hAmt} 回復し温まった！（残り ${p.iwabaBathTurns}T）`, 'text-emerald-300 font-bold text-base');
+                this.triggerEffect(this.getCharacterTeam(p) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
+                if (typeof triggerNewBattleCharacterEffect === 'function') {
+                    triggerNewBattleCharacterEffect(p, 'heal', `+${hAmt}`);
+                }
+                audioSystem.playHeal();
+                if (p.iwabaBathTurns === 0) {
+                    p.eva = Math.max(0, (p.eva || 10) - 12);
+                    this.log(`♨️ ${p.charName} の岩盤浴ブーストの効果が終了し、回避率が元に戻った。`, 'text-slate-400 text-[11px]');
+                }
             }
         });
 
@@ -667,22 +683,25 @@ class Battle3v3Engine {
             if (teamList) {
                 teamList.forEach(a => {
                     if (a.hp > 0) {
-                        const hAmt = Math.floor(a.maxHp * 0.20);
+                        a.iwabaBathTurns = 2;
+                        a.eva = Math.min(60, (a.eva || 10) + 12);
+                        const hAmt = Math.floor(a.maxHp * 0.15);
                         a.hp = Math.min(a.maxHp, a.hp + hAmt);
-                        a.eva = Math.min(60, (a.eva || 10) + 10);
                         this.triggerEffect(this.getCharacterTeam(a) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
                         triggerNewBattleCharacterEffect(a, 'heal', `+${hAmt}`);
+                        triggerNewBattleCharacterEffect(a, 'buff', '温まり中 [2T]');
                     }
                 });
             } else {
-                const hAmt = Math.floor(attacker.maxHp * 0.20);
+                attacker.iwabaBathTurns = 2;
+                attacker.eva = Math.min(60, (attacker.eva || 10) + 12);
+                const hAmt = Math.floor(attacker.maxHp * 0.15);
                 attacker.hp = Math.min(attacker.maxHp, attacker.hp + hAmt);
-                attacker.eva = Math.min(60, (attacker.eva || 10) + 10);
             }
-            this.log(`♨️ ${attacker.charName} の【岩盤浴ブースト】！ 温まり効果で味方全員のHPが回復し回避率が上昇した！`, 'text-emerald-300 font-bold text-base');
+            this.log(`♨️ ${attacker.charName} の【岩盤浴ブースト】！ 温まり効果で2ターンの間、味方全員のHPが毎ターン少量回復＋回避率が中強化された！`, 'text-emerald-300 font-bold text-base');
             audioSystem.playHeal();
             if (typeof this.triggerCutin === 'function') {
-                this.triggerCutin('♨️ 岩盤浴ブースト！', '味方全員のHP回復 ＆ 回避率上昇！');
+                this.triggerCutin('♨️ 岩盤浴ブースト発動！', '温まり効果 ＆ 2ターン継続回復＆回避UP！');
             }
             return;
         }
