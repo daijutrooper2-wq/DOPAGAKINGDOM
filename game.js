@@ -2874,7 +2874,7 @@ pasha_dark: {
                     }
                     if (p.hp > 0 && p.iwabaBathTurns && p.iwabaBathTurns > 0) {
                         p.iwabaBathTurns--;
-                        const hAmt = Math.floor(p.maxHp * 0.15);
+                        const hAmt = Math.floor(p.maxHp * 0.20);
                         p.hp = Math.min(p.maxHp, p.hp + hAmt);
                         this.log(`♨️ ${p.charName} の【岩盤浴ブースト】により、ターン開始時にHPが ${hAmt} 回復し温まった！（残り ${p.iwabaBathTurns}T）`, 'text-emerald-300 font-bold text-base');
                         this.triggerEffect(this.getCharacterTeam(p) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
@@ -3319,7 +3319,7 @@ pasha_dark: {
                             if (a.hp > 0) {
                                 a.iwabaBathTurns = 2;
                                 a.eva = Math.min(60, (a.eva || 10) + 12);
-                                const hAmt = Math.floor(a.maxHp * 0.15);
+                                const hAmt = Math.floor(a.maxHp * (skill.healRate || 0.20));
                                 a.hp = Math.min(a.maxHp, a.hp + hAmt);
                                 this.triggerEffect(this.getCharacterTeam(a) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
                                 if (typeof triggerNewBattleCharacterEffect === 'function') {
@@ -3331,7 +3331,7 @@ pasha_dark: {
                     } else {
                         attacker.iwabaBathTurns = 2;
                         attacker.eva = Math.min(60, (attacker.eva || 10) + 12);
-                        const hAmt = Math.floor(attacker.maxHp * 0.15);
+                        const hAmt = Math.floor(attacker.maxHp * (skill.healRate || 0.20));
                         attacker.hp = Math.min(attacker.maxHp, attacker.hp + hAmt);
                     }
                     this.log(`♨️ ${attacker.charName} の【岩盤浴ブースト】！ 温まり効果で2ターンの間、味方全員のHPが毎ターン少量回復＋回避率が中強化された！`, 'text-emerald-300 font-bold text-base');
