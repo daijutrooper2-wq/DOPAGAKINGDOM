@@ -2145,6 +2145,13 @@ pasha_dark: {
                         }
                     }
 
+                    if (botChar.id === 'dopagaking') {
+                        const charges = botChar.dopaChargeCount || 0;
+                        if (charges < 6 && Math.random() < 0.65) {
+                            return 'dopa_charge';
+                        }
+                    }
+
                     const availableSkills = botChar.skills.filter(s => {
                         const cd = botChar.cooldowns?.[s.id] || 0;
                         if (cd > 0) return false;
@@ -3036,7 +3043,7 @@ pasha_dark: {
                     return;
                 }
 
-                if (skillId === 'dopa_charge_step') {
+                if (skillId === 'dopa_charge' || skillId === 'dopa_charge_step') {
                     if ((attacker.dopaChargeCount || 0) < 6) {
                         attacker.dopaChargeCount = (attacker.dopaChargeCount || 0) + 1;
                         audioSystem.playBuff();
@@ -3052,7 +3059,7 @@ pasha_dark: {
                     return;
                 }
 
-                if (skillId === 'dopa_obedience_skill') {
+                if (skillId === 'dopa_obedience' || skillId === 'dopa_obedience_skill') {
                     if ((attacker.dopaChargeCount || 0) < 6) {
                         this.log(`👑 チャージが6回に達していないため、「王に従え」を発動できません！（現在 ${attacker.dopaChargeCount || 0}/6回）`, 'text-amber-400 font-bold');
                         return;
@@ -3309,7 +3316,7 @@ pasha_dark: {
                     return;
                 }
 
-               if (attacker.id === 'dopagaking' && skill.id === 'dopa_obedience_skill') {
+               if (attacker.id === 'dopagaking' && (skill.id === 'dopa_obedience' || skill.type === 'dopa_obedience_skill')) {
                     if ((attacker.dopaChargeCount || 0) < 6) {
                         this.log(`👑 チャージが6回に達していないため、「王に従え」を発動できません！`, 'text-amber-300 font-bold');
                         return;

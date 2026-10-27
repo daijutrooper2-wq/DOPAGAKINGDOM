@@ -497,7 +497,7 @@ class Battle3v3Engine {
             return;
         }
 
-        if (skillId === 'dopa_charge_step') {
+        if (skillId === 'dopa_charge' || skillId === 'dopa_charge_step') {
             if ((attacker.dopaChargeCount || 0) < 6) {
                 attacker.dopaChargeCount = (attacker.dopaChargeCount || 0) + 1;
                 audioSystem.playBuff();
@@ -513,7 +513,7 @@ class Battle3v3Engine {
             return;
         }
 
-        if (skillId === 'dopa_obedience_skill') {
+        if (skillId === 'dopa_obedience' || skillId === 'dopa_obedience_skill') {
             if ((attacker.dopaChargeCount || 0) < 6) {
                 this.log(`👑 チャージが6回に達していないため、「王に従え」を発動できません！（現在 ${attacker.dopaChargeCount || 0}/6回）`, 'text-amber-400 font-bold');
                 return;
@@ -565,7 +565,7 @@ class Battle3v3Engine {
         this.log(`💥 ${attacker.charName} の 「${skill.name}」！`, 'text-emerald-300 font-bold');
         audioSystem.playCharacterSound(attacker.id);
 
-        if (attacker.id === 'dopagaking' && skill.id === 'dopa_obedience_skill') {
+        if (attacker.id === 'dopagaking' && (skill.id === 'dopa_obedience' || skill.type === 'dopa_obedience_skill')) {
             if ((attacker.dopaChargeCount || 0) < 6) {
                 this.log(`👑 チャージが6回に達していないため、「王に従え」を発動できません！`, 'text-amber-300 font-bold');
                 return;
@@ -1529,7 +1529,7 @@ function renderNewBattleScreen() {
         let skillsHtml = skills.map(s => {
             const cd = p1.cooldowns[s.id] || 0;
             const isPashaRollLimit = (s.id === 'pasha_roll' && (p1.pashaRollUsedCount || 0) >= 2);
-            const disabled = cd > 0 || isPashaRollLimit;
+            const disabled = cd > 0 || isPashaRollLimit || (p1.id === 'dopagaking' && (s.id === 'dopa_obedience' || s.type === 'dopa_obedience_skill') && (p1.dopaChargeCount || 0) < 6);
             return `
                 <button onclick="${disabled ? '' : `executeNewBattleAction('${s.id}')`}" class="pixel-box bg-slate-900 border ${disabled ? 'border-slate-700 opacity-60 cursor-not-allowed' : 'border-emerald-400 hover:border-emerald-300 cursor-pointer'} p-3 text-left shadow flex flex-col justify-between w-full">
                     <div class="flex justify-between items-center w-full mb-1">
