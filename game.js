@@ -3990,6 +3990,12 @@ case 'dopa_juggler_skill':
             console.log("キャラエフェクト実行 (game.js):", { targetChar, type, text, targetEl });
             if (!targetEl) return;
 
+            targetEl._popupQueue = targetEl._popupQueue || [];
+            const now = Date.now();
+            targetEl._popupQueue = targetEl._popupQueue.filter(timestamp => now - timestamp < 800);
+            const stackIndex = targetEl._popupQueue.length;
+            targetEl._popupQueue.push(now);
+
             const pop = document.createElement('div');
             pop.className = 'absolute font-pixel font-bold floating-text pointer-events-none';
             pop.style.zIndex = '9999';
@@ -4015,13 +4021,14 @@ case 'dopa_juggler_skill':
 
             const rect = targetEl.getBoundingClientRect();
             pop.style.position = 'fixed';
-            pop.style.left = `${rect.left + rect.width / 2}px`;
+            const xOffset = (stackIndex % 2 === 0 ? -1 : 1) * (Math.floor(stackIndex / 2) * 16);
+            pop.style.left = `${rect.left + rect.width / 2 + xOffset}px`;
             
+            let baseTop = rect.top - 10;
             if (type === 'miss' || type === 'crit' || type === 'def' || type === 'defense') {
-                pop.style.top = `${rect.top + rect.height / 3}px`;
-            } else {
-                pop.style.top = `${rect.top - 10}px`;
+                baseTop = rect.top + rect.height / 3;
             }
+            pop.style.top = `${baseTop - (stackIndex * 24)}px`;
             pop.style.transform = 'translateX(-50%)';
 
             document.body.appendChild(pop);
