@@ -747,8 +747,24 @@ class Battle3v3Engine {
             const healRate = skill.healRate || 0.35;
             const hAmt = Math.floor(attacker.maxHp * healRate);
             attacker.hp = Math.min(attacker.maxHp, attacker.hp + hAmt);
-            this.log(`💚 ${attacker.charName} は HPを ${hAmt} 回復！`, 'text-emerald-400 font-bold');
-            this.triggerEffect(this.getCharacterTeam(attacker) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
+            if (skill.type === 'heal_cleanse') {
+                attacker.buffAtk = Math.max(1.0, attacker.buffAtk);
+                attacker.buffDef = Math.max(1.0, attacker.buffDef);
+                attacker.evaDebuff = 0;
+                attacker.enemyEvaTurns = 0;
+                attacker.crimeDefDownTurns = 0;
+                attacker.nightmareDefTurns = 0;
+                attacker.stunTurns = 0;
+            }
+            if (skill.id === 'moenan_play') {
+                this.log(`🩷 ${attacker.charName} は「こももと遊ぶ」！ 愛猫に癒やされてHPが ${hAmt} 回復し、すべてのデバフが解除された！`, 'text-pink-300 font-bold text-base');
+                this.triggerEffect(this.getCharacterTeam(attacker) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
+                triggerNewBattleCharacterEffect(attacker, 'heal', `+${hAmt}`);
+                triggerNewBattleCharacterEffect(attacker, 'buff', 'デバフ解除');
+            } else {
+                this.log(`💚 ${attacker.charName} は HPを ${hAmt} 回復！`, 'text-emerald-400 font-bold');
+                this.triggerEffect(this.getCharacterTeam(attacker) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
+            }
             audioSystem.playHeal();
             if (skill.id === 'courtney_aegu' || skill.type === 'courtney_aegu_skill') {
                 attacker.tempEvadeNext = true;

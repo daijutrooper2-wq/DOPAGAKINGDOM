@@ -2161,6 +2161,16 @@ pasha_dark: {
                         if (analysis) return analysis.id;
                     }
 
+                    if (botChar.id === 'moenan') {
+                        const playSkill = skills.find(s => s.id === 'moenan_play');
+                        if (playSkill) {
+                            const hasDebuff = (botChar.buffAtk < 1.0 || botChar.buffDef < 1.0 || (botChar.evaDebuff || 0) > 0 || (botChar.stunTurns || 0) > 0);
+                            if (hpRatio < 0.75 || hasDebuff) {
+                                return playSkill.id;
+                            }
+                        }
+                    }
+
                     const chosen = skills[Math.floor(Math.random() * skills.length)];
                     return chosen ? chosen.id : botChar.skills[0].id;
                 }
@@ -3495,9 +3505,22 @@ case 'dopa_juggler_skill':
                         attacker.hp = Math.min(attacker.maxHp, attacker.hp + hCleanseAmt);
                         attacker.buffAtk = Math.max(1.0, attacker.buffAtk);
                         attacker.buffDef = Math.max(1.0, attacker.buffDef);
-                        this.log(`💚 ${attacker.charName} は集中力を高めて HP${hCleanseAmt} 回復！デバフをリセット！`, 'text-emerald-400 font-bold');
-                        this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'heal', `+${hCleanseAmt}`);
-                        audioSystem.playHeal();
+                        attacker.evaDebuff = 0;
+                        attacker.enemyEvaTurns = 0;
+                        attacker.crimeDefDownTurns = 0;
+                        attacker.nightmareDefTurns = 0;
+                        attacker.stunTurns = 0;
+                        if (skill.id === 'moenan_play' || attacker.id === 'moenan') {
+                            this.log(`🩷 ${attacker.charName} は「こももと遊ぶ」！ 愛猫に癒やされてHPが ${hCleanseAmt} 回復し、すべてのデバフが解除された！`, 'text-pink-300 font-bold text-base');
+                            audioSystem.playHeal();
+                            this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'heal', `+${hCleanseAmt}`);
+                            triggerCharacterEffect(attacker, 'heal', `+${hCleanseAmt}`);
+                            triggerCharacterEffect(attacker, 'buff', 'デバフ解除');
+                        } else {
+                            this.log(`💚 ${attacker.charName} は集中力を高めて HP${hCleanseAmt} 回復！デバフをリセット！`, 'text-emerald-400 font-bold');
+                            this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'heal', `+${hCleanseAmt}`);
+                            audioSystem.playHeal();
+                        }
                         break;
                     case 'dig':
                         attacker.digActive = true;
