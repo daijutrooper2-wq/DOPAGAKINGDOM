@@ -497,6 +497,29 @@ class Battle3v3Engine {
             return;
         }
 
+        if (skillId === 'dopa_charge_step') {
+            if ((attacker.dopaChargeCount || 0) < 6) {
+                attacker.dopaChargeCount = (attacker.dopaChargeCount || 0) + 1;
+                audioSystem.playBuff();
+                if (attacker.dopaChargeCount >= 6) {
+                    this.log(`👑 ${attacker.charName} は 「王に従え」 のチャージを 6回 完了した！専用の姿に変化し、次ターンから「王に従え」が使用可能になった！`, 'text-amber-300 font-pixel font-bold text-base');
+                    this.triggerCutin('👑 王に従え解放！', '6回目のチャージ完了！');
+                    this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'buff', '王に従え解放!');
+                } else {
+                    this.log(`👑 ${attacker.charName} はチャージを行った！（現在チャージ: ${attacker.dopaChargeCount}/6）`, 'text-amber-300 font-bold');
+                    this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'buff', `チャージ+1 (${attacker.dopaChargeCount}/6)`);
+                }
+            }
+            return;
+        }
+
+        if (skillId === 'dopa_obedience_skill') {
+            if ((attacker.dopaChargeCount || 0) < 6) {
+                this.log(`👑 チャージが6回に達していないため、「王に従え」を発動できません！（現在 ${attacker.dopaChargeCount || 0}/6回）`, 'text-amber-400 font-bold');
+                return;
+            }
+        }
+
         let skill = null;
         if (skillId === 'momo_eggplant_burst') {
             skill = { id: 'momo_eggplant_burst', name: '🍆 超ナスちん乱舞', type: 'eggplant_burst', power: 1.5, isNormalAttack: false, cooldown: 0 };
@@ -541,6 +564,81 @@ class Battle3v3Engine {
     applySkill(attacker, defender, skill) {
         this.log(`💥 ${attacker.charName} の 「${skill.name}」！`, 'text-emerald-300 font-bold');
         audioSystem.playCharacterSound(attacker.id);
+
+        if (attacker.id === 'dopagaking' && skill.id === 'dopa_obedience_skill') {
+            if ((attacker.dopaChargeCount || 0) < 6) {
+                this.log(`👑 チャージが6回に達していないため、「王に従え」を発動できません！`, 'text-amber-300 font-bold');
+                return;
+            }
+
+            const opposingTeam = (this.getCharacterTeam(attacker) === 'ally') ? this.enemies : this.allies;
+            const aliveEnemies = opposingTeam.filter(e => e.hp > 0);
+            if (aliveEnemies.length === 0) return;
+            const selectedEnemy = aliveEnemies[Math.floor(Math.random() * aliveEnemies.length)];
+
+            const enemySkills = selectedEnemy.skills;
+            if (!enemySkills || enemySkills.length === 0) return;
+            const stolenSkill = enemySkills[Math.floor(Math.random() * enemySkills.length)];
+
+            this.log(`👑🔥 ${attacker.charName} の「王に従え」発動！！ ${selectedEnemy.charName} からスキル【${stolenSkill.name}】を奪い取って使用した！！`, 'text-amber-400 font-black text-base');
+            this.triggerCutin('👑 王に従え発動！！', `奪ったスキル: ${stolenSkill.name} (${selectedEnemy.charName})`);
+            audioSystem.playSpecial();
+
+            this.applySkill(attacker, defender, stolenSkill);
+
+            attacker.dopaChargeCount = 0;
+            return;
+        }
+
+        if (skill.type === 'dopa_juggler_skill') {
+            const jugglerDmg = Math.floor(Math.random() * 51);
+            defender.hp = Math.max(0, defender.hp - jugglerDmg);
+            triggerNewBattleShake(defender);
+
+            this.log(`🃏 ${attacker.charName} の「ジャグラー」！ 完全ランダムダメージ ⇒ ${defender.charName} に ${jugglerDmg} のダメージ！`, 'text-purple-300 font-bold');
+            this.triggerEffect(this.isAlly(defender) ? 'Player' : 'Enemy', 'damage', `-${jugglerDmg}`);
+            audioSystem.playHit();
+            return;
+        }
+
+        if (skill.type === 'dopa_majesty_skill') {
+            if (Math.random() < 0.7) {
+                attacker.tempEvadeNext = true;
+                this.log(`👑 ${attacker.charName} の「王の威厳」！ 次の攻撃を絶対回避する構えをとった！`, 'text-amber-300 font-bold');
+                this.triggerEffect(this.isAlly(attacker) ? 'Player' : 'Enemy', 'buff', '絶対回避構え');
+                audioSystem.playBuff();
+            } else {
+                attacker.hp = Math.min(attacker.maxHp, attacker.hp + 60);
+                this.log(`👑 ${attacker.charName} の「王の威厳」！ 自身のHPが 60 回復した！`, 'text-emerald-400 font-bold');
+                this.triggerEffect(this.isAlly(attacker) ? 'Player' : 'Enemy', 'heal', '+60');
+                audioSystem.playHeal();
+            }
+            return;
+        }
+
+        if (skill.type === 'dopa_godluck_skill') {
+            if (Math.random() < 0.05) {
+                let hitDmg = 1000;
+                const enemyMaxHp = defender.maxHp || defender.hp;
+                if (defender.hp >= enemyMaxHp * 0.5) {
+                    hitDmg = Math.max(0, defender.hp - 1);
+                }
+                defender.hp = Math.max(0, defender.hp - hitDmg);
+                triggerNewBattleShake(defender);
+
+                this.log(`✨⚡【神頼み 5%的中！！】 ${defender.charName} に ${hitDmg} の超絶ダメージ！！`, 'text-yellow-300 font-black font-pixel text-base');
+                this.triggerCutin('⚡ 神頼み 5%的中！！', `奇跡の${hitDmg}ダメージ炸裂！`);
+                this.triggerEffect(this.isAlly(defender) ? 'Player' : 'Enemy', 'damage', `-${hitDmg}`);
+                audioSystem.playSpecial();
+            } else {
+                attacker.hp = Math.max(1, attacker.hp - 50);
+
+                this.log(`🎲 ${attacker.charName} の「神頼み」… 運悪く、自分自身に 50 のダメージを受けた！`, 'text-red-400 font-bold');
+                this.triggerEffect(this.isAlly(attacker) ? 'Player' : 'Enemy', 'damage', '-50');
+                audioSystem.playHit();
+            }
+            return;
+        }
 
         if (skill.id === 'ndaihyo_mind') {
             const healRate = skill.healRate || 0.20;

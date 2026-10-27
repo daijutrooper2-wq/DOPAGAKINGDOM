@@ -93,12 +93,12 @@
                             } else if (id === 'opp-profile-cvs') {
                                 CharacterRenderer.drawCharacter(cvs, window.lastOppIcon || 'pasha');
                             } else if (id === 'p1-canvas' && typeof activeBattle !== 'undefined' && activeBattle && activeBattle.p1) {
-                                const isCharged = (activeBattle.p1.id === 'courtney' && (activeBattle.p1.courtneyChargeCount || 0) > 0) || (activeBattle.p1.id === 'dopagaking' && (activeBattle.p1.dopaChargeCount || 0) > 0 && (activeBattle.p1.dopaChargeCount || 0) < 5);
-                                const renderId = (activeBattle.p1.id === 'dopagaking' && (activeBattle.p1.dopaChargeCount || 0) >= 5 && activeBattle.p1.selectedInheritChar) ? activeBattle.p1.selectedInheritChar : ((activeBattle.p1.id === 'pasha' && activeBattle.p1.isDarkMode) ? 'pasha_dark' : activeBattle.p1.id);
+                                const isCharged = (activeBattle.p1.id === 'courtney' && (activeBattle.p1.courtneyChargeCount || 0) > 0) || (activeBattle.p1.id === 'dopagaking' && (activeBattle.p1.dopaChargeCount || 0) > 0 && (activeBattle.p1.dopaChargeCount || 0) < 6);
+                                const renderId = (activeBattle.p1.id === 'dopagaking' && (activeBattle.p1.dopaChargeCount || 0) >= 6) ? 'dopagaking_charged' : ((activeBattle.p1.id === 'pasha' && activeBattle.p1.isDarkMode) ? 'pasha_dark' : activeBattle.p1.id);
                                 CharacterRenderer.drawCharacter(cvs, renderId, activeBattle.p1.isMiniZou, isCharged, activeBattle.p1.hp <= 0);
                             } else if (id === 'p2-canvas' && typeof activeBattle !== 'undefined' && activeBattle && activeBattle.p2) {
-                                const isCharged = (activeBattle.p2.id === 'courtney' && (activeBattle.p2.courtneyChargeCount || 0) > 0) || (activeBattle.p2.id === 'dopagaking' && (activeBattle.p2.dopaChargeCount || 0) > 0 && (activeBattle.p2.dopaChargeCount || 0) < 5);
-                                const renderId = (activeBattle.p2.id === 'dopagaking' && (activeBattle.p2.dopaChargeCount || 0) >= 5 && activeBattle.p2.selectedInheritChar) ? activeBattle.p2.selectedInheritChar : ((activeBattle.p2.id === 'pasha' && activeBattle.p2.isDarkMode) ? 'pasha_dark' : activeBattle.p2.id);
+                                const isCharged = (activeBattle.p2.id === 'courtney' && (activeBattle.p2.courtneyChargeCount || 0) > 0) || (activeBattle.p2.id === 'dopagaking' && (activeBattle.p2.dopaChargeCount || 0) > 0 && (activeBattle.p2.dopaChargeCount || 0) < 6);
+                                const renderId = (activeBattle.p2.id === 'dopagaking' && (activeBattle.p2.dopaChargeCount || 0) >= 6) ? 'dopagaking_charged' : ((activeBattle.p2.id === 'pasha' && activeBattle.p2.isDarkMode) ? 'pasha_dark' : activeBattle.p2.id);
                                 CharacterRenderer.drawCharacter(cvs, renderId, activeBattle.p2.isMiniZou, isCharged, activeBattle.p2.hp <= 0);
                             }
                         });
@@ -1926,6 +1926,12 @@ static drawDopagaking(p, isCharged) {
                 title: '王の覚醒チャージアイコン',
                 image: 'dopagaking/dopagakingcharge.webp'
             },
+            dopagaking_charged: {
+                id: 'dopagaking_charged',
+                name: 'SPドパガキング（王に従え解放）',
+                title: '国王覚醒アイコン',
+                image: 'dopagaking/dopagakingchange.webp'
+            },
             ALT2: {
                 id: 'ALT2',
                 name: 'コートニーチャージ',
@@ -1957,24 +1963,24 @@ static drawDopagaking(p, isCharged) {
 
 dopagaking: {
     id: 'dopagaking',
-    name: 'ドパガキング',
+    name: 'SPドパガキング',
     title: 'ドパガキングダムの国王',
-    type: '運命属性 / 完全ランダム型',
-    hp: 200, // ※バトル開始時にランダム上書きされます
+    type: '運属性 / アタッカー・ギャンブル特化',
+    hp: 200, // ※バトル開始時にランダム上書き (130〜250)
     atk: 18, def: 12, critRate: 0.05, eva: 15,
     dopaChargeCount: 0,
-    selectedInheritChar: null,
     maxHpRandom: 200,
     image: 'dopagaking/dopagaking.webp',
     allImage: 'dopagaking/dopagakingALL.webp',
     dieImage: 'dopagaking/dopagakingDIE.webp',
-    chargedImage: 'dopagaking/dopagakingcharge.webp',
-    desc: 'すべてを運に任せる完全ランダム型の国王。アイコンタップで「王位継承」をチャージし、他キャラの力の4倍ダメージを叩き込む！',
+    chargedImage: 'dopagaking/dopagakingchange.webp',
+    desc: 'すべてを運に任せる完全ランダム型の国王。「チャージ」を6回蓄積すると「王に従え」が解放され、相手のスキルを奪って使用できる！',
     skills: [
-        { id: 'dopa_juggler', name: 'ジャグラー', type: 'dopa_juggler_skill', power: 1.0, isNormalAttack: false, cooldown: 0, desc: '0～50の完全ランダムダメージを与える通常攻撃！' },
-        { id: 'dopa_majesty', name: '王の威厳', type: 'dopa_majesty_skill', cooldown: 2, desc: '70%で次の攻撃を完全に回避、30%でHPを60回復する！' },
-        { id: 'dopa_godluck', name: '神頼み', type: 'dopa_godluck_skill', cooldown: 10, desc: '95%で自分が10ダメージ、5%で相手に1000ダメージを与える極限のギャンブル！' },
-        { id: 'dopa_inheritance', name: '王位継承', type: 'dopa_inheritance_skill', cooldown: 0, desc: 'アイコン5回タップでチャージ！選ばれたキャラの通常攻撃×4のダメージを与える(次のターン)' }
+        { id: 'dopa_juggler', name: 'ジャグラー', type: 'dopa_juggler_skill', power: 1.0, isNormalAttack: true, cooldown: 0, desc: '0～50の完全ランダムダメージを与える通常攻撃！' },
+        { id: 'dopa_charge', name: 'チャージ', type: 'dopa_charge_step', cooldown: 0, desc: '特殊スキル「王に従え」のためのチャージを行う。チャージするとその瞬間に自分の出番は終了する。' },
+        { id: 'dopa_majesty', name: '王の威厳', type: 'dopa_majesty_skill', cooldown: 2, desc: '70%で次の攻撃を絶対回避、30%でHPを60回復する！' },
+        { id: 'dopa_godluck', name: '神頼み', type: 'dopa_godluck_skill', cooldown: 5, desc: '95%で自分に50ダメージ、5%で相手に1000ダメージ（HP50%以上ならHP必ず1残る）！' },
+        { id: 'dopa_obedience', name: '王に従え', type: 'dopa_obedience_skill', cooldown: 0, desc: '（チャージ6回で解放）相手チームのキャラから1体選び、そのスキルを一つ選んで使用する！' }
     ]
 },
 
@@ -3031,30 +3037,24 @@ pasha_dark: {
                 }
 
                 if (skillId === 'dopa_charge_step') {
-                    if ((attacker.dopaChargeCount || 0) < 5) {
+                    if ((attacker.dopaChargeCount || 0) < 6) {
                         attacker.dopaChargeCount = (attacker.dopaChargeCount || 0) + 1;
                         audioSystem.playBuff();
-                        if (attacker.dopaChargeCount === 5) {
-                            const healAmt = Math.floor(attacker.maxHpRandom * 0.30);
-                            attacker.hp = Math.min(attacker.maxHp, attacker.hp + healAmt);
-
-                            const otherCharIds = Object.keys(CHARACTER_DATA).filter(id => id !== 'dopagaking');
-                            attacker.selectedInheritChar = otherCharIds[Math.floor(Math.random() * otherCharIds.length)];
-
-                            this.log(`👑 ドパガキングは5回目のチャージを完了！最大HPの30%（${healAmt}）回復し、【${CHARACTER_DATA[attacker.selectedInheritChar].name}】の力を宿した！`, 'text-amber-300 font-bold');
-                            this.triggerCutin('👑 王位継承準備完了！', `選ばれた力: ${CHARACTER_DATA[attacker.selectedInheritChar].name}`);
-                            this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'heal', `+${healAmt}`);
+                        if (attacker.dopaChargeCount >= 6) {
+                            this.log(`👑 ${attacker.charName} は 「王に従え」 のチャージを 6回 完了した！専用の姿に変化し、次ターンから「王に従え」が使用可能になった！`, 'text-amber-300 font-pixel font-bold text-base');
+                            this.triggerCutin('👑 王に従え解放！', '6回目のチャージ完了！');
+                            this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'buff', '王に従え解放!');
                         } else {
-                            this.log(`👑 ドパガキングは王位継承のチャージを行った！（現在チャージ: ${attacker.dopaChargeCount}/5）`, 'text-amber-300 font-bold');
-                            this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'buff', `チャージ+1 (${attacker.dopaChargeCount}/5)`);
+                            this.log(`👑 ${attacker.charName} はチャージを行った！（現在チャージ: ${attacker.dopaChargeCount}/6）`, 'text-amber-300 font-bold');
+                            this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'buff', `チャージ+1 (${attacker.dopaChargeCount}/6)`);
                         }
                     }
                     return;
                 }
 
-                if (skillId === 'dopa_inheritance') {
-                    if ((attacker.dopaChargeCount || 0) < 5 || !attacker.selectedInheritChar) {
-                        this.log(`👑 チャージが完了していないため、王位継承を発動できません！（現在 ${attacker.dopaChargeCount || 0}/5回）`, 'text-amber-400 font-bold');
+                if (skillId === 'dopa_obedience_skill') {
+                    if ((attacker.dopaChargeCount || 0) < 6) {
+                        this.log(`👑 チャージが6回に達していないため、「王に従え」を発動できません！（現在 ${attacker.dopaChargeCount || 0}/6回）`, 'text-amber-400 font-bold');
                         return;
                     }
                 }
@@ -3309,28 +3309,28 @@ pasha_dark: {
                     return;
                 }
 
-               if (attacker.id === 'dopagaking' && skill.id === 'dopa_inheritance') {
-                    if ((attacker.dopaChargeCount || 0) < 5 || !attacker.selectedInheritChar) {
-                        this.log(`👑 チャージが完了していないか、キャラクターが選択されていません！`, 'text-amber-300 font-bold');
+               if (attacker.id === 'dopagaking' && skill.id === 'dopa_obedience_skill') {
+                    if ((attacker.dopaChargeCount || 0) < 6) {
+                        this.log(`👑 チャージが6回に達していないため、「王に従え」を発動できません！`, 'text-amber-300 font-bold');
                         return;
                     }
 
-                    const chosenMaster = CHARACTER_DATA[attacker.selectedInheritChar];
-                    const baseNormalDmg = Math.floor(chosenMaster.atk * 1.0);
-                    const inheritDmg = baseNormalDmg * 4;
+                    const opposingTeam = (this.getCharacterTeam(attacker) === 'ally') ? this.enemies : this.allies;
+                    const aliveEnemies = opposingTeam.filter(e => e.hp > 0);
+                    if (aliveEnemies.length === 0) return;
+                    const selectedEnemy = aliveEnemies[Math.floor(Math.random() * aliveEnemies.length)];
 
+                    const enemySkills = selectedEnemy.skills;
+                    if (!enemySkills || enemySkills.length === 0) return;
+                    const stolenSkill = enemySkills[Math.floor(Math.random() * enemySkills.length)];
+
+                    this.log(`👑🔥 ${attacker.charName} の「王に従え」発動！！ ${selectedEnemy.charName} からスキル【${stolenSkill.name}】を奪い取って使用した！！`, 'text-amber-400 font-black text-base');
+                    this.triggerCutin('👑 王に従え発動！！', `奪ったスキル: ${stolenSkill.name} (${selectedEnemy.charName})`);
                     audioSystem.playSpecial();
-                    this.triggerCutin(`👑 王位継承発動！！`, `${chosenMaster.name}の力 × 4 ＝ ${inheritDmg} ダメージ！`);
-                    
-                    defender.hp = Math.max(0, defender.hp - inheritDmg);
-                    triggerNewBattleShake(defender);
-    
-                    this.log(`👑🔥 ドパガキングの「王位継承」発動！！ ${chosenMaster.name}の力を借りて ${defender.charName} に ${inheritDmg} の大ダメージを与えた！！`, 'text-amber-400 font-black text-base');
-                    this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'damage', `-${inheritDmg}`);
 
-                    // 攻撃後の状態リセット
+                    this.applySkill(attacker, defender, stolenSkill);
+
                     attacker.dopaChargeCount = 0;
-                    attacker.selectedInheritChar = null;
                     return;
                 }
 
@@ -3386,20 +3386,24 @@ case 'dopa_juggler_skill':
             break;
 
         case 'dopa_godluck_skill':
-            // 95%で自分に10ダメージ、5%で相手に1000ダメージ
             if (Math.random() < 0.05) {
-                defender.hp = Math.max(0, defender.hp - 1000);
+                let hitDmg = 1000;
+                const enemyMaxHp = defender.maxHp || defender.hp;
+                if (defender.hp >= enemyMaxHp * 0.5) {
+                    hitDmg = Math.max(0, defender.hp - 1);
+                }
+                defender.hp = Math.max(0, defender.hp - hitDmg);
                 triggerNewBattleShake(defender);
 
-                this.log(`✨⚡【神頼み 5%的中！！】 ${defender.charName} に 1000 の超絶ダメージ！！`, 'text-yellow-300 font-black font-pixel text-base');
-                this.triggerCutin('⚡ 神頼み 5%的中！！', '奇跡の1000ダメージ炸裂！');
-                this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'damage', '-1000');
+                this.log(`✨⚡【神頼み 5%的中！！】 ${defender.charName} に ${hitDmg} の超絶ダメージ！！`, 'text-yellow-300 font-black font-pixel text-base');
+                this.triggerCutin('⚡ 神頼み 5%的中！！', `奇跡の${hitDmg}ダメージ炸裂！`);
+                this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'damage', `-${hitDmg}`);
                 audioSystem.playSpecial();
             } else {
-                attacker.hp = Math.max(1, attacker.hp - 10);
+                attacker.hp = Math.max(1, attacker.hp - 50);
 
-                this.log(`🎲 ${attacker.charName} のキャラクター「神頼み」… 運が悪く、自分に 10 のダメージを受けた！`, 'text-red-400 font-bold');
-                this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'damage', '-10');
+                this.log(`🎲 ${attacker.charName} の「神頼み」… 運が悪く、自分自身に 50 のダメージを受けた！`, 'text-red-400 font-bold');
+                this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'damage', '-50');
                 audioSystem.playHit();
             }
             break;
@@ -4724,10 +4728,14 @@ case 'dopa_juggler_skill':
                 }
 
                 const isCharged = (isC && (player.courtneyChargeCount || 0) > 0) ||
-                                  (isD && (player.dopaChargeCount || 0) > 0 && (player.dopaChargeCount || 0) < 5);
+                                  (isD && (player.dopaChargeCount || 0) > 0 && (player.dopaChargeCount || 0) < 6);
 
                 if (isCharged && charData.chargedImage) {
                     return charData.chargedImage;
+                }
+
+                if (isD && (player.dopaChargeCount || 0) >= 6) {
+                    return CHARACTER_DATA['dopagaking_charged']?.image || 'dopagaking/dopagakingchange.webp';
                 }
 
                 if (isA) return 'asaiomizu/asaiomizu2.webp';
@@ -4738,8 +4746,8 @@ case 'dopa_juggler_skill':
             const pImg = getCharImg(p1, true);
             const eImg = getCharImg(p2, false);
 
-            const p1IsCharging = (p1.id === 'courtney' && (p1.courtneyChargeCount || 0) > 0 && p1.hp > 0) || (p1.id === 'dopagaking' && (p1.dopaChargeCount || 0) > 0 && (p1.dopaChargeCount || 0) < 5 && p1.hp > 0);
-            const p2IsCharging = (p2.id === 'courtney' && (p2.courtneyChargeCount || 0) > 0 && p2.hp > 0) || (p2.id === 'dopagaking' && (p2.dopaChargeCount || 0) > 0 && (p2.dopaChargeCount || 0) < 5 && p2.hp > 0);
+            const p1IsCharging = (p1.id === 'courtney' && (p1.courtneyChargeCount || 0) > 0 && p1.hp > 0) || (p1.id === 'dopagaking' && (p1.dopaChargeCount || 0) > 0 && (p1.dopaChargeCount || 0) < 6 && p1.hp > 0);
+            const p2IsCharging = (p2.id === 'courtney' && (p2.courtneyChargeCount || 0) > 0 && p2.hp > 0) || (p2.id === 'dopagaking' && (p2.dopaChargeCount || 0) > 0 && (p2.dopaChargeCount || 0) < 6 && p2.hp > 0);
 
             const isMyTurn = !activeNewBattle.battleEnded && !activeNewBattle.isProcessing && activeNewBattle.p1Action === null && !activeNewBattle.waitingForOpponent && !p1.isResting;
 
@@ -4832,7 +4840,7 @@ case 'dopa_juggler_skill':
                     const cd = p1.cooldowns[s.id] || 0;
                     const isCd = cd > 0;
                     const isPashaRollLimit = (s.id === 'pasha_roll' && (p1.pashaRollUsedCount || 0) >= 2);
-                    const disabled = isCd || isPashaRollLimit || (p1.id === 'dopagaking' && s.id === 'dopa_inheritance' && (p1.dopaChargeCount || 0) < 5);
+                    const disabled = isCd || isPashaRollLimit || (p1.id === 'dopagaking' && s.id === 'dopa_obedience_skill' && (p1.dopaChargeCount || 0) < 6);
                     return `
                         <button onclick="${disabled ? '' : `executeNewBattleAction('${s.id}')`}" class="pixel-box bg-slate-900 border ${disabled ? 'border-slate-700 opacity-60 cursor-not-allowed' : 'border-emerald-400 hover:border-emerald-300 cursor-pointer'} p-3 text-left shadow flex flex-col justify-between w-full transition-all">
                             <div class="flex justify-between items-center w-full mb-1">
@@ -5161,7 +5169,7 @@ case 'dopa_juggler_skill':
                 badges += `<span class="bg-pink-950/95 text-pink-300 border-2 border-pink-400 px-1 py-0.5 rounded text-[8px] font-mono font-bold shadow-md transform rotate-2 inline-block">溜め(${p.courtneyChargeCount}回)</span>`;
             }
             if (p.dopaChargeCount && p.dopaChargeCount > 0) {
-                badges += `<span class="bg-amber-950/95 text-amber-300 border-2 border-amber-400 px-1 py-0.5 rounded text-[8px] font-mono font-bold shadow-md transform -rotate-2 inline-block">チャージ(${p.dopaChargeCount}/5)</span>`;
+                badges += `<span class="bg-amber-950/95 text-amber-300 border-2 border-amber-400 px-1 py-0.5 rounded text-[8px] font-mono font-bold shadow-md transform -rotate-2 inline-block">チャージ(${p.dopaChargeCount}/6)</span>`;
             }
             return badges;
         }
