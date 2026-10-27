@@ -655,6 +655,8 @@ class Battle3v3Engine {
             cleanseTarget.buffAtk = Math.max(1.0, cleanseTarget.buffAtk);
             cleanseTarget.buffDef = Math.max(1.0, cleanseTarget.buffDef);
             cleanseTarget.buffAtkTurns = 0;
+            cleanseTarget.evaDebuff = 0;
+            cleanseTarget.stunTurns = 0;
             this.triggerEffect(this.isAlly(cleanseTarget) ? 'Player' : 'Enemy', 'buff', 'デバフ解除');
             triggerNewBattleCharacterEffect(cleanseTarget, 'buff', 'クレンズ');
             const targetName = cleanseTarget.charName;

@@ -3135,21 +3135,22 @@ pasha_dark: {
                 }
                 if (skill.id === 'ndaihyo_mind') {
                     const healRate = skill.healRate || 0.20;
-                    const teamList = (this.getCharacterTeam(attacker) === 'ally') ? this.allies : this.enemies;
+                    const teamList = (this.getCharacterTeam(attacker) === 'ally') ? (this.allies || [attacker]) : (this.enemies || [attacker]);
                     teamList.forEach(a => {
-                        if (a.hp > 0) {
+                        if (a && a.hp > 0) {
                             const hAmt = Math.floor(a.maxHp * healRate);
                             a.hp = Math.min(a.maxHp, a.hp + hAmt);
                             this.triggerEffect(this.getCharacterTeam(a) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
                         }
                     });
-                    if (defender) {
-                        defender.buffAtk = Math.max(1.0, defender.buffAtk);
-                        defender.buffDef = Math.max(1.0, defender.buffDef);
-                        defender.buffAtkTurns = 0;
-                        this.triggerEffect(this.getCharacterTeam(defender) === 'ally' ? 'Player' : 'Enemy', 'buff', 'デバフ解除');
-                    }
-                    const targetName = defender ? defender.charName : '味方';
+                    const cleanseTarget = (defender && this.isSameTeam(attacker, defender) && defender.hp > 0) ? defender : attacker;
+                    cleanseTarget.buffAtk = Math.max(1.0, cleanseTarget.buffAtk);
+                    cleanseTarget.buffDef = Math.max(1.0, cleanseTarget.buffDef);
+                    cleanseTarget.buffAtkTurns = 0;
+                    cleanseTarget.evaDebuff = 0;
+                    cleanseTarget.stunTurns = 0;
+                    this.triggerEffect(this.getCharacterTeam(cleanseTarget) === 'ally' ? 'Player' : 'Enemy', 'buff', 'デバフ解除');
+                    const targetName = cleanseTarget.charName;
                     this.log(`N高代表 は消しゴム回復を使用した！ 味方全体のHPが回復し、${targetName}のデバフが解除された！`, 'text-emerald-400 font-bold');
                     audioSystem.playHeal();
                     return;
