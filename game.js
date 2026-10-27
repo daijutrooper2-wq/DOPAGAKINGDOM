@@ -3602,9 +3602,20 @@ case 'dopa_juggler_skill':
                         audioSystem.playBuff();
                         break;
                     case 'defend_buff':
-                        attacker.defendBuffTurns = 2;
-                        this.log(`🛡️ ${attacker.charName} はゴールキーパー姿勢をとった！(2ターンの間ダメージ70%カット)`, 'text-blue-300 font-bold');
-                        this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'buff', '鉄壁ガード!');
+                        const teamList = (this.getCharacterTeam(attacker) === 'ally') ? (this.allies || [this.p1]) : (this.enemies || [this.p2]);
+                        teamList.forEach(a => {
+                            if (a.hp > 0) {
+                                a.defendBuffTurns = 1;
+                                this.triggerEffect(this.getCharacterTeam(a) === 'ally' ? 'Player' : 'Enemy', 'buff', '鉄壁ガード!');
+                                if (typeof triggerCharacterEffect === 'function') {
+                                    triggerCharacterEffect(a, 'buff', '鉄壁[1T]');
+                                }
+                            }
+                        });
+                        this.log(`🛡️ ${attacker.charName} の【ゴールキーパー】！ 鉄壁の守りで1ターンの間、味方全員が受けるすべてのダメージを70%カットする！`, 'text-blue-300 font-bold text-base');
+                        if (typeof this.triggerCutin === 'function') {
+                            this.triggerCutin('🛡️ ゴールキーパー発動！', '1ターンの間、味方全員の受けるダメージ70%カット！');
+                        }
                         audioSystem.playBuff();
                         break;
                     case 'heal_buff':

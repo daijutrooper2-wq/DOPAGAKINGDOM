@@ -642,6 +642,25 @@ class Battle3v3Engine {
             return;
         }
 
+        if (skill.type === 'defend_buff') {
+            const teamList = (this.getCharacterTeam(attacker) === 'ally') ? this.allies : this.enemies;
+            teamList.forEach(a => {
+                if (a.hp > 0) {
+                    a.defendBuffTurns = 1;
+                    this.triggerEffect(this.getCharacterTeam(a) === 'ally' ? 'Player' : 'Enemy', 'buff', '鉄壁ガード!');
+                    if (typeof triggerNewBattleCharacterEffect === 'function') {
+                        triggerNewBattleCharacterEffect(a, 'buff', '鉄壁[1T]');
+                    }
+                }
+            });
+            this.log(`🛡️ ${attacker.charName} の【ゴールキーパー】！ 鉄壁の守りで1ターンの間、味方全員が受けるすべてのダメージを70%カットする！`, 'text-blue-300 font-bold text-base');
+            if (typeof this.triggerCutin === 'function') {
+                this.triggerCutin('🛡️ ゴールキーパー発動！', '1ターンの間、味方全員の受けるダメージ70%カット！');
+            }
+            audioSystem.playBuff();
+            return;
+        }
+
         if (skill.id === 'iwaba_rap') {
             const teamList = (this.getCharacterTeam(attacker) === 'ally') ? this.allies : this.enemies;
             if (teamList) {
