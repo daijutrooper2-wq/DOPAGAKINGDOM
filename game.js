@@ -3122,6 +3122,7 @@ pasha_dark: {
                                 e.buffDef *= 0.80;
                             }
                             triggerNewBattleShake(e);
+                        }
                     });
                     this.log(`N高代表 はパシャ憎へのムカつきを放った！ 敵全体の攻撃力と防御力が低下！`, 'text-cyan-300 font-bold');
                     return;
