@@ -3073,10 +3073,9 @@ pasha_dark: {
                     };
                 } else if (skillId === 'asaiomizu_copied' && attacker.recordedSkill) {
                     skill = {
+                        ...attacker.recordedSkill,
                         id: 'asaiomizu_copied',
                         name: `📋【コピー】${attacker.recordedSkill.name}`,
-                        type: attacker.recordedSkill.type || 'attack',
-                        power: attacker.recordedSkill.power || 1.0,
                         isNormalAttack: false,
                         cooldown: 0
                     };
@@ -3911,6 +3910,11 @@ case 'dopa_juggler_skill':
                     if (p.momoEvaTurns > 0) {
                         p.momoEvaTurns--;
                         if (p.momoEvaTurns === 0) p.eva -= 20;
+                    }
+                    if (p.id === 'asaiomizu' && p.digActive) {
+                        if (this.turn > (p.digUsedTurn || 0)) {
+                            p.digActive = false;
+                        }
                     }
                 });
 
