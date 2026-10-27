@@ -3699,6 +3699,8 @@ case 'dopa_juggler_skill':
                     damageLog = `パシャ憎 の【睨みつける】！ ${defender.charName} に ${damage} のダメージ！`;
                 } else if (attacker.id === 'iwaba' && skill.isNormalAttack) {
                     damageLog = `岩盤星人 の【ブレイクダンス】！ ${defender.charName} に ${damage} のダメージ！`;
+                } else if (attacker.id === 'moenan' && skill.isNormalAttack) {
+                    damageLog = `もえなん の【高速猫パンチ】！ ${defender.charName} に ${damage} のダメージ！`;
                 }
                 if (extraHitTriggered) {
                     this.log(`【連動発動！】 岩盤星人 のノリノリな連続ダンス攻撃がヒット！`, 'text-emerald-300 font-bold');
