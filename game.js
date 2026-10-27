@@ -5043,7 +5043,7 @@ case 'dopa_juggler_skill':
                                                 </div>
 
                                               <!-- 全身スプライト（四角い枠線なし・背景直接配置） -->
-                                              <div class="w-full flex-1 flex items-center justify-center relative drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)]">
+                                              <div class="w-full flex-1 flex items-center justify-center relative drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)] ${c.isShaking ? 'char-shake' : ''}">
                                                   <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain" style="${flipStyle}">
                                                   ${isLeader && posIdx === 0 ? '<div class="absolute bottom-0 left-0 bg-red-600 text-white px-1.5 py-0.5 rounded text-[8px] font-pixel shadow">BOSS</div>' : ''}
                                                   <!-- スタンプ風バッジ（左下あたり） -->
