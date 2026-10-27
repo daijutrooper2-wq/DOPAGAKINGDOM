@@ -2427,7 +2427,8 @@ pasha_dark: {
                     stunTurns: 0,
                     pashaRollUsedCount: 0,
                     pashaRollReviveCount: 0,
-                    iwabaBathTurns: 0
+                    iwabaBathTurns: 0,
+                    isShaking: false
                 };
             }
 
@@ -3120,8 +3121,7 @@ pasha_dark: {
                                 e.buffAtk *= 0.80;
                                 e.buffDef *= 0.80;
                             }
-
-                        }
+                            triggerNewBattleShake(e);
                     });
                     this.log(`N高代表 はパシャ憎へのムカつきを放った！ 敵全体の攻撃力と防御力が低下！`, 'text-cyan-300 font-bold');
                     return;
@@ -3323,6 +3323,7 @@ pasha_dark: {
                     this.triggerCutin(`👑 王位継承発動！！`, `${chosenMaster.name}の力 × 4 ＝ ${inheritDmg} ダメージ！`);
                     
                     defender.hp = Math.max(0, defender.hp - inheritDmg);
+                    triggerNewBattleShake(defender);
     
                     this.log(`👑🔥 ドパガキングの「王位継承」発動！！ ${chosenMaster.name}の力を借りて ${defender.charName} に ${inheritDmg} の大ダメージを与えた！！`, 'text-amber-400 font-black text-base');
                     this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'damage', `-${inheritDmg}`);
@@ -3362,6 +3363,7 @@ case 'dopa_juggler_skill':
             // 0～50の完全ランダムダメージ
             const jugglerDmg = Math.floor(Math.random() * 51);
             defender.hp = Math.max(0, defender.hp - jugglerDmg);
+            triggerNewBattleShake(defender);
 
             this.log(`🃏 ドパガキングの「ジャグラー」！ 完全ランダムダメージ ⇒ ${defender.charName} に ${jugglerDmg} のダメージ！`, 'text-purple-300 font-bold');
             this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'damage', `-${jugglerDmg}`);
@@ -3387,6 +3389,7 @@ case 'dopa_juggler_skill':
             // 95%で自分に10ダメージ、5%で相手に1000ダメージ
             if (Math.random() < 0.05) {
                 defender.hp = Math.max(0, defender.hp - 1000);
+                triggerNewBattleShake(defender);
 
                 this.log(`✨⚡【神頼み 5%的中！！】 ${defender.charName} に 1000 の超絶ダメージ！！`, 'text-yellow-300 font-black font-pixel text-base');
                 this.triggerCutin('⚡ 神頼み 5%的中！！', '奇跡の1000ダメージ炸裂！');
@@ -3414,6 +3417,7 @@ case 'dopa_juggler_skill':
                         audioSystem.playSpecial();
                         this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'damage', `🔥 ${releaseDmg} DMG!`);
                         defender.hp = Math.max(0, defender.hp - releaseDmg);
+                        triggerNewBattleShake(defender);
         
                         this.log(`💖🔥 コートニーの 「FEEL SO HOT ///」解放！！ (溜め ${charges}回) ⇒ ${defender.charName} に ${releaseDmg} の爆発ダメージ！！`, 'text-pink-400 font-black text-base');
                         attacker.courtneyChargeCount = 0;
@@ -3422,6 +3426,7 @@ case 'dopa_juggler_skill':
                         let yoseruDmg = Math.max(8, Math.floor(attacker.atk * 0.9 - defender.def * 0.3));
                         defender.hp = Math.max(0, defender.hp - yoseruDmg);
                         defender.buffDef = 0.0;
+                        triggerNewBattleShake(defender);
         
                         this.log(`💋 ${attacker.charName} の「ヨセル」！ ${yoseruDmg} ダメージを与え、1ターンの間 ${defender.charName} の防御力を 0 にした！`, 'text-pink-300 font-bold');
                         this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'damage', `-${yoseruDmg}`);
@@ -3452,6 +3457,7 @@ case 'dopa_juggler_skill':
                         enemiesList.forEach(e => {
                             e.evaDebuff = (e.evaDebuff || 0) + 15;
                             e.enemyEvaTurns = 3;
+                            triggerNewBattleShake(e);
                         });
                         attacker.isMiniZou = false;
                         attacker.eggplantReady = false;
@@ -3515,6 +3521,7 @@ case 'dopa_juggler_skill':
                         this.log(`🎯 ${attacker.charName} の頭脳戦術が炸裂！ ${defender.charName} の攻撃力と防御力をカット！`, 'text-cyan-300 font-bold');
                         this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'miss', '大幅DOWN');
                         audioSystem.playBuff();
+                        triggerNewBattleShake(defender);
                         break;
                     case 'heal_cleanse':
                         const hCleanseAmt = Math.floor(attacker.maxHp * (skill.healRate || 0.35));
@@ -3643,6 +3650,7 @@ case 'dopa_juggler_skill':
                     attacker.pashaKillerUsed = true;
                     const killerDamage = Math.max(1, Math.floor(defender.hp * 0.5));
                     defender.hp = Math.max(0, defender.hp - killerDamage);
+                    triggerNewBattleShake(defender);
                     const targetSide = defender === this.p1 ? 'Player' : 'Enemy';
 
                     this.log(`🎯💥【パシャ憎キラー発動！！】`, 'text-yellow-300 font-black font-pixel text-sm text-center');
@@ -3727,6 +3735,7 @@ case 'dopa_juggler_skill':
                 }
 
                 defender.hp = Math.max(0, defender.hp - damage);
+                triggerNewBattleShake(defender);
 
                 const side = defender === this.p1 ? 'Player' : 'Enemy';
                 if (this.isNewBattle && (defender.buffDef > 1.0 || defender.defendBuffTurns > 0)) {
@@ -4014,6 +4023,26 @@ case 'dopa_juggler_skill':
 
             setTimeout(() => pop.remove(), 1200);
         }
+
+        function triggerNewBattleShake(targetChar) {
+            if (!targetChar) return;
+            targetChar.isShaking = true;
+            if (activeNewBattle && activeNewBattle.onStateChange) {
+                activeNewBattle.onStateChange(activeNewBattle);
+            } else if (typeof renderNewBattleScreen === 'function') {
+                renderNewBattleScreen();
+            }
+
+            setTimeout(() => {
+                targetChar.isShaking = false;
+                if (activeNewBattle && activeNewBattle.onStateChange) {
+                    activeNewBattle.onStateChange(activeNewBattle);
+                } else if (typeof renderNewBattleScreen === 'function') {
+                    renderNewBattleScreen();
+                }
+            }, 350);
+        }
+        window.triggerNewBattleShake = triggerNewBattleShake;
 
         function triggerVisualEffect(side, type, text) {
             const canvasId = side === 'Player' ? 'p1-canvas' : 'p2-canvas';
@@ -4939,7 +4968,7 @@ case 'dopa_juggler_skill':
                                                  </div>
 
                                                <!-- 全身スプライト（四角い枠線なし・背景直接配置） -->
-                                               <div class="w-full flex-1 flex items-center justify-center relative drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)]">
+                                               <div class="w-full flex-1 flex items-center justify-center relative drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)] ${c.isShaking ? 'char-shake' : ''}">
                                                    <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain">
                                                    ${isLeader && posIdx === 0 ? '<div class="absolute bottom-0 right-0 bg-emerald-600 text-white px-1.5 py-0.5 rounded text-[8px] font-pixel shadow">LEADER</div>' : ''}
                                                    <!-- スタンプ風バッジ（左下あたり） -->
