@@ -1650,8 +1650,15 @@ function triggerNewBattleCharacterEffect(targetChar, type, text) {
     console.log("エフェクト実行 (battle-3v3.js):", { targetChar, type, text, targetEl });
     if (!targetEl) return;
 
-    targetEl._popupQueue = targetEl._popupQueue || [];
+    targetEl._lastPopups = targetEl._lastPopups || [];
     const now = Date.now();
+    targetEl._lastPopups = targetEl._lastPopups.filter(p => now - p.time < 300);
+    if (targetEl._lastPopups.some(p => p.type === type && p.text === text)) {
+        return;
+    }
+    targetEl._lastPopups.push({ type, text, time: now });
+
+    targetEl._popupQueue = targetEl._popupQueue || [];
     targetEl._popupQueue = targetEl._popupQueue.filter(timestamp => now - timestamp < 800);
     const stackIndex = targetEl._popupQueue.length;
     targetEl._popupQueue.push(now);
