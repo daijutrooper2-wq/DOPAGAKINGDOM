@@ -2441,6 +2441,7 @@ pasha_dark: {
                     pashaRollUsedCount: 0,
                     pashaRollReviveCount: 0,
                     iwabaBathTurns: 0,
+                    iwabaBathApplied: false,
                     isShaking: false
                 };
             }
@@ -2694,7 +2695,8 @@ pasha_dark: {
         crimeDefDownTurns: p.crimeDefDownTurns || 0,
         nightmareDefTurns: p.nightmareDefTurns || 0,
         nightmareAtkActive: !!p.nightmareAtkActive,
-        iwabaBathTurns: p.iwabaBathTurns || 0
+        iwabaBathTurns: p.iwabaBathTurns || 0,
+        iwabaBathApplied: !!p.iwabaBathApplied
     };
 }
 
@@ -2728,6 +2730,7 @@ pasha_dark: {
                 p.nightmareDefTurns = state.nightmareDefTurns || 0;
                 p.nightmareAtkActive = !!state.nightmareAtkActive;
                 p.iwabaBathTurns = state.iwabaBathTurns || 0;
+                p.iwabaBathApplied = !!state.iwabaBathApplied;
             }
 
             startTimer() {
@@ -2862,7 +2865,10 @@ pasha_dark: {
                         }
                         audioSystem.playHeal();
                         if (p.iwabaBathTurns === 0) {
-                            p.eva = Math.max(0, (p.eva || 10) - 12);
+                            if (p.iwabaBathApplied) {
+                                p.eva = Math.max(0, p.eva - 12);
+                                p.iwabaBathApplied = false;
+                            }
                             this.log(`♨️ ${p.charName} の岩盤浴ブーストの効果が終了し、回避率が元に戻った。`, 'text-slate-400 text-[11px]');
                         }
                     }
@@ -3287,25 +3293,26 @@ pasha_dark: {
                 }
                 if (skill.id === 'iwaba_bath') {
                     const teamList = (this.getCharacterTeam(attacker) === 'ally') ? this.allies : this.enemies;
-                    if (teamList && teamList.length > 0) {
-                        teamList.forEach(a => {
-                            if (a.hp > 0) {
-                                a.iwabaBathTurns = 2;
-                                a.eva = Math.min(60, (a.eva || 10) + 12);
-                                const hAmt = Math.floor(a.maxHp * (skill.healRate || 0.20));
-                                a.hp = Math.min(a.maxHp, a.hp + hAmt);
-                                this.triggerEffect(this.getCharacterTeam(a) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
-                                if (typeof triggerNewBattleCharacterEffect === 'function') {
-                                    triggerNewBattleCharacterEffect(a, 'heal', `+${hAmt}`);
-                                    triggerNewBattleCharacterEffect(a, 'buff', '温まり中 [2T]');
-                                }
+                    const applyToTarget = (a) => {
+                        if (a.hp > 0) {
+                            if (!a.iwabaBathApplied) {
+                                a.eva = Math.min(60, a.eva + 12);
+                                a.iwabaBathApplied = true;
                             }
-                        });
+                            a.iwabaBathTurns = 2;
+                            const hAmt = Math.floor(a.maxHp * (skill.healRate || 0.20));
+                            a.hp = Math.min(a.maxHp, a.hp + hAmt);
+                            this.triggerEffect(this.getCharacterTeam(a) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
+                            if (typeof triggerNewBattleCharacterEffect === 'function') {
+                                triggerNewBattleCharacterEffect(a, 'heal', `+${hAmt}`);
+                                triggerNewBattleCharacterEffect(a, 'buff', '温まり中 [2T]');
+                            }
+                        }
+                    };
+                    if (teamList && teamList.length > 0) {
+                        teamList.forEach(a => applyToTarget(a));
                     } else {
-                        attacker.iwabaBathTurns = 2;
-                        attacker.eva = Math.min(60, (attacker.eva || 10) + 12);
-                        const hAmt = Math.floor(attacker.maxHp * (skill.healRate || 0.20));
-                        attacker.hp = Math.min(attacker.maxHp, attacker.hp + hAmt);
+                        applyToTarget(attacker);
                     }
                     this.log(`♨️ ${attacker.charName} の【岩盤浴ブースト】！ 温まり効果で2ターンの間、味方全員のHPが毎ターン少量回復＋回避率が中強化された！`, 'text-emerald-300 font-bold text-base');
                     if (typeof audioSystem !== 'undefined' && audioSystem.playHeal) {
