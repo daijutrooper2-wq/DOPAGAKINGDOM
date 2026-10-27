@@ -1594,7 +1594,7 @@ function renderNewBattleScreen() {
 
             <div class="flex-1 flex items-center justify-between px-2 py-2 relative z-10 overflow-visible w-full">
                 <!-- 味方チーム -->
-                <div class="relative w-[47%] h-full flex items-center justify-center">
+                <div class="relative w-[47%] h-full flex items-center justify-around px-1">
                     <div class="absolute left-1 top-1 text-[9px] text-emerald-400 font-pixel font-bold z-30">🛡️ 味方</div>
                     ${allies.map((c, posIdx) => {
                         const pct = Math.max(0, Math.min(100, Math.round((c.hp / c.maxHp) * 100)));
@@ -1604,14 +1604,14 @@ function renderNewBattleScreen() {
                         return `
                             <div id="new-ally-char-${posIdx}" ${clickableAttr} 
                                  data-char-team="ally" data-char-idx="${posIdx}"
-                                 class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center w-24 h-32 relative ${c.hp <= 0 ? 'opacity-40 grayscale' : ''}">
-                                <div class="w-full bg-black/85 px-1 py-0.5 rounded border border-white/20 text-[8px] text-emerald-300">
-                                    <span>${c.charName}</span>: <span class="font-mono">${c.hp}/${c.maxHp}</span>
-                                    <div class="w-full bg-slate-900 h-1 rounded overflow-hidden"><div class="bg-emerald-400 h-full" style="width: ${pct}%;"></div></div>
-                                </div>
-                                 <div id="new-ally-img-${posIdx}" class="w-full flex-1 flex items-center justify-center ${c.isShaking ? 'char-shake' : ''}">
-                                     <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain">
+                                 class="flex flex-col items-center w-20 sm:w-24 h-full relative justify-center ${c.hp <= 0 ? 'opacity-40 grayscale' : ''}">
+                                 <div class="w-full bg-black/85 px-1 py-0.5 rounded border border-white/20 text-[8px] text-emerald-300">
+                                     <span>${c.charName}</span>: <span class="font-mono">${c.hp}/${c.maxHp}</span>
+                                     <div class="w-full bg-slate-900 h-1 rounded overflow-hidden"><div class="bg-emerald-400 h-full" style="width: ${pct}%;"></div></div>
                                  </div>
+                                  <div id="new-ally-img-${posIdx}" class="w-full flex-1 flex items-center justify-center ${c.isShaking ? 'char-shake' : ''}">
+                                      <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain">
+                                  </div>
                             </div>
                         `;
                     }).join('')}
@@ -1620,7 +1620,7 @@ function renderNewBattleScreen() {
                 <div class="text-amber-400 font-pixel font-black text-lg">VS</div>
 
                 <!-- 敵チーム -->
-                <div class="relative w-[47%] h-full flex items-center justify-center">
+                <div class="relative w-[47%] h-full flex items-center justify-around px-1">
                     <div class="absolute right-1 top-1 text-[9px] text-red-400 font-pixel font-bold z-30">⚔️ 敵</div>
                     ${enemies.map((c, posIdx) => {
                         const pct = Math.max(0, Math.min(100, Math.round((c.hp / c.maxHp) * 100)));
@@ -1630,7 +1630,7 @@ function renderNewBattleScreen() {
                         return `
                             <div id="new-enemy-char-${posIdx}" ${clickableAttr} 
                                  data-char-team="enemy" data-char-idx="${posIdx}"
-                                 class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center w-24 h-32 relative ${c.hp <= 0 ? 'opacity-40 grayscale' : ''} ${isSelectable ? 'ring-4 ring-amber-400 animate-pulse bg-amber-950/40 rounded p-1' : ''}">
+                                 class="flex flex-col items-center w-20 sm:w-24 h-full relative justify-center ${c.hp <= 0 ? 'opacity-40 grayscale' : ''} ${isSelectable ? 'ring-4 ring-amber-400 animate-pulse bg-amber-950/40 rounded p-1' : ''}">
                                 <div class="w-full bg-black/85 px-1 py-0.5 rounded border border-white/20 text-[8px] text-red-300">
                                     <span>${c.charName}</span>: <span class="font-mono">${c.hp}/${c.maxHp}</span>
                                     <div class="w-full bg-slate-900 h-1 rounded overflow-hidden"><div class="bg-red-500 h-full" style="width: ${pct}%;"></div></div>
