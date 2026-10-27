@@ -1646,67 +1646,6 @@ static drawDopagaking(p, isCharged) {
             renderZukanScreen(currentOrder, newDir);
         }
 
-        function getNewBattleCustomStats(charId) {
-            if (!playerState.newBattleCustomStats) {
-                playerState.newBattleCustomStats = {};
-            }
-            const master = CHARACTER_DATA[charId];
-            if (!master) return null;
-
-            if (!playerState.newBattleCustomStats[charId]) {
-                const baseHp = master.hp;
-                const baseAtk = master.atk;
-                const baseDef = master.def;
-                const baseCrit = Math.round((master.critRate || 0.05) * 100);
-                const baseEva = master.eva;
-                const baseSum = baseHp + baseAtk + baseDef + baseCrit + baseEva;
-                const diff = 240 - baseSum;
-                playerState.newBattleCustomStats[charId] = {
-                    hp: baseHp + diff,
-                    atk: baseAtk,
-                    def: baseDef,
-                    critRate: baseCrit,
-                    eva: baseEva
-                };
-            }
-            return playerState.newBattleCustomStats[charId];
-        }
-
-        function adjustNewBattleStat(charId, statKey, delta, sortOrder, sortDir, onlyOwned) {
-            const stats = getNewBattleCustomStats(charId);
-            if (!stats) return;
-
-            const currentTotal = stats.hp + stats.atk + stats.def + stats.critRate + stats.eva;
-            
-            let minVal = 1;
-            let maxVal = 300;
-            if (statKey === 'hp') { minVal = 50; maxVal = 300; }
-            else if (statKey === 'atk') { minVal = 5; maxVal = 45; }
-            else if (statKey === 'def') { minVal = 5; maxVal = 80; }
-            else if (statKey === 'critRate') { minVal = 1; maxVal = 40; }
-            else if (statKey === 'eva') { minVal = 1; maxVal = 60; }
-
-            const newVal = stats[statKey] + delta;
-            if (newVal < minVal || newVal > maxVal) return;
-
-            const newTotal = currentTotal + delta;
-            if (newTotal > 240) return;
-
-            stats[statKey] = newVal;
-            savePlayerState();
-
-            renderZukanDetailScreen(charId, 'new_select', sortOrder, sortDir, onlyOwned);
-        }
-
-        function resetNewBattleStats(charId, sortOrder, sortDir, onlyOwned) {
-            if (playerState.newBattleCustomStats) {
-                delete playerState.newBattleCustomStats[charId];
-            }
-            getNewBattleCustomStats(charId);
-            savePlayerState();
-            renderZukanDetailScreen(charId, 'new_select', sortOrder, sortDir, onlyOwned);
-        }
-
         function renderZukanDetailScreen(charId, returnSource = 'zukan', arg1 = 'default', arg2 = 'desc', arg3 = 'desc', arg4 = false) {
             audioSystem.playSelect();
             const container = document.getElementById('screen-container');
