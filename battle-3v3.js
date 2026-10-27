@@ -116,6 +116,22 @@ class Battle3v3Engine {
         return 'system';
     }
 
+    isAlly(char) {
+        return char && this.allies && this.allies.includes(char);
+    }
+
+    isEnemy(char) {
+        return char && this.enemies && this.enemies.includes(char);
+    }
+
+    isSameTeam(charA, charB) {
+        return this.getCharacterTeam(charA) === this.getCharacterTeam(charB);
+    }
+
+    isLiving(char) {
+        return char && char.hp > 0;
+    }
+
 
 
     logTeam(actor, msg, colorClass = 'text-slate-200') {
@@ -522,23 +538,22 @@ class Battle3v3Engine {
 
         if (skill.id === 'ndaihyo_mind') {
             const healRate = skill.healRate || 0.20;
-            const teamList = (this.getCharacterTeam(attacker) === 'ally') ? this.allies : this.enemies;
+            const teamList = this.isAlly(attacker) ? this.allies : this.enemies;
             teamList.forEach(a => {
-                if (a.hp > 0) {
+                if (this.isLiving(a)) {
                     const hAmt = Math.floor(a.maxHp * healRate);
                     a.hp = Math.min(a.maxHp, a.hp + hAmt);
-                    this.triggerEffect(this.getCharacterTeam(a) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
+                    this.triggerEffect(this.isAlly(a) ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
                     triggerNewBattleCharacterEffect(a, 'heal', `+${hAmt}`);
                 }
             });
-            if (defender) {
-                defender.buffAtk = Math.max(1.0, defender.buffAtk);
-                defender.buffDef = Math.max(1.0, defender.buffDef);
-                defender.buffAtkTurns = 0;
-                this.triggerEffect(this.getCharacterTeam(defender) === 'ally' ? 'Player' : 'Enemy', 'buff', 'デバフ解除');
-                triggerNewBattleCharacterEffect(defender, 'buff', 'クレンズ');
-            }
-            const targetName = defender ? defender.charName : '味方';
+            const cleanseTarget = (defender && this.isSameTeam(attacker, defender) && this.isLiving(defender)) ? defender : attacker;
+            cleanseTarget.buffAtk = Math.max(1.0, cleanseTarget.buffAtk);
+            cleanseTarget.buffDef = Math.max(1.0, cleanseTarget.buffDef);
+            cleanseTarget.buffAtkTurns = 0;
+            this.triggerEffect(this.isAlly(cleanseTarget) ? 'Player' : 'Enemy', 'buff', 'デバフ解除');
+            triggerNewBattleCharacterEffect(cleanseTarget, 'buff', 'クレンズ');
+            const targetName = cleanseTarget.charName;
             this.log(`N高代表 は消しゴム回復を使用した！ 味方全体のHPが回復し、${targetName}のデバフが解除された！`, 'text-emerald-400 font-bold');
             audioSystem.playHeal();
             return;
@@ -625,13 +640,13 @@ class Battle3v3Engine {
         }
 
         if (skill.id === 'pasha_darkness') {
-            const target = defender || attacker;
+            const target = (defender && this.isSameTeam(attacker, defender) && this.isLiving(defender)) ? defender : attacker;
             target.darknessPowerTurns = 3;
             const hAmt = Math.floor(Math.random() * 21) + 10;
             target.hp = Math.min(target.maxHp, target.hp + hAmt);
             this.log(`🦇 ${attacker.charName} は暗黒封印を解除し、${target.charName} に暗黒パワーを付与した！ HPが ${hAmt} 回復し、3ターンの間毎ターン開始時にHPがランダム回復する！`, 'text-purple-300 font-bold text-base');
             audioSystem.playSpecial();
-            this.triggerEffect(this.getCharacterTeam(target) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
+            this.triggerEffect(this.isAlly(target) ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
             if (typeof triggerNewBattleCharacterEffect === 'function') {
                 triggerNewBattleCharacterEffect(target, 'heal', `+${hAmt}`);
                 triggerNewBattleCharacterEffect(target, 'buff', '暗黒パワー');
@@ -685,11 +700,11 @@ class Battle3v3Engine {
         }
 
         if (skill.id === 'iwaba_song') {
-            const target = defender || attacker;
+            const target = (defender && this.isSameTeam(attacker, defender) && this.isLiving(defender)) ? defender : attacker;
             target.tempEvadeNext = true;
             this.log(`🎵 ${attacker.charName} の【ソウルソング】！ 魂の歌声が響き渡り、${target.charName} は次の相手からの攻撃を1回だけ完全に無効化するバリアを纏った！`, 'text-emerald-300 font-bold text-base');
             audioSystem.playSpecial();
-            this.triggerEffect(this.getCharacterTeam(target) === 'ally' ? 'Player' : 'Enemy', 'buff', '無効化バリア');
+            this.triggerEffect(this.isAlly(target) ? 'Player' : 'Enemy', 'buff', '無効化バリア');
             triggerNewBattleCharacterEffect(target, 'buff', '無効化バリア[1回]');
             if (typeof this.triggerCutin === 'function') {
                 this.triggerCutin('🎵 ソウルソング発動！', `${target.charName} に攻撃1回無効化バリア付与！`);
@@ -854,6 +869,9 @@ class Battle3v3Engine {
     }
 
     applyDamageSkill(attacker, defender, skill, isCounter = false) {
+        if (!defender || !this.isLiving(defender)) return;
+        if (!isCounter && this.isSameTeam(attacker, defender)) return;
+
         const isStealth = (skill.id === 'pasha_dark_stealth');
 
         if (defender.tempEvadeNext && !isStealth) {
@@ -1038,8 +1056,14 @@ class Battle3v3Engine {
 function selectNewBattleTarget(targetIdx, isAllySide) {
     if (!activeNewBattle) return;
     const skill = activeNewBattle.p1.skills.find(s => s.id === newBattleTargetSelectSkillId) || activeNewBattle.p1.skills.find(s => s.isNormalAttack);
-    if (skill && skill.targetType === 'single_ally' && !isAllySide) return;
-    if (skill && (skill.targetType === 'single_enemy' || skill.id === 'pasha_flash') && isAllySide) return;
+    if (!skill) return;
+
+    const isAllySkill = (skill.targetType === 'single_ally');
+    if (isAllySkill !== isAllySide) return;
+
+    const targetList = isAllySide ? activeNewBattle.allies : activeNewBattle.enemies;
+    const targetChar = targetList[targetIdx];
+    if (!targetChar || targetChar.hp <= 0) return;
 
     activeNewBattle.p1TargetIndex = targetIdx;
     newBattleViewMode = 'main';

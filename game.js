@@ -2296,6 +2296,22 @@ pasha_dark: {
                 return 'system';
             }
 
+            isAlly(char) {
+                return char && this.allies && this.allies.includes(char);
+            }
+
+            isEnemy(char) {
+                return char && this.enemies && this.enemies.includes(char);
+            }
+
+            isSameTeam(charA, charB) {
+                return this.getCharacterTeam(charA) === this.getCharacterTeam(charB);
+            }
+
+            isLiving(char) {
+                return char && char.hp > 0;
+            }
+
 
 
             logTeam(actor, msg, colorClass = 'text-slate-200') {
@@ -3609,6 +3625,9 @@ case 'dopa_juggler_skill':
             }
 
             applyDamageSkill(attacker, defender, skill, isCounter = false) {
+                if (!defender || !this.isLiving(defender)) return;
+                if (!isCounter && this.isSameTeam(attacker, defender)) return;
+
                 const isStealth = (skill.id === 'pasha_dark_stealth');
 
                 if (defender.tempEvadeNext && !isStealth) {
@@ -4291,8 +4310,14 @@ case 'dopa_juggler_skill':
         function selectNewBattleTarget(targetIdx, isAllySide) {
             if (!activeNewBattle) return;
             const skill = activeNewBattle.p1.skills.find(s => s.id === newBattleTargetSelectSkillId) || activeNewBattle.p1.skills.find(s => s.isNormalAttack);
-            if (skill && skill.targetType === 'single_ally' && !isAllySide) return;
-            if (skill && (skill.targetType === 'single_enemy' || skill.id === 'pasha_flash') && isAllySide) return;
+            if (!skill) return;
+
+            const isAllySkill = (skill.targetType === 'single_ally');
+            if (isAllySkill !== isAllySide) return;
+
+            const targetList = isAllySide ? activeNewBattle.allies : activeNewBattle.enemies;
+            const targetChar = targetList[targetIdx];
+            if (!targetChar || targetChar.hp <= 0) return;
 
             activeNewBattle.p1TargetIndex = targetIdx;
             newBattleViewMode = 'main';
