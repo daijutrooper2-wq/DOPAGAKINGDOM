@@ -1702,10 +1702,10 @@ static drawDopagaking(p, isCharged) {
                 const sortOrder = arg1 || 'default';
                 const sortDir = arg2 || 'desc';
                 const onlyOwned = !!arg3;
-                if (isUnlocked) {
+                if (returnSource === 'new_select' || isUnlocked) {
                     const isSelected = window.selectedNewBattleChar === c.id;
-                    const isEligibleCustom = !['dopagaking', 'courtney', 'pasha_dark'].includes(c.id);
-                    if (isEligibleCustom) {
+                    const isEligibleCustom = returnSource === 'new_select' ? !['dopagaking', 'courtney', 'pasha_dark'].includes(c.id) : !['dopagaking', 'courtney', 'pasha_dark'].includes(c.id);
+                    if (isEligibleCustom && returnSource !== 'new_select') {
                         html += `
                             <button onclick="
                                 const cust = getNewBattleCustomStats('${c.id}');
@@ -4499,13 +4499,16 @@ case 'dopa_juggler_skill':
                 else if (sortOrder === 'eva') statDisplay = `<span class="text-[9px] sm:text-[10px] text-blue-400 font-bold">避: ${c.eva}%</span>`;
 
                 html += `
-                    <div onclick="openCharDetail('${c.id}', 'new_select', '${sortOrder}', '${sortDir}', ${onlyOwned})" 
-                         class="pixel-box p-2 sm:p-3 bg-slate-900 cursor-pointer flex flex-col items-center justify-between border-2 transition-all ${isSelected ? 'border-amber-400 bg-amber-950/40 scale-105 shadow-lg' : 'border-slate-700 hover:border-slate-400'} ${!isUnlocked ? 'opacity-60 grayscale' : ''}">
+                    <div onclick="window.selectedNewBattleChar = '${c.id}'; renderNewBattleCharSelectScreen('${sortOrder}', '${sortDir}', ${onlyOwned});" 
+                         class="pixel-box p-2 sm:p-3 bg-slate-900 cursor-pointer flex flex-col items-center justify-between border-2 transition-all ${isSelected ? 'border-amber-400 bg-amber-950/40 scale-105 shadow-lg' : 'border-slate-700 hover:border-slate-400'}">
                         <canvas id="new-select-cvs-${c.id}" width="95" height="95" class="pixel-box bg-slate-950 mb-1 w-16 h-16 sm:w-24 sm:h-24"></canvas>
                         <span class="text-[11px] sm:text-xs font-bold ${isSelected ? 'text-amber-300 font-pixel' : 'text-slate-200'} truncate max-w-full">${c.name}</span>
                         <span class="text-[9px] text-slate-400 truncate max-w-full">${c.title}</span>
                         ${statDisplay}
-                        ${!isUnlocked ? '<span class="text-[9px] text-red-400 font-bold mt-0.5">🔒 未解放</span>' : (isSelected ? '<span class="text-[9px] text-amber-400 font-pixel font-bold mt-0.5">✨ 選択中</span>' : '<span class="text-[9px] text-slate-400 font-bold mt-0.5">タップで詳細</span>')}
+                        <div class="flex items-center gap-1 mt-0.5">
+                            <span class="text-[9px] ${isSelected ? 'text-amber-400 font-pixel font-bold' : 'text-slate-400'}">${isSelected ? '✨ 選択中' : 'タップで選択'}</span>
+                            <button onclick="event.stopPropagation(); openCharDetail('${c.id}', 'new_select', '${sortOrder}', '${sortDir}', ${onlyOwned})" class="text-[9px] text-cyan-400 underline hover:text-cyan-300 ml-1">詳細</button>
+                        </div>
                     </div>
                 `;
             });
