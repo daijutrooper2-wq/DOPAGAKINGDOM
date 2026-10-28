@@ -2890,7 +2890,17 @@ pasha_dark: {
                         this.currentAttacker = this.p1;
                         if (this.onStateChange) this.onStateChange(this);
 
-                            }
+                        const skill = (ally1Action === 'asaiomizu_copied' && this.p1.recordedSkill) 
+                            ? { ...this.p1.recordedSkill, id: 'asaiomizu_copied', name: `📋【コピー】${this.p1.recordedSkill.name}` }
+                            : (this.p1.skills.find(s => s.id === ally1Action) || this.p1.skills[0]);
+                        const opposingTeam = this.enemies.filter(e => e.hp > 0);
+                        const allyTeam = this.allies.filter(a => a.hp > 0);
+                        const opponents = (skill.targetType === 'single_ally') ? allyTeam : ((skill.targetType === 'self') ? [this.p1] : opposingTeam);
+                        let defender = null;
+                        if (this.p1TargetIndex !== null && opponents[this.p1TargetIndex] && opponents[this.p1TargetIndex].hp > 0) {
+                            defender = opponents[this.p1TargetIndex];
+                        } else {
+                            defender = opponents[Math.floor(Math.random() * opponents.length)] || opposingTeam[0] || this.enemies[0];
                         }
 
                         this.executePlayerAction(this.p1, defender, ally1Action);
