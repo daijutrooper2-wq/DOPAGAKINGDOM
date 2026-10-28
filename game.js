@@ -11,6 +11,7 @@
         window.fbAppId = appId;
         window.fbUser = null;
 
+        
         const firebaseReady = (async () => {
             const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
             const { getAuth, signInAnonymously, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");

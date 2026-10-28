@@ -9,6 +9,7 @@ let newBattleViewMode = 'main'; // 'main', 'attack_select', 'target_select'
 let newBattleTargetSelectSkillId = null;
 let newBattleTargetSelectType = null;
 
+
 class Battle3v3Engine {
     constructor(p1CharId, p2CharId, isOnline = false, myPlayerNum = 1, roomId = null) {
         this.isOnline = isOnline;
