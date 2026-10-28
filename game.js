@@ -2890,7 +2890,7 @@ pasha_dark: {
                         const opponents = this.enemies.filter(e => e.hp > 0);
                         if (opponents.length > 0) {
                             let defender = opponents[0];
-                            const skill = this.p1.skills.find(s => s.id === ally1Action) || this.p1.skills[0];
+                            const skill = (ally1Action === 'asaiomizu_copied' && this.p1.recordedSkill) ? { targetType: this.p1.recordedSkill.targetType || 'single_enemy', ...this.p1.recordedSkill } : (this.p1.skills.find(s => s.id === ally1Action) || this.p1.skills[0]);
                             const targetList = (skill.targetType === 'single_ally') ? this.allies.filter(a => a.hp > 0) : opponents;
                             if (this.p1TargetIndex !== null && targetList[this.p1TargetIndex]) {
                                 defender = targetList[this.p1TargetIndex];
@@ -3088,13 +3088,16 @@ pasha_dark: {
                         cooldown: 0
                     };
                 } else if (skillId === 'asaiomizu_copied' && attacker.recordedSkill) {
+                    const rec = attacker.recordedSkill;
                     skill = {
                         id: 'asaiomizu_copied',
-                        name: `📋【コピー】${attacker.recordedSkill.name}`,
-                        type: attacker.recordedSkill.type || 'attack',
-                        power: attacker.recordedSkill.power || 1.0,
+                        name: `📋【コピー】${rec.name}`,
+                        type: rec.type || 'attack',
+                        power: rec.power || 1.0,
+                        targetType: rec.targetType || 'single_enemy',
                         isNormalAttack: false,
-                        cooldown: 0
+                        cooldown: 0,
+                        ...rec
                     };
                 } else {
                     skill = attacker.skills.find(s => s.id === skillId);
@@ -3349,11 +3352,11 @@ pasha_dark: {
 
 
 
-                if (defender.id === 'asaiomizu' && defender.digActive) {
+                if (defender.id === 'asaiomizu' && defender.digActive && defender.digUsedTurn === this.turn) {
                     if (skill.type === 'attack' || skill.type === 'special' || skill.type === 'debuff_attack' || skill.type === 'eggplant_burst' || (skill.power && skill.power > 0)) {
                         defender.recordedSkill = { ...skill };
                         defender.digActive = false;
-                        this.log(`asaiomizuは相手の[${skill.name}]をコピーした！`, 'text-cyan-300 font-bold');
+                        this.log(`${defender.charName} は受けていた相手の攻撃技 [${skill.name}] を内部保存した！`, 'text-cyan-300 font-bold');
                         this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'buff', 'スキルコピー成功！');
                     }
                 }
@@ -3889,6 +3892,9 @@ case 'dopa_juggler_skill':
                         p.momoEvaTurns--;
                         if (p.momoEvaTurns === 0) p.eva -= 20;
                     }
+                    if (p.digActive) {
+                        p.digActive = false;
+                    }
                 });
 
                 if (this.turn >= 30 && !this.isSuddenDeath) {
@@ -4296,7 +4302,13 @@ case 'dopa_juggler_skill':
 
         function selectNewBattleTarget(targetIdx, isAllySide) {
             if (!activeNewBattle) return;
-            const skill = activeNewBattle.p1.skills.find(s => s.id === newBattleTargetSelectSkillId) || activeNewBattle.p1.skills.find(s => s.isNormalAttack);
+            let skill = null;
+            if (newBattleTargetSelectSkillId === 'asaiomizu_copied' && activeNewBattle.p1.recordedSkill) {
+                const rec = activeNewBattle.p1.recordedSkill;
+                skill = { targetType: rec.targetType || 'single_enemy' };
+            } else {
+                skill = activeNewBattle.p1.skills.find(s => s.id === newBattleTargetSelectSkillId) || activeNewBattle.p1.skills.find(s => s.isNormalAttack);
+            }
             if (skill && skill.targetType === 'single_ally' && !isAllySide) return;
             if (skill && (skill.targetType === 'single_enemy' || skill.id === 'pasha_flash') && isAllySide) return;
 
@@ -4749,14 +4761,17 @@ case 'dopa_juggler_skill':
                     }
                 });
                 if (p1.id === 'asaiomizu' && p1.recordedSkill) {
+                    const rec = p1.recordedSkill;
                     skills.unshift({
                         id: 'asaiomizu_copied',
-                        name: `📋【コピー】${p1.recordedSkill.name}`,
-                        type: p1.recordedSkill.type || 'attack',
-                        power: p1.recordedSkill.power || 1.0,
+                        name: `📋【コピー】${rec.name}`,
+                        type: rec.type || 'attack',
+                        power: rec.power || 1.0,
+                        targetType: rec.targetType || 'single_enemy',
                         isNormalAttack: false,
                         cooldown: 0,
-                        desc: `【ディグコピー技】${p1.recordedSkill.name}（${p1.recordedSkill.desc || '相手からコピーしたスキル'}）`
+                        desc: `【ディグコピー技】${rec.name}（${rec.desc || '相手からコピーしたスキル'}）`,
+                        ...rec
                     });
                 }
                 let skillsHtml = skills.map(s => {
@@ -5165,7 +5180,22 @@ case 'dopa_juggler_skill':
 
             isNewBattleSkillModalOpen = false;
 
-            const skill = activeNewBattle.p1.skills.find(s => s.id === actionType) || (actionType === activeNewBattle.p1.skills.find(s => s.isNormalAttack)?.id ? activeNewBattle.p1.skills.find(s => s.isNormalAttack) : null);
+            let skill = null;
+            if (actionType === 'asaiomizu_copied' && activeNewBattle.p1.recordedSkill) {
+                const rec = activeNewBattle.p1.recordedSkill;
+                skill = {
+                    id: 'asaiomizu_copied',
+                    name: `📋【コピー】${rec.name}`,
+                    type: rec.type || 'attack',
+                    power: rec.power || 1.0,
+                    targetType: rec.targetType || 'single_enemy',
+                    isNormalAttack: false,
+                    cooldown: 0,
+                    ...rec
+                };
+            } else {
+                skill = activeNewBattle.p1.skills.find(s => s.id === actionType) || (actionType === activeNewBattle.p1.skills.find(s => s.isNormalAttack)?.id ? activeNewBattle.p1.skills.find(s => s.isNormalAttack) : null);
+            }
             if (activeNewBattle.isNewBattle && skill && (skill.targetType === 'single_enemy' || skill.targetType === 'single_ally' || skill.id === 'pasha_flash')) {
                 newBattleTargetSelectSkillId = actionType;
                 newBattleTargetSelectType = skill.targetType === 'single_ally' ? 'single_ally' : 'single_enemy';
