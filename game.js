@@ -2890,22 +2890,31 @@ pasha_dark: {
                         this.currentAttacker = this.p1;
                         if (this.onStateChange) this.onStateChange(this);
 
-                        const opponents = this.enemies.filter(e => e.hp > 0);
-                        if (opponents.length > 0) {
-                            let defender = opponents[0];
-                            const skill = this.p1.skills.find(s => s.id === ally1Action) || this.p1.skills[0];
-                            const targetList = (skill.targetType === 'single_ally') ? this.allies.filter(a => a.hp > 0) : opponents;
-                            if (this.p1TargetIndex !== null && targetList[this.p1TargetIndex]) {
-                                defender = targetList[this.p1TargetIndex];
-                            } else if (targetList.length > 0) {
-                                defender = targetList[Math.floor(Math.random() * targetList.length)];
+                        let defender = this.p1;
+                        const skill = this.p1.skills.find(s => s.id === ally1Action) || this.p1.skills[0];
+                        if (skill.targetType === 'single_ally') {
+                            if (this.p1TargetIndex !== null && this.allies[this.p1TargetIndex] && this.allies[this.p1TargetIndex].hp > 0) {
+                                defender = this.allies[this.p1TargetIndex];
+                            } else {
+                                const livingAllies = this.allies.filter(a => a.hp > 0);
+                                defender = livingAllies[Math.floor(Math.random() * livingAllies.length)] || this.p1;
                             }
-
-                            this.executePlayerAction(this.p1, defender, ally1Action);
-                            if (this.onStateChange) this.onStateChange(this);
-
-                            if (await this.checkWinner()) return;
+                        } else {
+                            const opponents = this.enemies.filter(e => e.hp > 0);
+                            if (opponents.length > 0) {
+                                defender = opponents[0];
+                                if (this.p1TargetIndex !== null && opponents[this.p1TargetIndex]) {
+                                    defender = opponents[this.p1TargetIndex];
+                                } else if (opponents.length > 0) {
+                                    defender = opponents[Math.floor(Math.random() * opponents.length)];
+                                }
+                            }
                         }
+
+                        this.executePlayerAction(this.p1, defender, ally1Action);
+                        if (this.onStateChange) this.onStateChange(this);
+
+                        if (await this.checkWinner()) return;
                     }
 
                     // 2. 残りの味方 (ally2, ally3) と敵チームの行動を処理
