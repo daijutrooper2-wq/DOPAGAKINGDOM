@@ -2721,8 +2721,8 @@ pasha_dark: {
                 p.digActive = state.digActive;
                 p.digUsedTurn = state.digUsedTurn;
                 p.recordedSkill = state.recordedSkill ? { ...state.recordedSkill } : null;
-                p.eggplantReady = state.eggplantReady;
-                p.isMiniZou = state.isMiniZou;
+                p.eggplantReady = (p.id === 'momo' && !!state.eggplantReady);
+                p.isMiniZou = (p.id === 'momo' && !!state.isMiniZou);
                 p.momoRevived = state.momoRevived;
                 p.isDarkMode = state.isDarkMode;
                 p.defendBuffTurns = state.defendBuffTurns;
@@ -2735,9 +2735,9 @@ pasha_dark: {
 
             startTimer() {
                 this.stopTimer();
-                if (this.p1.hp > 0 && this.p1.eggplantReady && !this.p1Action && !this.battleEnded) {
+                if (this.p1.hp > 0 && this.p1.id === 'momo' && this.p1.eggplantReady && !this.p1Action && !this.battleEnded) {
                     setTimeout(() => {
-                        if (this.p1.eggplantReady && !this.p1Action) {
+                        if (this.p1.id === 'momo' && this.p1.eggplantReady && !this.p1Action) {
                             this.submitAction(1, 'momo_eggplant_burst');
                         }
                     }, 400);
@@ -2768,8 +2768,8 @@ pasha_dark: {
                 if (this.battleEnded) return;
                 this.log('⏰ 制限時間切れ！自動選択します。', 'text-amber-400 font-bold');
 
-                const p1Default = this.p1.isResting ? 'rest' : (this.p1.eggplantReady ? 'momo_eggplant_burst' : this.p1.skills[0].id);
-                const p2Default = this.p2.isResting ? 'rest' : (this.p2.eggplantReady ? 'momo_eggplant_burst' : this.p2.skills[0].id);
+                const p1Default = this.p1.isResting ? 'rest' : ((this.p1.id === 'momo' && this.p1.eggplantReady) ? 'momo_eggplant_burst' : this.p1.skills[0].id);
+                const p2Default = this.p2.isResting ? 'rest' : ((this.p2.id === 'momo' && this.p2.eggplantReady) ? 'momo_eggplant_burst' : this.p2.skills[0].id);
 
                 if (this.isOnline) {
                     if (this.myPlayerNum === 1 && !this.p1Action) this.submitAction(1, p1Default);
@@ -3026,7 +3026,7 @@ pasha_dark: {
                     return;
                 }
 
-                if (attacker.eggplantReady) {
+                if (attacker.id === 'momo' && attacker.eggplantReady) {
                     skillId = 'momo_eggplant_burst';
                 }
 
@@ -5176,7 +5176,7 @@ case 'dopa_juggler_skill':
             if (p.stunTurns && p.stunTurns > 0) {
                 badges += `<span class="bg-red-950/95 text-red-300 border-2 border-red-400 px-1 py-0.5 rounded text-[8px] font-mono font-bold shadow-md transform -rotate-2 inline-block">行動不能 [${p.stunTurns}T]</span>`;
             }
-            if (p.eggplantReady) {
+            if (p.id === 'momo' && p.eggplantReady) {
                 badges += `<span class="bg-purple-950/95 text-purple-300 border-2 border-purple-400 px-1 py-0.5 rounded text-[8px] font-mono font-bold shadow-md transform -rotate-3 inline-block">ゾウ変身</span>`;
             }
             if (p.courtneyChargeCount && p.courtneyChargeCount > 0) {

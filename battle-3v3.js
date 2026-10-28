@@ -289,9 +289,9 @@ class Battle3v3Engine {
 
     startTimer() {
         this.stopTimer();
-        if (this.p1.hp > 0 && this.p1.eggplantReady && !this.p1Action && !this.waitingForOpponent && !this.battleEnded) {
+        if (this.p1.hp > 0 && this.p1.id === 'momo' && this.p1.eggplantReady && !this.p1Action && !this.waitingForOpponent && !this.battleEnded) {
             setTimeout(() => {
-                if (this.p1.eggplantReady && !this.p1Action) {
+                if (this.p1.id === 'momo' && this.p1.eggplantReady && !this.p1Action) {
                     this.submitAction(1, 'momo_eggplant_burst');
                 }
             }, 400);
@@ -321,7 +321,7 @@ class Battle3v3Engine {
     handleTimeOut() {
         if (this.battleEnded) return;
         this.log('⏰ 制限時間切れ！自動選択します。', 'text-amber-400 font-bold');
-        const p1Default = this.p1.isResting ? 'rest' : (this.p1.eggplantReady ? 'momo_eggplant_burst' : this.p1.skills[0].id);
+        const p1Default = this.p1.isResting ? 'rest' : ((this.p1.id === 'momo' && this.p1.eggplantReady) ? 'momo_eggplant_burst' : this.p1.skills[0].id);
         if (!this.p1Action) {
             this.submitAction(1, p1Default);
         }
@@ -480,7 +480,7 @@ class Battle3v3Engine {
             return;
         }
 
-        if (attacker.eggplantReady) {
+        if (attacker.id === 'momo' && attacker.eggplantReady) {
             skillId = 'momo_eggplant_burst';
         }
 
