@@ -833,9 +833,10 @@ class Battle3v3Engine {
                 a.iwabaBathTurns = 2;
                 const hAmt = Math.floor(a.maxHp * (skill.healRate || 0.20));
                 a.hp = Math.min(a.maxHp, a.hp + hAmt);
-                this.triggerEffect(this.getCharacterTeam(a) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
-                triggerNewBattleCharacterEffect(a, 'heal', `+${hAmt}`);
-                triggerNewBattleCharacterEffect(a, 'buff', '温まり中 [2T]');
+                if (typeof triggerNewBattleCharacterEffect === 'function') {
+                    triggerNewBattleCharacterEffect(a, 'heal', `+${hAmt}`);
+                    triggerNewBattleCharacterEffect(a, 'buff', '温まり中 [2T]');
+                }
             };
             if (teamList.length > 0) {
                 teamList.forEach(a => applyToTarget(a));
