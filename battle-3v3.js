@@ -823,22 +823,21 @@ class Battle3v3Engine {
         }
 
         if (skill.id === 'iwaba_bath') {
-            const teamList = (this.getCharacterTeam(attacker) === 'ally') ? this.allies : this.enemies;
+            const rawTeamList = (this.getCharacterTeam(attacker) === 'ally') ? (this.allies || [attacker]) : (this.enemies || [attacker]);
+            const teamList = Array.from(new Set(rawTeamList)).filter(a => a && a.hp > 0);
             const applyToTarget = (a) => {
-                if (a.hp > 0) {
-                    if (!a.iwabaBathApplied) {
-                        a.eva = Math.min(60, a.eva + 12);
-                        a.iwabaBathApplied = true;
-                    }
-                    a.iwabaBathTurns = 2;
-                    const hAmt = Math.floor(a.maxHp * (skill.healRate || 0.20));
-                    a.hp = Math.min(a.maxHp, a.hp + hAmt);
-                    this.triggerEffect(this.getCharacterTeam(a) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
-                    triggerNewBattleCharacterEffect(a, 'heal', `+${hAmt}`);
-                    triggerNewBattleCharacterEffect(a, 'buff', '温まり中 [2T]');
+                if (!a.iwabaBathApplied) {
+                    a.eva = Math.min(60, (a.eva || 10) + 12);
+                    a.iwabaBathApplied = true;
                 }
+                a.iwabaBathTurns = 2;
+                const hAmt = Math.floor(a.maxHp * (skill.healRate || 0.20));
+                a.hp = Math.min(a.maxHp, a.hp + hAmt);
+                this.triggerEffect(this.getCharacterTeam(a) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
+                triggerNewBattleCharacterEffect(a, 'heal', `+${hAmt}`);
+                triggerNewBattleCharacterEffect(a, 'buff', '温まり中 [2T]');
             };
-            if (teamList) {
+            if (teamList.length > 0) {
                 teamList.forEach(a => applyToTarget(a));
             } else {
                 applyToTarget(attacker);
