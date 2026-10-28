@@ -1230,8 +1230,8 @@ function renderNewBattleCharSelectScreen(sortOrder = 'default', sortDir = 'desc'
     const totalCount = Object.keys(CHARACTER_DATA).length;
 
     let html = `
-        <div class="w-full h-full flex flex-col items-center justify-between p-2 overflow-hidden select-none bg-slate-950 text-white">
-            <div class="pixel-box-gold p-1.5 sm:p-2 bg-amber-950/90 w-full text-center space-y-0.5 border-amber-400 mb-1.5 flex-shrink-0">
+        <div class="w-full h-full flex flex-col items-center justify-start p-2 overflow-y-auto select-none bg-slate-950 text-white">
+            <div class="pixel-box-gold p-1.5 sm:p-2 bg-amber-950/90 w-full text-center space-y-0.5 border-amber-400 mb-2 flex-shrink-0">
                 <div class="flex items-center justify-between">
                     <button onclick="renderBotModesScreen()" class="pixel-btn pixel-btn-danger px-2.5 py-0.5 text-xs font-bold">
                         ◀ モード選択
@@ -1244,7 +1244,7 @@ function renderNewBattleCharSelectScreen(sortOrder = 'default', sortDir = 'desc'
                 <p class="text-[9px] sm:text-[11px] text-amber-200 font-mono">アイコンをタップして詳細確認・出陣ファイターを選択せよ！</p>
             </div>
 
-            <div class="flex items-center justify-between w-full mb-1.5 px-1 gap-2 flex-wrap flex-shrink-0">
+            <div class="flex items-center justify-between w-full mb-2 px-1 gap-2 flex-wrap flex-shrink-0">
                 <div class="flex items-center gap-1.5 text-xs">
                     <span class="text-slate-400 font-bold">並び替え:</span>
                     <select id="new-char-select-sort-order" onchange="onNewCharSelectSortChange('${sortDir}', ${onlyOwned})" class="pixel-box bg-slate-900 text-amber-300 px-2 py-1 text-xs outline-none border-amber-600">
@@ -1267,7 +1267,7 @@ function renderNewBattleCharSelectScreen(sortOrder = 'default', sortDir = 'desc'
                 </div>
             </div>
 
-            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3 w-full mb-1.5 px-1 overflow-y-auto flex-1 min-h-0">
+            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3 w-full mb-3 px-1">
     `;
 
     chars.forEach(c => {
@@ -1290,13 +1290,13 @@ function renderNewBattleCharSelectScreen(sortOrder = 'default', sortDir = 'desc'
 
     html += `
             </div>
-            <div class="flex gap-3 w-full justify-center pb-1 flex-shrink-0">
+            <div class="flex gap-3 w-full justify-center py-3 flex-shrink-0">
                 <button onclick="
                     const pChar = window.selectedNewBattleChar || 'asaiomizu';
                     const otherIds = Object.keys(CHARACTER_DATA).filter(id => id !== pChar);
                     const eChar = otherIds[Math.floor(Math.random() * otherIds.length)] || 'pasha';
                     startNewBattleMode(pChar, eChar);
-                " class="pixel-btn pixel-btn-primary px-8 py-2.5 sm:py-3 text-xs sm:text-sm font-bold font-pixel shadow-lg">
+                " class="pixel-btn pixel-btn-primary px-8 py-3 text-xs sm:text-sm font-bold font-pixel shadow-lg">
                     このキャラクターで出陣！ ▶
                 </button>
             </div>
