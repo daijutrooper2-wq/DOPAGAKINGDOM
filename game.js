@@ -3349,7 +3349,7 @@ pasha_dark: {
 
 
 
-                if (defender.id === 'asaiomizu' && defender.digActive) {
+                if (defender.id === 'asaiomizu' && defender.digActive && !this.isSameTeam(attacker, defender)) {
                     if (skill.type === 'attack' || skill.type === 'special' || skill.type === 'debuff_attack' || skill.type === 'eggplant_burst' || (skill.power && skill.power > 0)) {
                         defender.recordedSkill = { ...skill };
                         defender.digActive = false;
@@ -4844,6 +4844,7 @@ case 'dopa_juggler_skill':
                         name: `📋【コピー】${p1.recordedSkill.name}`,
                         type: p1.recordedSkill.type || 'attack',
                         power: p1.recordedSkill.power || 1.0,
+                        targetType: p1.recordedSkill.targetType || 'single_enemy',
                         isNormalAttack: false,
                         cooldown: 0,
                         desc: `【ディグコピー技】${p1.recordedSkill.name}（${p1.recordedSkill.desc || '相手からコピーしたスキル'}）`
@@ -5258,7 +5259,12 @@ case 'dopa_juggler_skill':
 
             isNewBattleSkillModalOpen = false;
 
-            const skill = activeNewBattle.p1.skills.find(s => s.id === actionType) || (actionType === activeNewBattle.p1.skills.find(s => s.isNormalAttack)?.id ? activeNewBattle.p1.skills.find(s => s.isNormalAttack) : null);
+            const skill = (actionType === 'asaiomizu_copied' && activeNewBattle.p1.recordedSkill) ? {
+                ...activeNewBattle.p1.recordedSkill,
+                id: 'asaiomizu_copied',
+                name: `📋【コピー】${activeNewBattle.p1.recordedSkill.name}`,
+                targetType: activeNewBattle.p1.recordedSkill.targetType || 'single_enemy'
+            } : (activeNewBattle.p1.skills.find(s => s.id === actionType) || (actionType === activeNewBattle.p1.skills.find(s => s.isNormalAttack)?.id ? activeNewBattle.p1.skills.find(s => s.isNormalAttack) : null));
             if (activeNewBattle.isNewBattle && skill && (skill.targetType === 'single_enemy' || skill.targetType === 'single_ally' || skill.id === 'pasha_flash')) {
                 newBattleTargetSelectSkillId = actionType;
                 newBattleTargetSelectType = skill.targetType === 'single_ally' ? 'single_ally' : 'single_enemy';
