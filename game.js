@@ -2890,38 +2890,6 @@ pasha_dark: {
                         this.currentAttacker = this.p1;
                         if (this.onStateChange) this.onStateChange(this);
 
-<<<<<<< HEAD
-                        const opponents = this.enemies.filter(e => e.hp > 0);
-                        if (opponents.length > 0) {
-                            let defender = opponents[0];
-                            const skill = (ally1Action === 'asaiomizu_copied' && this.p1.recordedSkill) 
-                                ? { ...this.p1.recordedSkill, id: 'asaiomizu_copied', name: `📋【コピー】${this.p1.recordedSkill.name}` }
-                                : (this.p1.skills.find(s => s.id === ally1Action) || this.p1.skills[0]);
-                            const targetList = (skill.targetType === 'single_ally') ? this.allies.filter(a => a.hp > 0) : ((skill.targetType === 'self') ? [this.p1] : opponents);
-                            if (this.p1TargetIndex !== null && targetList[this.p1TargetIndex]) {
-                                defender = targetList[this.p1TargetIndex];
-                            } else if (targetList.length > 0) {
-                                defender = targetList[Math.floor(Math.random() * targetList.length)];
-=======
-                        let defender = this.p1;
-                        const skill = this.p1.skills.find(s => s.id === ally1Action) || this.p1.skills[0];
-                        if (skill.targetType === 'single_ally') {
-                            if (this.p1TargetIndex !== null && this.allies[this.p1TargetIndex] && this.allies[this.p1TargetIndex].hp > 0) {
-                                defender = this.allies[this.p1TargetIndex];
-                            } else {
-                                const livingAllies = this.allies.filter(a => a.hp > 0);
-                                defender = livingAllies[Math.floor(Math.random() * livingAllies.length)] || this.p1;
-                            }
-                        } else {
-                            const opponents = this.enemies.filter(e => e.hp > 0);
-                            if (opponents.length > 0) {
-                                defender = opponents[0];
-                                if (this.p1TargetIndex !== null && opponents[this.p1TargetIndex]) {
-                                    defender = opponents[this.p1TargetIndex];
-                                } else if (opponents.length > 0) {
-                                    defender = opponents[Math.floor(Math.random() * opponents.length)];
-                                }
->>>>>>> d351a3cf921f67b88d81bad66bdf954c4dcb0fed
                             }
                         }
 
@@ -5295,18 +5263,6 @@ case 'dopa_juggler_skill':
 
             isNewBattleSkillModalOpen = false;
 
-<<<<<<< HEAD
-            const skill = (actionType === 'asaiomizu_copied' && activeNewBattle.p1.recordedSkill) 
-                ? activeNewBattle.p1.recordedSkill 
-                : (activeNewBattle.p1.skills.find(s => s.id === actionType) || (actionType === activeNewBattle.p1.skills.find(s => s.isNormalAttack)?.id ? activeNewBattle.p1.skills.find(s => s.isNormalAttack) : null));
-=======
-            const skill = (actionType === 'asaiomizu_copied' && activeNewBattle.p1.recordedSkill) ? {
-                ...activeNewBattle.p1.recordedSkill,
-                id: 'asaiomizu_copied',
-                name: `📋【コピー】${activeNewBattle.p1.recordedSkill.name}`,
-                targetType: activeNewBattle.p1.recordedSkill.targetType || 'single_enemy'
-            } : (activeNewBattle.p1.skills.find(s => s.id === actionType) || (actionType === activeNewBattle.p1.skills.find(s => s.isNormalAttack)?.id ? activeNewBattle.p1.skills.find(s => s.isNormalAttack) : null));
->>>>>>> d351a3cf921f67b88d81bad66bdf954c4dcb0fed
             if (activeNewBattle.isNewBattle && skill && (skill.targetType === 'single_enemy' || skill.targetType === 'single_ally' || skill.id === 'pasha_flash')) {
                 newBattleTargetSelectSkillId = actionType;
                 newBattleTargetSelectType = skill.targetType === 'single_ally' ? 'single_ally' : 'single_enemy';

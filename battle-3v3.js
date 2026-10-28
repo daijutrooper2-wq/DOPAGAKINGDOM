@@ -438,7 +438,6 @@ class Battle3v3Engine {
 
         if (skill.id === 'ndaihyo_mind') {
             const healRate = skill.healRate || 0.20;
-<<<<<<< HEAD
             const teamList = this.isAlly(attacker) ? this.allies : this.enemies;
             teamList.forEach(a => {
                 if (this.isLiving(a)) {
@@ -527,8 +526,6 @@ class Battle3v3Engine {
             attacker.pashaRollUsedCount = (attacker.pashaRollUsedCount || 0) + 1;
 
             const healRate = skill.healRate || 0.40;
-=======
->>>>>>> d351a3cf921f67b88d81bad66bdf954c4dcb0fed
             const teamList = (this.getCharacterTeam(attacker) === 'ally') ? this.allies : this.enemies;
             teamList.forEach(a => {
                 if (a.hp > 0) {
