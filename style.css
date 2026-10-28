@@ -311,15 +311,15 @@
                 margin: 0 !important;
             }
             #screen-container {
-                overflow: hidden !important;
-                touch-action: none !important;
+                overflow-y: auto !important;
+                touch-action: pan-y !important;
                 height: 100% !important;
                 max-height: 100% !important;
                 flex: 1 !important;
                 display: flex !important;
                 flex-direction: column !important;
                 align-items: center !important;
-                justify-content: center !important;
+                justify-content: flex-start !important;
                 width: 100% !important;
                 max-width: 100% !important;
                 box-sizing: border-box !important;
@@ -327,14 +327,13 @@
             }
             #screen-container > div {
                 width: 100% !important;
-                height: 100% !important;
+                min-height: 100% !important;
                 max-width: 100% !important;
-                max-height: 100% !important;
                 box-sizing: border-box !important;
-                overflow: hidden !important;
+                overflow-y: visible !important;
                 display: flex !important;
                 flex-direction: column !important;
-                justify-content: space-between !important;
+                justify-content: flex-start !important;
                 align-items: center !important;
                 margin: 0 auto !important;
             }
