@@ -1702,10 +1702,10 @@ static drawDopagaking(p, isCharged) {
                 const sortOrder = arg1 || 'default';
                 const sortDir = arg2 || 'desc';
                 const onlyOwned = !!arg3;
-                if (isUnlocked) {
+                if (returnSource === 'new_select' || isUnlocked) {
                     const isSelected = window.selectedNewBattleChar === c.id;
-                    const isEligibleCustom = !['dopagaking', 'courtney', 'pasha_dark'].includes(c.id);
-                    if (isEligibleCustom) {
+                    const isEligibleCustom = returnSource === 'new_select' ? !['dopagaking', 'courtney', 'pasha_dark'].includes(c.id) : !['dopagaking', 'courtney', 'pasha_dark'].includes(c.id);
+                    if (isEligibleCustom && returnSource !== 'new_select') {
                         html += `
                             <button onclick="
                                 const cust = getNewBattleCustomStats('${c.id}');
@@ -2721,8 +2721,8 @@ pasha_dark: {
                 p.digActive = state.digActive;
                 p.digUsedTurn = state.digUsedTurn;
                 p.recordedSkill = state.recordedSkill ? { ...state.recordedSkill } : null;
-                p.eggplantReady = state.eggplantReady;
-                p.isMiniZou = state.isMiniZou;
+                p.eggplantReady = (p.id === 'momo' && !!state.eggplantReady);
+                p.isMiniZou = (p.id === 'momo' && !!state.isMiniZou);
                 p.momoRevived = state.momoRevived;
                 p.isDarkMode = state.isDarkMode;
                 p.defendBuffTurns = state.defendBuffTurns;
@@ -2735,9 +2735,9 @@ pasha_dark: {
 
             startTimer() {
                 this.stopTimer();
-                if (this.p1.hp > 0 && this.p1.eggplantReady && !this.p1Action && !this.battleEnded) {
+                if (this.p1.hp > 0 && this.p1.id === 'momo' && this.p1.eggplantReady && !this.p1Action && !this.battleEnded) {
                     setTimeout(() => {
-                        if (this.p1.eggplantReady && !this.p1Action) {
+                        if (this.p1.id === 'momo' && this.p1.eggplantReady && !this.p1Action) {
                             this.submitAction(1, 'momo_eggplant_burst');
                         }
                     }, 400);
@@ -2768,8 +2768,8 @@ pasha_dark: {
                 if (this.battleEnded) return;
                 this.log('⏰ 制限時間切れ！自動選択します。', 'text-amber-400 font-bold');
 
-                const p1Default = this.p1.isResting ? 'rest' : (this.p1.eggplantReady ? 'momo_eggplant_burst' : this.p1.skills[0].id);
-                const p2Default = this.p2.isResting ? 'rest' : (this.p2.eggplantReady ? 'momo_eggplant_burst' : this.p2.skills[0].id);
+                const p1Default = this.p1.isResting ? 'rest' : ((this.p1.id === 'momo' && this.p1.eggplantReady) ? 'momo_eggplant_burst' : this.p1.skills[0].id);
+                const p2Default = this.p2.isResting ? 'rest' : ((this.p2.id === 'momo' && this.p2.eggplantReady) ? 'momo_eggplant_burst' : this.p2.skills[0].id);
 
                 if (this.isOnline) {
                     if (this.myPlayerNum === 1 && !this.p1Action) this.submitAction(1, p1Default);
@@ -2890,6 +2890,7 @@ pasha_dark: {
                         this.currentAttacker = this.p1;
                         if (this.onStateChange) this.onStateChange(this);
 
+<<<<<<< HEAD
                         const opponents = this.enemies.filter(e => e.hp > 0);
                         if (opponents.length > 0) {
                             let defender = opponents[0];
@@ -2901,13 +2902,33 @@ pasha_dark: {
                                 defender = targetList[this.p1TargetIndex];
                             } else if (targetList.length > 0) {
                                 defender = targetList[Math.floor(Math.random() * targetList.length)];
+=======
+                        let defender = this.p1;
+                        const skill = this.p1.skills.find(s => s.id === ally1Action) || this.p1.skills[0];
+                        if (skill.targetType === 'single_ally') {
+                            if (this.p1TargetIndex !== null && this.allies[this.p1TargetIndex] && this.allies[this.p1TargetIndex].hp > 0) {
+                                defender = this.allies[this.p1TargetIndex];
+                            } else {
+                                const livingAllies = this.allies.filter(a => a.hp > 0);
+                                defender = livingAllies[Math.floor(Math.random() * livingAllies.length)] || this.p1;
                             }
-
-                            this.executePlayerAction(this.p1, defender, ally1Action);
-                            if (this.onStateChange) this.onStateChange(this);
-
-                            if (await this.checkWinner()) return;
+                        } else {
+                            const opponents = this.enemies.filter(e => e.hp > 0);
+                            if (opponents.length > 0) {
+                                defender = opponents[0];
+                                if (this.p1TargetIndex !== null && opponents[this.p1TargetIndex]) {
+                                    defender = opponents[this.p1TargetIndex];
+                                } else if (opponents.length > 0) {
+                                    defender = opponents[Math.floor(Math.random() * opponents.length)];
+                                }
+>>>>>>> d351a3cf921f67b88d81bad66bdf954c4dcb0fed
+                            }
                         }
+
+                        this.executePlayerAction(this.p1, defender, ally1Action);
+                        if (this.onStateChange) this.onStateChange(this);
+
+                        if (await this.checkWinner()) return;
                     }
 
                     // 2. 残りの味方 (ally2, ally3) と敵チームの行動を処理
@@ -3033,7 +3054,7 @@ pasha_dark: {
                     return;
                 }
 
-                if (attacker.eggplantReady) {
+                if (attacker.id === 'momo' && attacker.eggplantReady) {
                     skillId = 'momo_eggplant_burst';
                 }
 
@@ -3309,10 +3330,9 @@ pasha_dark: {
                         a.iwabaBathTurns = 2;
                         const hAmt = Math.floor(a.maxHp * (skill.healRate || 0.20));
                         a.hp = Math.min(a.maxHp, a.hp + hAmt);
-                        this.triggerEffect(this.getCharacterTeam(a) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
-                        if (typeof triggerNewBattleCharacterEffect === 'function') {
-                            triggerNewBattleCharacterEffect(a, 'heal', `+${hAmt}`);
-                            triggerNewBattleCharacterEffect(a, 'buff', '温まり中 [2T]');
+                        if (typeof triggerCharacterEffect === 'function') {
+                            triggerCharacterEffect(a, 'heal', `+${hAmt}`);
+                            triggerCharacterEffect(a, 'buff', '温まり中 [2T]');
                         }
                     };
                     if (teamList.length > 0) {
@@ -3357,7 +3377,7 @@ pasha_dark: {
 
 
 
-                if (defender.id === 'asaiomizu' && defender.digActive) {
+                if (defender.id === 'asaiomizu' && defender.digActive && !this.isSameTeam(attacker, defender)) {
                     if (skill.type === 'attack' || skill.type === 'special' || skill.type === 'debuff_attack' || skill.type === 'eggplant_burst' || (skill.power && skill.power > 0)) {
                         defender.recordedSkill = { ...skill };
                         defender.digActive = false;
@@ -3693,7 +3713,7 @@ case 'dopa_juggler_skill':
                         this.log(`🌀 ${defender.charName} は攻撃を回避した！`, 'text-sky-300');
                         audioSystem.playEvade();
                         triggerCharacterEffect(defender, 'miss', '回避');
-                        this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'miss', 'MISS');
+                        this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'miss', '回避');
                         if (defender.id === 'pasha_dark') {
                             defender.buffAtk *= 1.1;
                             this.log(`✨🦇 パシャ憎の回避アビリティ発動！ 攻撃力が 1.1倍 に跳ね上がった！（現在倍率: ${defender.buffAtk.toFixed(2)}倍）`, 'text-purple-300 font-bold');
@@ -4503,13 +4523,16 @@ case 'dopa_juggler_skill':
                 else if (sortOrder === 'eva') statDisplay = `<span class="text-[9px] sm:text-[10px] text-blue-400 font-bold">避: ${c.eva}%</span>`;
 
                 html += `
-                    <div onclick="openCharDetail('${c.id}', 'new_select', '${sortOrder}', '${sortDir}', ${onlyOwned})" 
-                         class="pixel-box p-2 sm:p-3 bg-slate-900 cursor-pointer flex flex-col items-center justify-between border-2 transition-all ${isSelected ? 'border-amber-400 bg-amber-950/40 scale-105 shadow-lg' : 'border-slate-700 hover:border-slate-400'} ${!isUnlocked ? 'opacity-60 grayscale' : ''}">
+                    <div onclick="window.selectedNewBattleChar = '${c.id}'; renderNewBattleCharSelectScreen('${sortOrder}', '${sortDir}', ${onlyOwned});" 
+                         class="pixel-box p-2 sm:p-3 bg-slate-900 cursor-pointer flex flex-col items-center justify-between border-2 transition-all ${isSelected ? 'border-amber-400 bg-amber-950/40 scale-105 shadow-lg' : 'border-slate-700 hover:border-slate-400'}">
                         <canvas id="new-select-cvs-${c.id}" width="95" height="95" class="pixel-box bg-slate-950 mb-1 w-16 h-16 sm:w-24 sm:h-24"></canvas>
                         <span class="text-[11px] sm:text-xs font-bold ${isSelected ? 'text-amber-300 font-pixel' : 'text-slate-200'} truncate max-w-full">${c.name}</span>
                         <span class="text-[9px] text-slate-400 truncate max-w-full">${c.title}</span>
                         ${statDisplay}
-                        ${!isUnlocked ? '<span class="text-[9px] text-red-400 font-bold mt-0.5">🔒 未解放</span>' : (isSelected ? '<span class="text-[9px] text-amber-400 font-pixel font-bold mt-0.5">✨ 選択中</span>' : '<span class="text-[9px] text-slate-400 font-bold mt-0.5">タップで詳細</span>')}
+                        <div class="flex items-center gap-1 mt-0.5">
+                            <span class="text-[9px] ${isSelected ? 'text-amber-400 font-pixel font-bold' : 'text-slate-400'}">${isSelected ? '✨ 選択中' : 'タップで選択'}</span>
+                            <button onclick="event.stopPropagation(); openCharDetail('${c.id}', 'new_select', '${sortOrder}', '${sortDir}', ${onlyOwned})" class="text-[9px] text-cyan-400 underline hover:text-cyan-300 ml-1">詳細</button>
+                        </div>
                     </div>
                 `;
             });
@@ -4857,6 +4880,7 @@ case 'dopa_juggler_skill':
                         name: `📋【コピー】${p1.recordedSkill.name}`,
                         type: p1.recordedSkill.type || 'attack',
                         power: p1.recordedSkill.power || 1.0,
+                        targetType: p1.recordedSkill.targetType || 'single_enemy',
                         isNormalAttack: false,
                         cooldown: 0,
                         desc: `【ディグコピー技】${p1.recordedSkill.name}（${p1.recordedSkill.desc || '相手からコピーしたスキル'}）`
@@ -5188,7 +5212,7 @@ case 'dopa_juggler_skill':
             if (p.stunTurns && p.stunTurns > 0) {
                 badges += `<span class="bg-red-950/95 text-red-300 border-2 border-red-400 px-1 py-0.5 rounded text-[8px] font-mono font-bold shadow-md transform -rotate-2 inline-block">行動不能 [${p.stunTurns}T]</span>`;
             }
-            if (p.eggplantReady) {
+            if (p.id === 'momo' && p.eggplantReady) {
                 badges += `<span class="bg-purple-950/95 text-purple-300 border-2 border-purple-400 px-1 py-0.5 rounded text-[8px] font-mono font-bold shadow-md transform -rotate-3 inline-block">ゾウ変身</span>`;
             }
             if (p.courtneyChargeCount && p.courtneyChargeCount > 0) {
@@ -5271,9 +5295,18 @@ case 'dopa_juggler_skill':
 
             isNewBattleSkillModalOpen = false;
 
+<<<<<<< HEAD
             const skill = (actionType === 'asaiomizu_copied' && activeNewBattle.p1.recordedSkill) 
                 ? activeNewBattle.p1.recordedSkill 
                 : (activeNewBattle.p1.skills.find(s => s.id === actionType) || (actionType === activeNewBattle.p1.skills.find(s => s.isNormalAttack)?.id ? activeNewBattle.p1.skills.find(s => s.isNormalAttack) : null));
+=======
+            const skill = (actionType === 'asaiomizu_copied' && activeNewBattle.p1.recordedSkill) ? {
+                ...activeNewBattle.p1.recordedSkill,
+                id: 'asaiomizu_copied',
+                name: `📋【コピー】${activeNewBattle.p1.recordedSkill.name}`,
+                targetType: activeNewBattle.p1.recordedSkill.targetType || 'single_enemy'
+            } : (activeNewBattle.p1.skills.find(s => s.id === actionType) || (actionType === activeNewBattle.p1.skills.find(s => s.isNormalAttack)?.id ? activeNewBattle.p1.skills.find(s => s.isNormalAttack) : null));
+>>>>>>> d351a3cf921f67b88d81bad66bdf954c4dcb0fed
             if (activeNewBattle.isNewBattle && skill && (skill.targetType === 'single_enemy' || skill.targetType === 'single_ally' || skill.id === 'pasha_flash')) {
                 newBattleTargetSelectSkillId = actionType;
                 newBattleTargetSelectType = skill.targetType === 'single_ally' ? 'single_ally' : 'single_enemy';
@@ -6394,9 +6427,6 @@ case 'dopa_juggler_skill':
         window.renderBotModesScreen = renderBotModesScreen;
         window.renderNewBattleCharSelectScreen = renderNewBattleCharSelectScreen;
         window.forceReloadApp = forceReloadApp;
-        window.getNewBattleCustomStats = getNewBattleCustomStats;
-        window.adjustNewBattleStat = adjustNewBattleStat;
-        window.resetNewBattleStats = resetNewBattleStats;
 
         // 画像・Canvas・ゲーム画面内でのコンテキストメニュー（長押し・右クリック）の禁止対策
         document.addEventListener('contextmenu', (e) => {
