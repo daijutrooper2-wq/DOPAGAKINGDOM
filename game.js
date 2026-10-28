@@ -3685,7 +3685,7 @@ case 'dopa_juggler_skill':
                         this.log(`🌀 ${defender.charName} は攻撃を回避した！`, 'text-sky-300');
                         audioSystem.playEvade();
                         triggerCharacterEffect(defender, 'miss', '回避');
-                        this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'miss', 'MISS');
+                        this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'miss', '回避');
                         if (defender.id === 'pasha_dark') {
                             defender.buffAtk *= 1.1;
                             this.log(`✨🦇 パシャ憎の回避アビリティ発動！ 攻撃力が 1.1倍 に跳ね上がった！（現在倍率: ${defender.buffAtk.toFixed(2)}倍）`, 'text-purple-300 font-bold');
