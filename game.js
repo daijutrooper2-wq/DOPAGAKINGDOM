@@ -6397,9 +6397,6 @@ case 'dopa_juggler_skill':
         window.renderBotModesScreen = renderBotModesScreen;
         window.renderNewBattleCharSelectScreen = renderNewBattleCharSelectScreen;
         window.forceReloadApp = forceReloadApp;
-        window.getNewBattleCustomStats = getNewBattleCustomStats;
-        window.adjustNewBattleStat = adjustNewBattleStat;
-        window.resetNewBattleStats = resetNewBattleStats;
 
         // 画像・Canvas・ゲーム画面内でのコンテキストメニュー（長押し・右クリック）の禁止対策
         document.addEventListener('contextmenu', (e) => {
