@@ -116,22 +116,6 @@ class Battle3v3Engine {
         return 'system';
     }
 
-    isAlly(char) {
-        return char && this.allies && this.allies.includes(char);
-    }
-
-    isEnemy(char) {
-        return char && this.enemies && this.enemies.includes(char);
-    }
-
-    isSameTeam(charA, charB) {
-        return this.getCharacterTeam(charA) === this.getCharacterTeam(charB);
-    }
-
-    isLiving(char) {
-        return char && char.hp > 0;
-    }
-
 
 
     logTeam(actor, msg, colorClass = 'text-slate-200') {
@@ -226,61 +210,12 @@ class Battle3v3Engine {
             evaDebuff: 0,
             enemyEvaTurns: 0,
             momoEvaTurns: 0,
-            asaiomizuCritTurns: 0,
-            pashaPassiveActive: false,
-            stunTurns: 0,
-            pashaRollUsedCount: 0,
-            pashaRollReviveCount: 0,
-            iwabaBathTurns: 0,
-            iwabaBathApplied: false
+            asaiomizuCritTurns: 0
         };
-    }
-
-    checkPashaPassive() {
-        const checkTeamForPashaDark = (team) => {
-            return team && team.some(c => c.hp > 0 && c.id === 'pasha_dark');
-        };
-
-        const checkAndApply = (pashaChar, opposingTeam) => {
-            if (!pashaChar || pashaChar.hp <= 0) return;
-            const hasPashaDark = checkTeamForPashaDark(opposingTeam);
-            const wasActive = pashaChar.pashaPassiveActive;
-            pashaChar.pashaPassiveActive = hasPashaDark;
-
-            if (hasPashaDark) {
-                if (!wasActive) {
-                    this.log(`✨ パシャ憎のパッシブスキル発動！対パシャ憎効果によりクリティカル率が上昇した！`, 'text-yellow-300 font-bold');
-                    const side = this.getCharacterTeam(pashaChar) === 'ally' ? 'Player' : 'Enemy';
-                    this.triggerEffect(side, 'buff', 'パッシブ発動!');
-                    if (typeof this.triggerCutin === 'function') {
-                        this.triggerCutin('✨ パッシブスキル発動！', '対パシャ憎効果によりクリティカル率上昇！');
-                    }
-                    if (typeof triggerNewBattleCharacterEffect === 'function') {
-                        triggerNewBattleCharacterEffect(pashaChar, 'buff', 'パッシブ!');
-                    }
-                }
-            }
-        };
-
-        if (this.allies) {
-            this.allies.forEach(a => {
-                if (a.id === 'pasha') {
-                    checkAndApply(a, this.enemies);
-                }
-            });
-        }
-        if (this.enemies) {
-            this.enemies.forEach(e => {
-                if (e.id === 'pasha') {
-                    checkAndApply(e, this.allies);
-                }
-            });
-        }
     }
 
     startBattle() {
         this.log(`⚔️ 3v3バトル開始！ 味方チーム VS 敵チーム`, 'text-amber-300 font-bold');
-        this.checkPashaPassive();
         this.firstStrikerPlayerNum = 1;
         this.startTimer();
         this.startElapsedTimer();
@@ -289,9 +224,9 @@ class Battle3v3Engine {
 
     startTimer() {
         this.stopTimer();
-        if (this.p1.hp > 0 && this.p1.id === 'momo' && this.p1.eggplantReady && !this.p1Action && !this.waitingForOpponent && !this.battleEnded) {
+        if (this.p1.hp > 0 && this.p1.eggplantReady && !this.p1Action && !this.waitingForOpponent && !this.battleEnded) {
             setTimeout(() => {
-                if (this.p1.id === 'momo' && this.p1.eggplantReady && !this.p1Action) {
+                if (this.p1.eggplantReady && !this.p1Action) {
                     this.submitAction(1, 'momo_eggplant_burst');
                 }
             }, 400);
@@ -321,7 +256,7 @@ class Battle3v3Engine {
     handleTimeOut() {
         if (this.battleEnded) return;
         this.log('⏰ 制限時間切れ！自動選択します。', 'text-amber-400 font-bold');
-        const p1Default = this.p1.isResting ? 'rest' : ((this.p1.id === 'momo' && this.p1.eggplantReady) ? 'momo_eggplant_burst' : this.p1.skills[0].id);
+        const p1Default = this.p1.isResting ? 'rest' : (this.p1.eggplantReady ? 'momo_eggplant_burst' : this.p1.skills[0].id);
         if (!this.p1Action) {
             this.submitAction(1, p1Default);
         }
@@ -346,41 +281,6 @@ class Battle3v3Engine {
         this.turnJustStarted = false;
         this.currentTurnLogs = [];
 
-        const allFighters = [...this.allies, ...this.enemies];
-        allFighters.forEach(p => {
-            if (p.hp > 0 && p.darknessPowerTurns && p.darknessPowerTurns > 0) {
-                p.darknessPowerTurns--;
-                const hAmt = Math.floor(Math.random() * 21) + 10;
-                p.hp = Math.min(p.maxHp, p.hp + hAmt);
-                this.log(`🦇 ${p.charName} の暗黒パワーにより、ターン開始時にHPが ${hAmt} 回復した！（残り ${p.darknessPowerTurns}T）`, 'text-purple-300 font-bold');
-                this.triggerEffect(this.getCharacterTeam(p) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
-                if (typeof triggerNewBattleCharacterEffect === 'function') {
-                    triggerNewBattleCharacterEffect(p, 'heal', `+${hAmt}`);
-                }
-                audioSystem.playHeal();
-            }
-            if (p.hp > 0 && p.iwabaBathTurns && p.iwabaBathTurns > 0) {
-                p.iwabaBathTurns--;
-                const hAmt = Math.floor(p.maxHp * 0.20);
-                p.hp = Math.min(p.maxHp, p.hp + hAmt);
-                this.log(`♨️ ${p.charName} の【岩盤浴ブースト】により、ターン開始時にHPが ${hAmt} 回復し温まった！（残り ${p.iwabaBathTurns}T）`, 'text-emerald-300 font-bold text-base');
-                this.triggerEffect(this.getCharacterTeam(p) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
-                if (typeof triggerNewBattleCharacterEffect === 'function') {
-                    triggerNewBattleCharacterEffect(p, 'heal', `+${hAmt}`);
-                }
-                audioSystem.playHeal();
-                if (p.iwabaBathTurns === 0) {
-                    if (p.iwabaBathApplied) {
-                        p.eva = Math.max(0, p.eva - 12);
-                        p.iwabaBathApplied = false;
-                    }
-                    this.log(`♨️ ${p.charName} の岩盤浴ブーストの効果が終了し、回避率が元に戻った。`, 'text-slate-400 text-[11px]');
-                }
-            }
-        });
-
-        this.checkPashaPassive();
-
         if (this.isSuddenDeath) {
             this.log(`--- [ ターン ${this.turn} (🔥サドンデス) ] ---`, 'text-red-400 font-bold text-center');
         } else {
@@ -393,32 +293,23 @@ class Battle3v3Engine {
             this.currentAttacker = this.p1;
             if (this.onStateChange) this.onStateChange(this);
 
-            let defender = this.p1;
-            const skill = this.p1.skills.find(s => s.id === ally1Action) || this.p1.skills[0];
-            if (skill.targetType === 'single_ally') {
-                if (this.p1TargetIndex !== null && this.allies[this.p1TargetIndex] && this.allies[this.p1TargetIndex].hp > 0) {
-                    defender = this.allies[this.p1TargetIndex];
-                } else {
-                    const livingAllies = this.allies.filter(a => a.hp > 0);
-                    defender = livingAllies[Math.floor(Math.random() * livingAllies.length)] || this.p1;
+            const opponents = this.enemies.filter(e => e.hp > 0);
+            if (opponents.length > 0) {
+                let defender = opponents[0];
+                const skill = this.p1.skills.find(s => s.id === ally1Action) || this.p1.skills[0];
+                const targetList = (skill.targetType === 'single_ally') ? this.allies.filter(a => a.hp > 0) : opponents;
+                if (this.p1TargetIndex !== null && targetList[this.p1TargetIndex]) {
+                    defender = targetList[this.p1TargetIndex];
+                } else if (targetList.length > 0) {
+                    defender = targetList[Math.floor(Math.random() * targetList.length)];
                 }
-            } else {
-                const opponents = this.enemies.filter(e => e.hp > 0);
-                if (opponents.length > 0) {
-                    defender = opponents[0];
-                    if (this.p1TargetIndex !== null && opponents[this.p1TargetIndex]) {
-                        defender = opponents[this.p1TargetIndex];
-                    } else if (opponents.length > 0) {
-                        defender = opponents[Math.floor(Math.random() * opponents.length)];
-                    }
-                }
-            }
 
                 this.executePlayerAction(this.p1, defender, ally1Action);
                 if (this.onStateChange) this.onStateChange(this);
 
                 if (await this.checkWinner()) return;
             }
+        }
 
         const executeTeamRest = async (teamList, isAllyTeam) => {
             for (let i = 0; i < teamList.length; i++) {
@@ -481,15 +372,7 @@ class Battle3v3Engine {
     executePlayerAction(attacker, defender, skillId) {
         if (attacker.hp <= 0) return;
 
-        if (attacker.stunTurns > 0) {
-            attacker.stunTurns--;
-            this.log(`💫 ${attacker.charName} は行動不能で動けない！`, 'text-amber-400 font-bold');
-            this.triggerEffect(this.getCharacterTeam(attacker) === 'ally' ? 'Player' : 'Enemy', 'miss', '行動不能');
-            triggerNewBattleCharacterEffect(attacker, 'miss', '行動不能');
-            return;
-        }
-
-        if (attacker.id === 'momo' && attacker.eggplantReady) {
+        if (attacker.eggplantReady) {
             skillId = 'momo_eggplant_burst';
         }
 
@@ -510,40 +393,11 @@ class Battle3v3Engine {
             return;
         }
 
-        if (skillId === 'dopa_charge' || skillId === 'dopa_charge_step') {
-            if ((attacker.dopaChargeCount || 0) < 6) {
-                attacker.dopaChargeCount = (attacker.dopaChargeCount || 0) + 1;
-                audioSystem.playBuff();
-                if (attacker.dopaChargeCount >= 6) {
-                    this.log(`👑 ${attacker.charName} は 「王に従え」 のチャージを 6回 完了した！専用の姿に変化し、次ターンから「王に従え」が使用可能になった！`, 'text-amber-300 font-pixel font-bold text-base');
-                    this.triggerCutin('👑 王に従え解放！', '6回目のチャージ完了！');
-                    this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'buff', '王に従え解放!');
-                } else {
-                    this.log(`👑 ${attacker.charName} はチャージを行った！（現在チャージ: ${attacker.dopaChargeCount}/6）`, 'text-amber-300 font-bold');
-                    this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'buff', `チャージ+1 (${attacker.dopaChargeCount}/6)`);
-                }
-            }
-            return;
-        }
-
-        if (skillId === 'dopa_obedience' || skillId === 'dopa_obedience_skill') {
-            if ((attacker.dopaChargeCount || 0) < 6) {
-                this.log(`👑 チャージが6回に達していないため、「王に従え」を発動できません！（現在 ${attacker.dopaChargeCount || 0}/6回）`, 'text-amber-400 font-bold');
-                return;
-            }
-        }
-
         let skill = null;
         if (skillId === 'momo_eggplant_burst') {
             skill = { id: 'momo_eggplant_burst', name: '🍆 超ナスちん乱舞', type: 'eggplant_burst', power: 1.5, isNormalAttack: false, cooldown: 0 };
         } else if (skillId === 'asaiomizu_copied' && attacker.recordedSkill) {
-            skill = {
-                ...attacker.recordedSkill,
-                id: 'asaiomizu_copied',
-                name: `📋【コピー】${attacker.recordedSkill.name}`,
-                isNormalAttack: false,
-                cooldown: 0
-            };
+            skill = { id: 'asaiomizu_copied', name: `📋【コピー】${attacker.recordedSkill.name}`, type: attacker.recordedSkill.type || 'attack', power: attacker.recordedSkill.power || 1.0, isNormalAttack: false, cooldown: 0 };
         } else {
             skill = attacker.skills.find(s => s.id === skillId);
         }
@@ -578,342 +432,30 @@ class Battle3v3Engine {
         this.log(`💥 ${attacker.charName} の 「${skill.name}」！`, 'text-emerald-300 font-bold');
         audioSystem.playCharacterSound(attacker.id);
 
-        if (attacker.id === 'dopagaking' && (skill.id === 'dopa_obedience' || skill.type === 'dopa_obedience_skill')) {
-            if ((attacker.dopaChargeCount || 0) < 6) {
-                this.log(`👑 チャージが6回に達していないため、「王に従え」を発動できません！`, 'text-amber-300 font-bold');
-                return;
-            }
-
-            const opposingTeam = (this.getCharacterTeam(attacker) === 'ally') ? this.enemies : this.allies;
-            const aliveEnemies = opposingTeam.filter(e => e.hp > 0);
-            if (aliveEnemies.length === 0) return;
-            const selectedEnemy = aliveEnemies[Math.floor(Math.random() * aliveEnemies.length)];
-
-            const enemySkills = selectedEnemy.skills;
-            if (!enemySkills || enemySkills.length === 0) return;
-            const stolenSkill = enemySkills[Math.floor(Math.random() * enemySkills.length)];
-
-            this.log(`👑🔥 ${attacker.charName} の「王に従え」発動！！ ${selectedEnemy.charName} からスキル【${stolenSkill.name}】を奪い取って使用した！！`, 'text-amber-400 font-black text-base');
-            this.triggerCutin('👑 王に従え発動！！', `奪ったスキル: ${stolenSkill.name} (${selectedEnemy.charName})`);
-            audioSystem.playSpecial();
-
-            this.applySkill(attacker, defender, stolenSkill);
-
-            attacker.dopaChargeCount = 0;
-            return;
-        }
-
-        if (skill.type === 'dopa_juggler_skill') {
-            const jugglerDmg = Math.floor(Math.random() * 51);
-            defender.hp = Math.max(0, defender.hp - jugglerDmg);
-            triggerNewBattleShake(defender);
-
-            this.log(`🃏 ${attacker.charName} の「ジャグラー」！ 完全ランダムダメージ ⇒ ${defender.charName} に ${jugglerDmg} のダメージ！`, 'text-purple-300 font-bold');
-            this.triggerEffect(this.isAlly(defender) ? 'Player' : 'Enemy', 'damage', `-${jugglerDmg}`);
-            audioSystem.playHit();
-            return;
-        }
-
-        if (skill.type === 'dopa_majesty_skill') {
-            if (Math.random() < 0.7) {
-                attacker.tempEvadeNext = true;
-                this.log(`👑 ${attacker.charName} の「王の威厳」！ 次の攻撃を絶対回避する構えをとった！`, 'text-amber-300 font-bold');
-                this.triggerEffect(this.isAlly(attacker) ? 'Player' : 'Enemy', 'buff', '絶対回避構え');
-                audioSystem.playBuff();
-            } else {
-                attacker.hp = Math.min(attacker.maxHp, attacker.hp + 60);
-                this.log(`👑 ${attacker.charName} の「王の威厳」！ 自身のHPが 60 回復した！`, 'text-emerald-400 font-bold');
-                this.triggerEffect(this.isAlly(attacker) ? 'Player' : 'Enemy', 'heal', '+60');
-                audioSystem.playHeal();
-            }
-            return;
-        }
-
-        if (skill.type === 'dopa_godluck_skill') {
-            if (Math.random() < 0.05) {
-                let hitDmg = 1000;
-                const enemyMaxHp = defender.maxHp || defender.hp;
-                if (defender.hp >= enemyMaxHp * 0.5) {
-                    hitDmg = Math.max(0, defender.hp - 1);
-                }
-                defender.hp = Math.max(0, defender.hp - hitDmg);
-                triggerNewBattleShake(defender);
-
-                this.log(`✨⚡【神頼み 5%的中！！】 ${defender.charName} に ${hitDmg} の超絶ダメージ！！`, 'text-yellow-300 font-black font-pixel text-base');
-                this.triggerCutin('⚡ 神頼み 5%的中！！', `奇跡の${hitDmg}ダメージ炸裂！`);
-                this.triggerEffect(this.isAlly(defender) ? 'Player' : 'Enemy', 'damage', `-${hitDmg}`);
-                audioSystem.playSpecial();
-            } else {
-                attacker.hp = Math.max(1, attacker.hp - 50);
-
-                this.log(`🎲 ${attacker.charName} の「神頼み」… 運悪く、自分自身に 50 のダメージを受けた！`, 'text-red-400 font-bold');
-                this.triggerEffect(this.isAlly(attacker) ? 'Player' : 'Enemy', 'damage', '-50');
-                audioSystem.playHit();
-            }
-            return;
-        }
-
         if (skill.id === 'ndaihyo_mind') {
             const healRate = skill.healRate || 0.20;
-            const teamList = this.isAlly(attacker) ? this.allies : this.enemies;
-            teamList.forEach(a => {
-                if (this.isLiving(a)) {
-                    const hAmt = Math.floor(a.maxHp * healRate);
-                    a.hp = Math.min(a.maxHp, a.hp + hAmt);
-                    this.triggerEffect(this.isAlly(a) ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
-                    triggerNewBattleCharacterEffect(a, 'heal', `+${hAmt}`);
-                }
-            });
-            const cleanseTarget = (defender && this.isSameTeam(attacker, defender) && this.isLiving(defender)) ? defender : attacker;
-            cleanseTarget.buffAtk = Math.max(1.0, cleanseTarget.buffAtk);
-            cleanseTarget.buffDef = Math.max(1.0, cleanseTarget.buffDef);
-            cleanseTarget.buffAtkTurns = 0;
-            cleanseTarget.evaDebuff = 0;
-            cleanseTarget.stunTurns = 0;
-            this.triggerEffect(this.isAlly(cleanseTarget) ? 'Player' : 'Enemy', 'buff', 'デバフ解除');
-            triggerNewBattleCharacterEffect(cleanseTarget, 'buff', 'クレンズ');
-            const targetName = cleanseTarget.charName;
-            this.log(`N高代表 は消しゴム回復を使用した！ 味方全体のHPが回復し、${targetName}のデバフが解除された！`, 'text-emerald-400 font-bold');
-            audioSystem.playHeal();
-            return;
-        }
-
-        if (skill.id === 'pasha_flash') {
-            const targetTeam = (this.getCharacterTeam(attacker) === 'ally') ? this.enemies : this.allies;
-            targetTeam.forEach(e => {
-                if (e.hp > 0) {
-                    this.applyDamageSkill(attacker, e, skill);
-                }
-            });
-
-            let stunTarget = defender;
-            if (!stunTarget || stunTarget.hp <= 0) {
-                const livingEnemies = targetTeam.filter(e => e.hp > 0);
-                stunTarget = livingEnemies[Math.floor(Math.random() * livingEnemies.length)];
-            }
-
-            if (stunTarget && stunTarget.hp > 0) {
-                stunTarget.stunTurns = 1;
-                this.triggerEffect(this.getCharacterTeam(stunTarget) === 'ally' ? 'Player' : 'Enemy', 'miss', '行動不能');
-                triggerNewBattleCharacterEffect(stunTarget, 'miss', '行動不能');
-            }
-
-            if (typeof triggerCameraFlashGlobalEffect === 'function') {
-                triggerCameraFlashGlobalEffect();
-            }
-
-            const targetName = stunTarget ? stunTarget.charName : '敵';
-            this.log(`${attacker.charName}はカメラフラッシュを放った！ 敵全体に小ダメージを与え、${targetName}を1ターンの間行動不能にした！`, 'text-yellow-300 font-bold');
-            return;
-        }
-
-        if (skill.id === 'pasha_roll') {
-            if ((attacker.pashaRollUsedCount || 0) >= 2) {
-                this.log(`⚠️ ${attacker.charName} の カメラロール は1試合に最大2回までしか使用できません！`, 'text-amber-300 font-bold');
-                return;
-            }
-            attacker.pashaRollUsedCount = (attacker.pashaRollUsedCount || 0) + 1;
-
-            const healRate = skill.healRate || 0.40;
             const teamList = (this.getCharacterTeam(attacker) === 'ally') ? this.allies : this.enemies;
             teamList.forEach(a => {
                 if (a.hp > 0) {
                     const hAmt = Math.floor(a.maxHp * healRate);
                     a.hp = Math.min(a.maxHp, a.hp + hAmt);
                     this.triggerEffect(this.getCharacterTeam(a) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
-                    triggerNewBattleCharacterEffect(a, 'heal', `+${hAmt}`);
                 }
             });
-
-            this.log(`${attacker.charName}はカメラロールを使用した！ 味方全体のHPが大きく回復した！`, 'text-emerald-400 font-bold text-base');
+            if (defender) {
+                defender.buffAtk = Math.max(1.0, defender.buffAtk);
+                defender.buffDef = Math.max(1.0, defender.buffDef);
+                defender.buffAtkTurns = 0;
+                this.triggerEffect(this.getCharacterTeam(defender) === 'ally' ? 'Player' : 'Enemy', 'buff', 'デバフ解除');
+                triggerNewBattleCharacterEffect(defender, 'buff', 'クレンズ');
+            }
+            const targetName = defender ? defender.charName : '味方';
+            this.log(`N高代表 は消しゴム回復を使用した！ 味方全体のHPが回復し、${targetName}のデバフが解除された！`, 'text-emerald-400 font-bold');
             audioSystem.playHeal();
-            if (typeof triggerCameraFlashGlobalEffect === 'function') {
-                triggerCameraFlashGlobalEffect();
-            }
-            if (typeof this.triggerCutin === 'function') {
-                this.triggerCutin('📸 カメラロール発動！', '味方全体が大回復 ＆ 思い出のシャッター！');
-            }
-
-            const deadAllies = teamList.filter(a => a.hp <= 0);
-            const maxReviveTotal = 2;
-            if (deadAllies.length > 0 && (attacker.pashaRollReviveCount || 0) < maxReviveTotal) {
-                if (Math.random() < 0.30) {
-                    attacker.pashaRollReviveCount = (attacker.pashaRollReviveCount || 0) + 1;
-                    const targetDead = deadAllies[Math.floor(Math.random() * deadAllies.length)];
-                    const revivedHp = Math.floor(targetDead.maxHp * 0.40);
-                    targetDead.hp = revivedHp;
-
-                    this.triggerEffect(this.getCharacterTeam(targetDead) === 'ally' ? 'Player' : 'Enemy', 'heal', '復活！');
-                    triggerNewBattleCharacterEffect(targetDead, 'heal', '復活！');
-                    if (typeof triggerNewBattleCharacterEffect === 'function') {
-                        triggerNewBattleCharacterEffect(targetDead, 'buff', '復活');
-                    }
-                    const remainingRevive = maxReviveTotal - attacker.pashaRollReviveCount;
-                    if (typeof this.triggerCutin === 'function') {
-                        this.triggerCutin('✨ カメラロールの奇跡！', `${targetDead.charName}がHP40%で復活！`);
-                    }
-                    this.log(`カメラロールの奇跡が起きた！ 倒れていた${targetDead.charName}がHP40%で復活した！（残り復活回数: ${remainingRevive}回）`, 'text-yellow-300 font-bold text-base');
-                }
-            }
             return;
         }
 
-        if (skill.id === 'pasha_darkness') {
-            const target = (defender && this.isSameTeam(attacker, defender) && this.isLiving(defender)) ? defender : attacker;
-            target.darknessPowerTurns = 3;
-            const hAmt = Math.floor(Math.random() * 21) + 10;
-            target.hp = Math.min(target.maxHp, target.hp + hAmt);
-            this.log(`🦇 ${attacker.charName} は暗黒封印を解除し、${target.charName} に暗黒パワーを付与した！ HPが ${hAmt} 回復し、3ターンの間毎ターン開始時にHPがランダム回復する！`, 'text-purple-300 font-bold text-base');
-            audioSystem.playSpecial();
-            this.triggerEffect(this.isAlly(target) ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
-            if (typeof triggerNewBattleCharacterEffect === 'function') {
-                triggerNewBattleCharacterEffect(target, 'heal', `+${hAmt}`);
-                triggerNewBattleCharacterEffect(target, 'buff', '暗黒パワー');
-            }
-            if (typeof this.triggerCutin === 'function') {
-                this.triggerCutin('🦇 暗黒封印解除！', `${target.charName} に暗黒パワー付与＆持続回復！`);
-            }
-            return;
-        }
-
-        if (skill.type === 'defend_buff') {
-            const teamList = (this.getCharacterTeam(attacker) === 'ally') ? this.allies : this.enemies;
-            teamList.forEach(a => {
-                if (a.hp > 0) {
-                    a.defendBuffTurns = 1;
-                    this.triggerEffect(this.getCharacterTeam(a) === 'ally' ? 'Player' : 'Enemy', 'buff', '鉄壁ガード!');
-                    if (typeof triggerNewBattleCharacterEffect === 'function') {
-                        triggerNewBattleCharacterEffect(a, 'buff', '鉄壁[1T]');
-                    }
-                }
-            });
-            this.log(`🛡️ ${attacker.charName} の【ゴールキーパー】！ 鉄壁の守りで1ターンの間、味方全員が受けるすべてのダメージを70%カットする！`, 'text-blue-300 font-bold text-base');
-            if (typeof this.triggerCutin === 'function') {
-                this.triggerCutin('🛡️ ゴールキーパー発動！', '1ターンの間、味方全員の受けるダメージ70%カット！');
-            }
-            audioSystem.playBuff();
-            return;
-        }
-
-        if (skill.id === 'iwaba_rap') {
-            const teamList = (this.getCharacterTeam(attacker) === 'ally') ? this.allies : this.enemies;
-            if (teamList) {
-                teamList.forEach(a => {
-                    if (a.hp > 0) {
-                        a.buffDef *= 1.40;
-                        a.defendBuffTurns = 3;
-                        this.triggerEffect(this.getCharacterTeam(a) === 'ally' ? 'Player' : 'Enemy', 'buff', '防御UP!');
-                        triggerNewBattleCharacterEffect(a, 'buff', '防御UP!');
-                    }
-                });
-            } else {
-                attacker.buffDef *= 1.40;
-                attacker.defendBuffTurns = 3;
-            }
-            this.log(`🎤 ${attacker.charName} の【フリースタイル】！ 魂のラップで3ターンの間、味方全員の防御力が大幅に強化された！`, 'text-emerald-300 font-bold text-base');
-            audioSystem.playBuff();
-            if (typeof this.triggerCutin === 'function') {
-                this.triggerCutin('🎤 フリースタイル発動！', '魂のラップで味方全員の防御力大幅強化！');
-            }
-            return;
-        }
-
-        if (skill.id === 'iwaba_song') {
-            const target = (defender && this.isSameTeam(attacker, defender) && this.isLiving(defender)) ? defender : attacker;
-            target.tempEvadeNext = true;
-            this.log(`🎵 ${attacker.charName} の【ソウルソング】！ 魂の歌声が響き渡り、${target.charName} は次の相手からの攻撃を1回だけ完全に無効化するバリアを纏った！`, 'text-emerald-300 font-bold text-base');
-            audioSystem.playSpecial();
-            this.triggerEffect(this.isAlly(target) ? 'Player' : 'Enemy', 'buff', '無効化バリア');
-            triggerNewBattleCharacterEffect(target, 'buff', '無効化バリア[1回]');
-            if (typeof this.triggerCutin === 'function') {
-                this.triggerCutin('🎵 ソウルソング発動！', `${target.charName} に攻撃1回無効化バリア付与！`);
-            }
-            return;
-        }
-
-        if (skill.id === 'iwaba_bath') {
-            const rawTeamList = (this.getCharacterTeam(attacker) === 'ally') ? (this.allies || [attacker]) : (this.enemies || [attacker]);
-            const teamList = Array.from(new Set(rawTeamList)).filter(a => a && a.hp > 0);
-            const applyToTarget = (a) => {
-                if (!a.iwabaBathApplied) {
-                    a.eva = Math.min(60, (a.eva || 10) + 12);
-                    a.iwabaBathApplied = true;
-                }
-                a.iwabaBathTurns = 2;
-                const hAmt = Math.floor(a.maxHp * (skill.healRate || 0.20));
-                a.hp = Math.min(a.maxHp, a.hp + hAmt);
-                if (typeof triggerNewBattleCharacterEffect === 'function') {
-                    triggerNewBattleCharacterEffect(a, 'heal', `+${hAmt}`);
-                    triggerNewBattleCharacterEffect(a, 'buff', '温まり中 [2T]');
-                }
-            };
-            if (teamList.length > 0) {
-                teamList.forEach(a => applyToTarget(a));
-            } else {
-                applyToTarget(attacker);
-            }
-            this.log(`♨️ ${attacker.charName} の【岩盤浴ブースト】！ 温まり効果で2ターンの間、味方全員のHPが毎ターン少量回復＋回避率が中強化された！`, 'text-emerald-300 font-bold text-base');
-            audioSystem.playHeal();
-            if (typeof this.triggerCutin === 'function') {
-                this.triggerCutin('♨️ 岩盤浴ブースト発動！', '温まり効果 ＆ 2ターン継続回復＆回避UP！');
-            }
-            return;
-        }
-
-        if (skill.type === 'momo_chie_skill') {
-            const hChie = Math.floor(attacker.maxHp * (skill.healRate || 0.35));
-            attacker.hp = Math.min(attacker.maxHp, attacker.hp + hChie);
-            attacker.eva = (attacker.eva || 10) + 20;
-            attacker.momoEvaTurns = 2;
-            this.log(`🩷 ${attacker.charName} は「チエを呼ぶ」！ HPが ${hChie} 回復し、2ターンの間回避率が大幅アップ！`, 'text-pink-300 font-bold');
-            this.triggerEffect(this.getCharacterTeam(attacker) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hChie}`);
-            audioSystem.playHeal();
-            if (typeof triggerNewBattleCharacterEffect === 'function') {
-                triggerNewBattleCharacterEffect(attacker, 'heal', `+${hChie}`);
-                triggerNewBattleCharacterEffect(attacker, 'buff', '回避UP[2T]');
-            }
-            if (typeof this.triggerCutin === 'function') {
-                this.triggerCutin('🩷 チエを呼ぶ！', 'HP小回復 ＆ 2ターン回避率大幅アップ！');
-            }
-            return;
-        }
-
-        if (skill.type === 'heal' || skill.type === 'heal_cleanse' || skill.type === 'heal_buff' || skill.id === 'courtney_aegu' || skill.type === 'courtney_aegu_skill') {
-            const healRate = skill.healRate || 0.35;
-            const hAmt = Math.floor(attacker.maxHp * healRate);
-            attacker.hp = Math.min(attacker.maxHp, attacker.hp + hAmt);
-            if (skill.type === 'heal_cleanse') {
-                attacker.buffAtk = Math.max(1.0, attacker.buffAtk);
-                attacker.buffDef = Math.max(1.0, attacker.buffDef);
-                attacker.evaDebuff = 0;
-                attacker.enemyEvaTurns = 0;
-                attacker.crimeDefDownTurns = 0;
-                attacker.nightmareDefTurns = 0;
-                attacker.stunTurns = 0;
-            }
-            if (skill.id === 'moenan_play') {
-                this.log(`🩷 ${attacker.charName} は「こももと遊ぶ」！ 愛猫に癒やされてHPが ${hAmt} 回復し、すべてのデバフが解除された！`, 'text-pink-300 font-bold text-base');
-                this.triggerEffect(this.getCharacterTeam(attacker) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
-                triggerNewBattleCharacterEffect(attacker, 'heal', `+${hAmt}`);
-                triggerNewBattleCharacterEffect(attacker, 'buff', 'デバフ解除');
-            } else {
-                this.log(`💚 ${attacker.charName} は HPを ${hAmt} 回復！`, 'text-emerald-400 font-bold');
-                this.triggerEffect(this.getCharacterTeam(attacker) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
-            }
-            audioSystem.playHeal();
-            if (skill.id === 'courtney_aegu' || skill.type === 'courtney_aegu_skill') {
-                attacker.tempEvadeNext = true;
-                this.triggerEffect(this.getCharacterTeam(attacker) === 'ally' ? 'Player' : 'Enemy', 'buff', '完全回避構え');
-            }
-            if (skill.type === 'heal_buff') {
-                attacker.buffDef *= 1.35;
-                attacker.eva = Math.min(60, (attacker.eva || 10) + 15);
-                this.triggerEffect(this.getCharacterTeam(attacker) === 'ally' ? 'Player' : 'Enemy', 'buff', '回避・防御UP!');
-            }
-            return;
-        }
-
-        if (skill.targetType === 'all_enemies' || skill.id === 'ndaihyo_tactics' || skill.id === 'eggplant_burst') {
+        if (skill.targetType === 'all_enemies' || skill.id === 'ndaihyo_tactics' || skill.id === 'pasha_flash' || skill.id === 'eggplant_burst') {
             const targetTeam = (this.getCharacterTeam(attacker) === 'ally') ? this.enemies : this.allies;
             targetTeam.forEach(e => {
                 if (e.hp > 0) {
@@ -989,17 +531,14 @@ class Battle3v3Engine {
     }
 
     applyDamageSkill(attacker, defender, skill, isCounter = false) {
-        if (!defender || !this.isLiving(defender)) return;
-        if (!isCounter && this.isSameTeam(attacker, defender)) return;
-
         const isStealth = (skill.id === 'pasha_dark_stealth');
 
         if (defender.tempEvadeNext && !isStealth) {
             defender.tempEvadeNext = false;
-            this.log(`✨ ${defender.charName} は【ソウルソング】の無効化バリアにより、相手からの攻撃を1回完全に無効化した！`, 'text-emerald-300 font-bold text-base');
+            this.log(`✨ ${defender.charName} は「アエグ」等の効果により次の攻撃を完全に回避した！`, 'text-pink-300 font-bold');
             audioSystem.playEvade();
-            triggerNewBattleCharacterEffect(defender, 'miss', '完全無効化!');
-            this.triggerEffect(this.getCharacterTeam(defender) === 'ally' ? 'Player' : 'Enemy', 'miss', '完全無効化!');
+            triggerNewBattleCharacterEffect(defender, 'miss', '回避');
+            this.triggerEffect(this.getCharacterTeam(defender) === 'ally' ? 'Player' : 'Enemy', 'miss', '絶対回避!');
             return;
         }
 
@@ -1010,7 +549,7 @@ class Battle3v3Engine {
                 this.log(`🌀 ${defender.charName} は攻撃を回避した！`, 'text-sky-300');
                 audioSystem.playEvade();
                 triggerNewBattleCharacterEffect(defender, 'miss', '回避');
-                this.triggerEffect(this.getCharacterTeam(defender) === 'ally' ? 'Player' : 'Enemy', 'miss', '回避');
+                this.triggerEffect(this.getCharacterTeam(defender) === 'ally' ? 'Player' : 'Enemy', 'miss', 'MISS');
                 if (defender.id === 'pasha_dark') {
                     defender.buffAtk *= 1.1;
                     this.log(`✨🦇 パシャ憎の回避アビリティ発動！ 攻撃力が 1.1倍 に跳ね上がった！（現在倍率: ${defender.buffAtk.toFixed(2)}倍）`, 'text-purple-300 font-bold');
@@ -1028,23 +567,11 @@ class Battle3v3Engine {
         let damage = Math.max(8, Math.floor(baseDmg + (Math.random() * 4 - 2)));
 
         let effectiveCritRate = (attacker.critRate || 0.05) + (attacker.critRateBonus || 0);
-        if (attacker.id === 'pasha' && attacker.pashaPassiveActive) {
-            effectiveCritRate += 0.15;
-        }
         if (Math.random() < effectiveCritRate) {
             damage = Math.floor(damage * 1.5);
             audioSystem.playCrit();
             this.log(`🔥✨ クリティカルヒット (${damage})！！`, 'text-yellow-300 font-bold');
             triggerNewBattleCharacterEffect(defender, 'crit', 'クリティカル！');
-        }
-
-        let extraHitTriggered = false;
-        if (attacker.id === 'iwaba' && skill.isNormalAttack) {
-            if (Math.random() < 0.2) {
-                extraHitTriggered = true;
-                let extraDmg = Math.floor(damage * 0.6);
-                damage += extraDmg;
-            }
         }
 
         defender.hp = Math.max(0, defender.hp - damage);
@@ -1054,21 +581,7 @@ class Battle3v3Engine {
             triggerNewBattleCharacterEffect(defender, 'def', '防御');
             this.triggerEffect(side, 'def', '防御');
         }
-        triggerNewBattleCharacterEffect(defender, 'damage', `-${damage}`);
-        let damageLog = skill.isNormalAttack ? `⚔️ ${attacker.charName}の${skill.name}！ ${defender.charName} に ${damage} のダメージ！` : `⚔ ${defender.charName} に ${damage} のダメージ！`;
-        if (attacker.id === 'ndaihyo' && skill.isNormalAttack) {
-            damageLog = `N高代表 の【バッティング】！ ${defender.charName} に ${damage} のダメージ！`;
-        } else if (attacker.id === 'pasha' && skill.isNormalAttack) {
-            damageLog = `パシャ憎 の【睨みつける】！ ${defender.charName} に ${damage} のダメージ！`;
-        } else if (attacker.id === 'iwaba' && skill.isNormalAttack) {
-            damageLog = `岩盤星人 の【ブレイクダンス】！ ${defender.charName} に ${damage} のダメージ！`;
-        } else if (attacker.id === 'moenan' && skill.isNormalAttack) {
-            damageLog = `もえなん の【高速猫パンチ】！ ${defender.charName} に ${damage} のダメージ！`;
-        }
-        if (extraHitTriggered) {
-            this.log(`【連動発動！】 岩盤星人 のノリノリな連続ダンス攻撃がヒット！`, 'text-emerald-300 font-bold');
-        }
-        this.log(damageLog, 'text-red-400 font-bold');
+        this.log(`⚔ ${defender.charName} に ${damage} のダメージ！`, 'text-red-400 font-bold');
         this.triggerEffect(side, 'damage', `-${damage}`);
         audioSystem.playHit();
         triggerNewBattleShake(defender);
@@ -1126,15 +639,11 @@ class Battle3v3Engine {
         this.turn++;
         const allFighters = [...this.allies, ...this.enemies];
         allFighters.forEach(p => {
+            if (p.tempEvadeNext) p.tempEvadeNext = false;
             Object.keys(p.cooldowns).forEach(key => {
                 if (p.cooldowns[key] > 0) p.cooldowns[key]--;
             });
-            if (p.defendBuffTurns > 0) {
-                p.defendBuffTurns--;
-                if (p.defendBuffTurns === 0) {
-                    p.buffDef = 1.0;
-                }
-            }
+            if (p.defendBuffTurns > 0) p.defendBuffTurns--;
             if (p.buffAtkTurns > 0) {
                 p.buffAtkTurns--;
                 if (p.buffAtkTurns === 0) p.buffAtk = 1.0;
@@ -1147,15 +656,6 @@ class Battle3v3Engine {
                 p.enemyEvaTurns--;
                 if (p.enemyEvaTurns === 0) p.evaDebuff = 0;
             }
-            if (p.momoEvaTurns > 0) {
-                p.momoEvaTurns--;
-                if (p.momoEvaTurns === 0) p.eva -= 20;
-            }
-            if (p.id === 'asaiomizu' && p.digActive) {
-                if (this.turn > (p.digUsedTurn || 0)) {
-                    p.digActive = false;
-                }
-            }
         });
 
         if (this.turn >= 30 && !this.isSuddenDeath) {
@@ -1166,29 +666,14 @@ class Battle3v3Engine {
 
     triggerEffect(side, type, text) {
         if (this.onVisualEffect) this.onVisualEffect(side, type, text);
-        let targetChar = null;
-        if (side === 'Player') {
-            targetChar = this.currentAttacker && this.getCharacterTeam(this.currentAttacker) === 'ally' ? this.currentAttacker : this.p1;
-        } else if (side === 'Enemy') {
-            targetChar = this.currentAttacker && this.getCharacterTeam(this.currentAttacker) === 'enemy' ? this.currentAttacker : (this.enemies && this.enemies[0] ? this.enemies[0] : null);
-        }
-        if (targetChar && typeof triggerNewBattleCharacterEffect === 'function') {
-            triggerNewBattleCharacterEffect(targetChar, type, text);
-        }
     }
 }
 
 function selectNewBattleTarget(targetIdx, isAllySide) {
     if (!activeNewBattle) return;
     const skill = activeNewBattle.p1.skills.find(s => s.id === newBattleTargetSelectSkillId) || activeNewBattle.p1.skills.find(s => s.isNormalAttack);
-    if (!skill) return;
-
-    const isAllySkill = (skill.targetType === 'single_ally');
-    if (isAllySkill !== isAllySide) return;
-
-    const targetList = isAllySide ? activeNewBattle.allies : activeNewBattle.enemies;
-    const targetChar = targetList[targetIdx];
-    if (!targetChar || targetChar.hp <= 0) return;
+    if (skill && skill.targetType === 'single_ally' && !isAllySide) return;
+    if (skill && skill.targetType === 'single_enemy' && isAllySide) return;
 
     activeNewBattle.p1TargetIndex = targetIdx;
     newBattleViewMode = 'main';
@@ -1197,8 +682,6 @@ function selectNewBattleTarget(targetIdx, isAllySide) {
 }
 
 function renderNewBattleCharSelectScreen(sortOrder = 'default', sortDir = 'desc', onlyOwned = false) {
-    const existingOverlay = document.getElementById('battle-result-overlay');
-    if (existingOverlay) existingOverlay.remove();
     audioSystem.playSelect();
     const container = document.getElementById('screen-container');
     if (container) container.scrollTop = 0;
@@ -1229,8 +712,8 @@ function renderNewBattleCharSelectScreen(sortOrder = 'default', sortDir = 'desc'
     const totalCount = Object.keys(CHARACTER_DATA).length;
 
     let html = `
-        <div class="w-full h-full flex flex-col items-center justify-start p-2 overflow-y-auto select-none bg-slate-950 text-white">
-            <div class="pixel-box-gold p-1.5 sm:p-2 bg-amber-950/90 w-full text-center space-y-0.5 border-amber-400 mb-2 flex-shrink-0">
+        <div class="w-full h-full flex flex-col items-center justify-between p-2 overflow-hidden select-none bg-slate-950 text-white">
+            <div class="pixel-box-gold p-1.5 sm:p-2 bg-amber-950/90 w-full text-center space-y-0.5 border-amber-400 mb-1.5 flex-shrink-0">
                 <div class="flex items-center justify-between">
                     <button onclick="renderBotModesScreen()" class="pixel-btn pixel-btn-danger px-2.5 py-0.5 text-xs font-bold">
                         ◀ モード選択
@@ -1243,7 +726,7 @@ function renderNewBattleCharSelectScreen(sortOrder = 'default', sortDir = 'desc'
                 <p class="text-[9px] sm:text-[11px] text-amber-200 font-mono">アイコンをタップして詳細確認・出陣ファイターを選択せよ！</p>
             </div>
 
-            <div class="flex items-center justify-between w-full mb-2 px-1 gap-2 flex-wrap flex-shrink-0">
+            <div class="flex items-center justify-between w-full mb-1.5 px-1 gap-2 flex-wrap flex-shrink-0">
                 <div class="flex items-center gap-1.5 text-xs">
                     <span class="text-slate-400 font-bold">並び替え:</span>
                     <select id="new-char-select-sort-order" onchange="onNewCharSelectSortChange('${sortDir}', ${onlyOwned})" class="pixel-box bg-slate-900 text-amber-300 px-2 py-1 text-xs outline-none border-amber-600">
@@ -1266,7 +749,7 @@ function renderNewBattleCharSelectScreen(sortOrder = 'default', sortDir = 'desc'
                 </div>
             </div>
 
-            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3 w-full mb-3 px-1">
+            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3 w-full mb-1.5 px-1 overflow-y-auto flex-1 min-h-0">
     `;
 
     chars.forEach(c => {
@@ -1274,28 +757,25 @@ function renderNewBattleCharSelectScreen(sortOrder = 'default', sortDir = 'desc'
         const isSelected = selected === c.id;
 
         html += `
-            <div onclick="window.selectedNewBattleChar = '${c.id}'; renderNewBattleCharSelectScreen('${sortOrder}', '${sortDir}', ${onlyOwned});" 
-                 class="pixel-box p-2 sm:p-3 bg-slate-900 cursor-pointer flex flex-col items-center justify-between border-2 transition-all ${isSelected ? 'border-amber-400 bg-amber-950/40 scale-105 shadow-lg' : 'border-slate-700 hover:border-slate-400'}">
+            <div onclick="openCharDetail('${c.id}', 'new_select', '${sortOrder}', '${sortDir}', ${onlyOwned})" 
+                 class="pixel-box p-2 sm:p-3 bg-slate-900 cursor-pointer flex flex-col items-center justify-between border-2 transition-all ${isSelected ? 'border-amber-400 bg-amber-950/40 scale-105 shadow-lg' : 'border-slate-700 hover:border-slate-400'} ${!isUnlocked ? 'opacity-60 grayscale' : ''}">
                 <canvas id="new-select-cvs-${c.id}" width="95" height="95" class="pixel-box bg-slate-950 mb-1 w-16 h-16 sm:w-24 sm:h-24"></canvas>
                 <span class="text-[11px] sm:text-xs font-bold ${isSelected ? 'text-amber-300 font-pixel' : 'text-slate-200'} truncate max-w-full">${c.name}</span>
                 <span class="text-[9px] text-slate-400 truncate max-w-full">${c.title}</span>
-                <div class="flex items-center gap-1 mt-0.5">
-                    <span class="text-[9px] ${isSelected ? 'text-amber-400 font-pixel font-bold' : 'text-slate-400'}">${isSelected ? '✨ 選択中' : 'タップで選択'}</span>
-                    <button onclick="event.stopPropagation(); openCharDetail('${c.id}', 'new_select', '${sortOrder}', '${sortDir}', ${onlyOwned})" class="text-[9px] text-cyan-400 underline hover:text-cyan-300 ml-1">詳細</button>
-                </div>
+                ${!isUnlocked ? '<span class="text-[9px] text-red-400 font-bold mt-0.5">🔒 未解放</span>' : (isSelected ? '<span class="text-[9px] text-amber-400 font-pixel font-bold mt-0.5">✨ 選択中</span>' : '<span class="text-[9px] text-slate-400 font-bold mt-0.5">タップで詳細</span>')}
             </div>
         `;
     });
 
     html += `
             </div>
-            <div class="flex gap-3 w-full justify-center py-3 flex-shrink-0">
+            <div class="flex gap-3 w-full justify-center pb-1 flex-shrink-0">
                 <button onclick="
                     const pChar = window.selectedNewBattleChar || 'asaiomizu';
                     const otherIds = Object.keys(CHARACTER_DATA).filter(id => id !== pChar);
                     const eChar = otherIds[Math.floor(Math.random() * otherIds.length)] || 'pasha';
                     startNewBattleMode(pChar, eChar);
-                " class="pixel-btn pixel-btn-primary px-8 py-3 text-xs sm:text-sm font-bold font-pixel shadow-lg">
+                " class="pixel-btn pixel-btn-primary px-8 py-2.5 sm:py-3 text-xs sm:text-sm font-bold font-pixel shadow-lg">
                     このキャラクターで出陣！ ▶
                 </button>
             </div>
@@ -1399,42 +879,40 @@ function handleNewBattleEnd() {
     const p2 = activeNewBattle.p2;
 
     setTimeout(() => {
-        const existing = document.getElementById('battle-result-overlay');
-        if (existing) existing.remove();
+        const stage = document.getElementById('screen-container');
+        if (!stage) return;
 
         const livingAllies = activeNewBattle.allies.filter(a => a.hp > 0);
         if (livingAllies.length === 0) {
             audioSystem.playDefeat();
-            const html = `
+            stage.innerHTML += `
                 <div id="battle-result-overlay" class="fixed inset-0 bg-black/90 z-[9999] flex flex-col items-center justify-center p-4 sm:p-6 text-center opacity-0 transition-opacity duration-1000">
                     <div class="pixel-box-dark p-6 sm:p-8 bg-slate-950/95 border-red-500 shadow-2xl max-w-md w-full flex flex-col items-center">
                         <div class="text-4xl sm:text-6xl font-pixel font-black text-red-500 mb-3 animate-pulse">LOSE</div>
                         <p class="text-xs sm:text-sm text-slate-300 font-mono mb-6">力尽きてしまいました……</p>
-                        <button onclick="const o = document.getElementById('battle-result-overlay'); if (o) o.remove(); renderNewBattleCharSelectScreen();" class="pixel-btn pixel-btn-primary px-8 py-3 text-sm font-bold font-pixel shadow-xl">
+                        <button onclick="renderNewBattleCharSelectScreen()" class="pixel-btn pixel-btn-primary px-8 py-3 text-sm font-bold font-pixel shadow-xl">
                             バトル選択画面へ戻る ▶
                         </button>
                     </div>
                 </div>
             `;
-            document.body.insertAdjacentHTML('beforeend', html);
             setTimeout(() => {
                 const overlay = document.getElementById('battle-result-overlay');
                 if (overlay) overlay.classList.remove('opacity-0');
             }, 50);
         } else {
             audioSystem.playVictory();
-            const html = `
+            stage.innerHTML += `
                 <div id="battle-result-overlay" class="fixed inset-0 bg-black/90 z-[9999] flex flex-col items-center justify-center p-4 sm:p-6 text-center animate-cutin">
                     <div class="pixel-box-gold p-6 sm:p-8 bg-amber-950/95 border-amber-400 shadow-2xl max-w-md w-full flex flex-col items-center">
                         <div class="text-4xl sm:text-6xl font-pixel font-black text-amber-300 mb-2 animate-bounce">WIN</div>
                         <p class="text-xs sm:text-sm text-amber-200 font-mono mb-4">お見事！見事に勝利を収めました！<br><b class="text-amber-400">+150 DOPA</b> を獲得！</p>
-                        <button onclick="const o = document.getElementById('battle-result-overlay'); if (o) o.remove(); renderNewBattleCharSelectScreen();" class="pixel-btn pixel-btn-primary px-8 py-3 text-sm font-bold font-pixel shadow-xl">
+                        <button onclick="renderNewBattleCharSelectScreen()" class="pixel-btn pixel-btn-primary px-8 py-3 text-sm font-bold font-pixel shadow-xl">
                             バトル選択画面へ戻る ▶
                         </button>
                     </div>
                 </div>
             `;
-            document.body.insertAdjacentHTML('beforeend', html);
         }
     }, 1000);
 }
@@ -1547,12 +1025,11 @@ function renderNewBattleScreen() {
         const skills = p1.skills.filter(s => !s.isNormalAttack);
         let skillsHtml = skills.map(s => {
             const cd = p1.cooldowns[s.id] || 0;
-            const isPashaRollLimit = (s.id === 'pasha_roll' && (p1.pashaRollUsedCount || 0) >= 2);
-            const disabled = cd > 0 || isPashaRollLimit || (p1.id === 'dopagaking' && (s.id === 'dopa_obedience' || s.type === 'dopa_obedience_skill') && (p1.dopaChargeCount || 0) < 6);
+            const disabled = cd > 0;
             return `
                 <button onclick="${disabled ? '' : `executeNewBattleAction('${s.id}')`}" class="pixel-box bg-slate-900 border ${disabled ? 'border-slate-700 opacity-60 cursor-not-allowed' : 'border-emerald-400 hover:border-emerald-300 cursor-pointer'} p-3 text-left shadow flex flex-col justify-between w-full">
                     <div class="flex justify-between items-center w-full mb-1">
-                        <span class="font-pixel text-xs text-emerald-300 font-bold">${s.name} ${cd > 0 ? `(CT:${cd})` : ''} ${s.id === 'pasha_roll' ? `(残り使用: ${2 - (p1.pashaRollUsedCount || 0)}回)` : ''}</span>
+                        <span class="font-pixel text-xs text-emerald-300 font-bold">${s.name} ${cd > 0 ? `(CT:${cd})` : ''}</span>
                     </div>
                     <div class="text-[11px] text-slate-200 font-mono">${s.desc}</div>
                 </button>
@@ -1606,7 +1083,7 @@ function renderNewBattleScreen() {
 
             <div class="flex-1 flex items-center justify-between px-2 py-2 relative z-10 overflow-visible w-full">
                 <!-- 味方チーム -->
-                <div class="relative w-[47%] h-full flex items-center justify-around px-1">
+                <div class="relative w-[47%] h-full flex items-center justify-center">
                     <div class="absolute left-1 top-1 text-[9px] text-emerald-400 font-pixel font-bold z-30">🛡️ 味方</div>
                     ${allies.map((c, posIdx) => {
                         const pct = Math.max(0, Math.min(100, Math.round((c.hp / c.maxHp) * 100)));
@@ -1616,14 +1093,14 @@ function renderNewBattleScreen() {
                         return `
                             <div id="new-ally-char-${posIdx}" ${clickableAttr} 
                                  data-char-team="ally" data-char-idx="${posIdx}"
-                                 class="flex flex-col items-center w-20 sm:w-24 h-full relative justify-center ${c.hp <= 0 ? 'opacity-40 grayscale' : ''}">
-                                 <div class="w-full bg-black/85 px-1 py-0.5 rounded border border-white/20 text-[8px] text-emerald-300">
-                                     <span>${c.charName}</span>: <span class="font-mono">${c.hp}/${c.maxHp}</span>
-                                     <div class="w-full bg-slate-900 h-1 rounded overflow-hidden"><div class="bg-emerald-400 h-full" style="width: ${pct}%;"></div></div>
+                                 class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center w-24 h-32 relative ${c.hp <= 0 ? 'opacity-40 grayscale' : ''}">
+                                <div class="w-full bg-black/85 px-1 py-0.5 rounded border border-white/20 text-[8px] text-emerald-300">
+                                    <span>${c.charName}</span>: <span class="font-mono">${c.hp}/${c.maxHp}</span>
+                                    <div class="w-full bg-slate-900 h-1 rounded overflow-hidden"><div class="bg-emerald-400 h-full" style="width: ${pct}%;"></div></div>
+                                </div>
+                                 <div id="new-ally-img-${posIdx}" class="w-full flex-1 flex items-center justify-center ${c.isShaking ? 'char-shake' : ''}">
+                                     <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain">
                                  </div>
-                                  <div id="new-ally-img-${posIdx}" class="w-full flex-1 flex items-center justify-center ${c.isShaking ? 'char-shake' : ''}">
-                                      <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain">
-                                  </div>
                             </div>
                         `;
                     }).join('')}
@@ -1632,23 +1109,23 @@ function renderNewBattleScreen() {
                 <div class="text-amber-400 font-pixel font-black text-lg">VS</div>
 
                 <!-- 敵チーム -->
-                <div class="relative w-[47%] h-full flex items-center justify-around px-1">
+                <div class="relative w-[47%] h-full flex items-center justify-center">
                     <div class="absolute right-1 top-1 text-[9px] text-red-400 font-pixel font-bold z-30">⚔️ 敵</div>
                     ${enemies.map((c, posIdx) => {
                         const pct = Math.max(0, Math.min(100, Math.round((c.hp / c.maxHp) * 100)));
                         const img = getCharImg(c, false);
-                        const isSelectable = newBattleViewMode === 'target_select' && (newBattleTargetSelectType === 'single_enemy' || newBattleTargetSelectSkillId === 'pasha_flash') && c.hp > 0;
-                        const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${posIdx}, false)" style="cursor: pointer;"` : '';
+                        const isSelectable = newBattleViewMode === 'target_select' && newBattleTargetSelectType === 'single_enemy' && c.hp > 0;
+                        const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${posIdx}, false)"` : '';
                         return `
                             <div id="new-enemy-char-${posIdx}" ${clickableAttr} 
                                  data-char-team="enemy" data-char-idx="${posIdx}"
-                                 class="flex flex-col items-center w-20 sm:w-24 h-full relative justify-center ${c.hp <= 0 ? 'opacity-40 grayscale' : ''} ${isSelectable ? 'ring-4 ring-amber-400 animate-pulse bg-amber-950/40 rounded p-1' : ''}">
+                                 class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center w-24 h-32 relative ${c.hp <= 0 ? 'opacity-40 grayscale' : ''}">
                                 <div class="w-full bg-black/85 px-1 py-0.5 rounded border border-white/20 text-[8px] text-red-300">
                                     <span>${c.charName}</span>: <span class="font-mono">${c.hp}/${c.maxHp}</span>
                                     <div class="w-full bg-slate-900 h-1 rounded overflow-hidden"><div class="bg-red-500 h-full" style="width: ${pct}%;"></div></div>
                                 </div>
                                  <div id="new-enemy-img-${posIdx}" class="w-full flex-1 flex items-center justify-center ${c.isShaking ? 'char-shake' : ''}">
-                                     <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain pointer-events-none" style="transform: scaleX(-1);">
+                                     <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain" style="transform: scaleX(-1);">
                                  </div>
                             </div>
                         `;
@@ -1729,9 +1206,9 @@ function executeNewBattleAction(actionType) {
 
     isNewBattleSkillModalOpen = false;
     const skill = activeNewBattle.p1.skills.find(s => s.id === actionType);
-    if (skill && (skill.targetType === 'single_enemy' || skill.targetType === 'single_ally' || skill.id === 'pasha_flash')) {
+    if (skill && (skill.targetType === 'single_enemy' || skill.targetType === 'single_align')) {
         newBattleTargetSelectSkillId = actionType;
-        newBattleTargetSelectType = skill.targetType === 'single_ally' ? 'single_ally' : 'single_enemy';
+        newBattleTargetSelectType = skill.targetType;
         newBattleViewMode = 'target_select';
         renderNewBattleScreen();
         return;
@@ -1764,21 +1241,8 @@ function getNewBattleCharacterDOMElement(char) {
 
 function triggerNewBattleCharacterEffect(targetChar, type, text) {
     const targetEl = getNewBattleCharacterDOMElement(targetChar);
-    console.log("エフェクト実行 (battle-3v3.js):", { targetChar, type, text, targetEl });
+    console.log("回避/クリティカルエフェクト実行 (battle-3v3.js):", { targetChar, type, text, targetEl });
     if (!targetEl) return;
-
-    targetEl._lastPopups = targetEl._lastPopups || [];
-    const now = Date.now();
-    targetEl._lastPopups = targetEl._lastPopups.filter(p => now - p.time < 300);
-    if (targetEl._lastPopups.some(p => p.type === type && p.text === text)) {
-        return;
-    }
-    targetEl._lastPopups.push({ type, text, time: now });
-
-    targetEl._popupQueue = targetEl._popupQueue || [];
-    targetEl._popupQueue = targetEl._popupQueue.filter(timestamp => now - timestamp < 800);
-    const stackIndex = targetEl._popupQueue.length;
-    targetEl._popupQueue.push(now);
 
     const pop = document.createElement('div');
     pop.className = 'absolute font-pixel font-bold floating-text pointer-events-none';
@@ -1792,12 +1256,6 @@ function triggerNewBattleCharacterEffect(targetChar, type, text) {
         color = 'text-yellow-300 text-xs sm:text-sm font-bold font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
     } else if (type === 'def' || type === 'defense') {
         color = 'text-blue-300 text-xs sm:text-sm font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
-    } else if (type === 'damage') {
-        color = 'text-red-400 text-sm sm:text-base font-bold font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
-    } else if (type === 'heal') {
-        color = 'text-emerald-400 text-sm sm:text-base font-bold font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
-    } else if (type === 'buff') {
-        color = 'text-amber-300 text-xs sm:text-sm font-bold font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
     }
 
     pop.classList.add(...color.split(' '));
@@ -1805,16 +1263,12 @@ function triggerNewBattleCharacterEffect(targetChar, type, text) {
 
     const rect = targetEl.getBoundingClientRect();
     pop.style.position = 'fixed';
-    const xOffset = (stackIndex % 2 === 0 ? -1 : 1) * (Math.floor(stackIndex / 2) * 16);
-    pop.style.left = `${rect.left + rect.width / 2 + xOffset}px`;
-    
-    let baseTop = rect.top - 10;
+    pop.style.left = `${rect.left + rect.width / 2}px`;
     if (type === 'miss' || type === 'crit' || type === 'def' || type === 'defense') {
-        baseTop = rect.top + rect.height / 3;
-    } else if (type === 'damage' || type === 'heal') {
-        baseTop = rect.top + rect.height / 4;
+        pop.style.top = `${rect.top + rect.height / 3}px`;
+    } else {
+        pop.style.top = `${rect.top - 10}px`;
     }
-    pop.style.top = `${baseTop - (stackIndex * 24)}px`;
     pop.style.transform = 'translateX(-50%)';
 
     document.body.appendChild(pop);
@@ -1972,15 +1426,6 @@ function hideBattleCharTooltip() {
     }
 }
 
-function triggerCameraFlashGlobalEffect() {
-    audioSystem.playSpecial();
-    const flashEl = document.createElement('div');
-    flashEl.className = 'fixed inset-0 bg-white animate-screen-flash z-[99999]';
-    document.body.appendChild(flashEl);
-    setTimeout(() => flashEl.remove(), 500);
-}
-window.triggerCameraFlashGlobalEffect = triggerCameraFlashGlobalEffect;
-
 window.showBattleCharTooltip = showBattleCharTooltip;
 window.hideBattleCharTooltip = hideBattleCharTooltip;
 
@@ -2040,73 +1485,3 @@ if (typeof window._battleTooltipInitialized === 'undefined') {
         }
     }, { passive: true });
 }
-
-// 3v3カスタムステータス管理 (3v3 Custom Stats Management)
-function getNewBattleCustomStats(charId) {
-    if (typeof playerState !== 'undefined' && !playerState.newBattleCustomStats) {
-        playerState.newBattleCustomStats = {};
-    }
-    const master = CHARACTER_DATA[charId];
-    if (!master) return null;
-
-    if (typeof playerState !== 'undefined' && !playerState.newBattleCustomStats[charId]) {
-        const baseHp = master.hp;
-        const baseAtk = master.atk;
-        const baseDef = master.def;
-        const baseCrit = Math.round((master.critRate || 0.05) * 100);
-        const baseEva = master.eva;
-        const baseSum = baseHp + baseAtk + baseDef + baseCrit + baseEva;
-        const diff = 240 - baseSum;
-        playerState.newBattleCustomStats[charId] = {
-            hp: baseHp + diff,
-            atk: baseAtk,
-            def: baseDef,
-            critRate: baseCrit,
-            eva: baseEva
-        };
-    }
-    return playerState.newBattleCustomStats[charId];
-}
-
-function adjustNewBattleStat(charId, statKey, delta, sortOrder, sortDir, onlyOwned) {
-    const stats = getNewBattleCustomStats(charId);
-    if (!stats) return;
-
-    const currentTotal = stats.hp + stats.atk + stats.def + stats.critRate + stats.eva;
-    
-    let minVal = 1;
-    let maxVal = 300;
-    if (statKey === 'hp') { minVal = 50; maxVal = 300; }
-    else if (statKey === 'atk') { minVal = 5; maxVal = 45; }
-    else if (statKey === 'def') { minVal = 5; maxVal = 80; }
-    else if (statKey === 'critRate') { minVal = 1; maxVal = 40; }
-    else if (statKey === 'eva') { minVal = 1; maxVal = 60; }
-
-    const newVal = stats[statKey] + delta;
-    if (newVal < minVal || newVal > maxVal) return;
-
-    const newTotal = currentTotal + delta;
-    if (newTotal > 240) return;
-
-    stats[statKey] = newVal;
-    if (typeof savePlayerState === 'function') savePlayerState();
-
-    if (typeof renderZukanDetailScreen === 'function') {
-        renderZukanDetailScreen(charId, 'new_select', sortOrder, sortDir, onlyOwned);
-    }
-}
-
-function resetNewBattleStats(charId, sortOrder, sortDir, onlyOwned) {
-    if (typeof playerState !== 'undefined' && playerState.newBattleCustomStats) {
-        delete playerState.newBattleCustomStats[charId];
-    }
-    getNewBattleCustomStats(charId);
-    if (typeof savePlayerState === 'function') savePlayerState();
-    if (typeof renderZukanDetailScreen === 'function') {
-        renderZukanDetailScreen(charId, 'new_select', sortOrder, sortDir, onlyOwned);
-    }
-}
-
-window.getNewBattleCustomStats = getNewBattleCustomStats;
-window.adjustNewBattleStat = adjustNewBattleStat;
-window.resetNewBattleStats = resetNewBattleStats;
