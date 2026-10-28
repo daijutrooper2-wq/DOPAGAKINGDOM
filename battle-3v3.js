@@ -419,7 +419,6 @@ class Battle3v3Engine {
 
                 if (await this.checkWinner()) return;
             }
-        }
 
         const executeTeamRest = async (teamList, isAllyTeam) => {
             for (let i = 0; i < teamList.length; i++) {
