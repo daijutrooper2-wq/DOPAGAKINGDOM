@@ -9,6 +9,7 @@ let newBattleViewMode = 'main'; // 'main', 'attack_select', 'target_select'
 let newBattleTargetSelectSkillId = null;
 let newBattleTargetSelectType = null;
 
+
 class Battle3v3Engine {
     constructor(p1CharId, p2CharId, isOnline = false, myPlayerNum = 1, roomId = null) {
         this.isOnline = isOnline;
@@ -210,59 +211,12 @@ class Battle3v3Engine {
             evaDebuff: 0,
             enemyEvaTurns: 0,
             momoEvaTurns: 0,
-            asaiomizuCritTurns: 0,
-            pashaPassiveActive: false,
-            stunTurns: 0,
-            pashaRollUsedCount: 0,
-            pashaRollReviveCount: 0
+            asaiomizuCritTurns: 0
         };
-    }
-
-    checkPashaPassive() {
-        const checkTeamForPashaDark = (team) => {
-            return team && team.some(c => c.hp > 0 && c.id === 'pasha_dark');
-        };
-
-        const checkAndApply = (pashaChar, opposingTeam) => {
-            if (!pashaChar || pashaChar.hp <= 0) return;
-            const hasPashaDark = checkTeamForPashaDark(opposingTeam);
-            const wasActive = pashaChar.pashaPassiveActive;
-            pashaChar.pashaPassiveActive = hasPashaDark;
-
-            if (hasPashaDark) {
-                if (!wasActive) {
-                    this.log(`✨ パシャ憎のパッシブスキル発動！対パシャ憎効果によりクリティカル率が上昇した！`, 'text-yellow-300 font-bold');
-                    const side = this.getCharacterTeam(pashaChar) === 'ally' ? 'Player' : 'Enemy';
-                    this.triggerEffect(side, 'buff', 'パッシブ発動!');
-                    if (typeof this.triggerCutin === 'function') {
-                        this.triggerCutin('✨ パッシブスキル発動！', '対パシャ憎効果によりクリティカル率上昇！');
-                    }
-                    if (typeof triggerNewBattleCharacterEffect === 'function') {
-                        triggerNewBattleCharacterEffect(pashaChar, 'buff', 'パッシブ!');
-                    }
-                }
-            }
-        };
-
-        if (this.allies) {
-            this.allies.forEach(a => {
-                if (a.id === 'pasha') {
-                    checkAndApply(a, this.enemies);
-                }
-            });
-        }
-        if (this.enemies) {
-            this.enemies.forEach(e => {
-                if (e.id === 'pasha') {
-                    checkAndApply(e, this.allies);
-                }
-            });
-        }
     }
 
     startBattle() {
         this.log(`⚔️ 3v3バトル開始！ 味方チーム VS 敵チーム`, 'text-amber-300 font-bold');
-        this.checkPashaPassive();
         this.firstStrikerPlayerNum = 1;
         this.startTimer();
         this.startElapsedTimer();
@@ -328,23 +282,6 @@ class Battle3v3Engine {
         this.turnJustStarted = false;
         this.currentTurnLogs = [];
 
-        const allFighters = [...this.allies, ...this.enemies];
-        allFighters.forEach(p => {
-            if (p.hp > 0 && p.darknessPowerTurns && p.darknessPowerTurns > 0) {
-                p.darknessPowerTurns--;
-                const hAmt = Math.floor(Math.random() * 21) + 10;
-                p.hp = Math.min(p.maxHp, p.hp + hAmt);
-                this.log(`🦇 ${p.charName} の暗黒パワーにより、ターン開始時にHPが ${hAmt} 回復した！（残り ${p.darknessPowerTurns}T）`, 'text-purple-300 font-bold');
-                this.triggerEffect(this.getCharacterTeam(p) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
-                if (typeof triggerNewBattleCharacterEffect === 'function') {
-                    triggerNewBattleCharacterEffect(p, 'heal', `+${hAmt}`);
-                }
-                audioSystem.playHeal();
-            }
-        });
-
-        this.checkPashaPassive();
-
         if (this.isSuddenDeath) {
             this.log(`--- [ ターン ${this.turn} (🔥サドンデス) ] ---`, 'text-red-400 font-bold text-center');
         } else {
@@ -360,8 +297,10 @@ class Battle3v3Engine {
             const opponents = this.enemies.filter(e => e.hp > 0);
             if (opponents.length > 0) {
                 let defender = opponents[0];
-                const skill = this.p1.skills.find(s => s.id === ally1Action) || this.p1.skills[0];
-                const targetList = (skill.targetType === 'single_ally') ? this.allies.filter(a => a.hp > 0) : opponents;
+                const skill = (ally1Action === 'asaiomizu_copied' && this.p1.recordedSkill) 
+                    ? { ...this.p1.recordedSkill, id: 'asaiomizu_copied', name: `📋【コピー】${this.p1.recordedSkill.name}` }
+                    : (this.p1.skills.find(s => s.id === ally1Action) || this.p1.skills[0]);
+                const targetList = (skill.targetType === 'single_ally') ? this.allies.filter(a => a.hp > 0) : ((skill.targetType === 'self') ? [this.p1] : opponents);
                 if (this.p1TargetIndex !== null && targetList[this.p1TargetIndex]) {
                     defender = targetList[this.p1TargetIndex];
                 } else if (targetList.length > 0) {
@@ -390,10 +329,12 @@ class Battle3v3Engine {
                 const defaultOpponent = targetPool[0] || (isAllyTeam ? this.enemies[0] : this.allies[0]);
                 const skillId = this.botAdapter.getDecision(attacker, defaultOpponent);
 
-                const skill = attacker.skills.find(s => s.id === skillId) || attacker.skills[0];
+                const skill = (skillId === 'asaiomizu_copied' && attacker.recordedSkill) 
+                    ? { ...attacker.recordedSkill, id: 'asaiomizu_copied', name: `📋【コピー】${attacker.recordedSkill.name}` }
+                    : (attacker.skills.find(s => s.id === skillId) || attacker.skills[0]);
                 const teamList = isAllyTeam ? this.allies : this.enemies;
                 const opposingTeam = isAllyTeam ? this.enemies : this.allies;
-                const opponents = (skill.targetType === 'single_ally') ? teamList.filter(a => a.hp > 0) : opposingTeam.filter(e => e.hp > 0);
+                const opponents = (skill.targetType === 'single_ally') ? teamList.filter(a => a.hp > 0) : ((skill.targetType === 'self') ? [attacker] : opposingTeam.filter(e => e.hp > 0));
                 if (opponents.length === 0) break;
                 let defender = opponents[Math.floor(Math.random() * opponents.length)];
 
@@ -435,14 +376,6 @@ class Battle3v3Engine {
 
     executePlayerAction(attacker, defender, skillId) {
         if (attacker.hp <= 0) return;
-
-        if (attacker.stunTurns > 0) {
-            attacker.stunTurns--;
-            this.log(`💫 ${attacker.charName} は行動不能で動けない！`, 'text-amber-400 font-bold');
-            this.triggerEffect(this.getCharacterTeam(attacker) === 'ally' ? 'Player' : 'Enemy', 'miss', '行動不能');
-            triggerNewBattleCharacterEffect(attacker, 'miss', '行動不能');
-            return;
-        }
 
         if (attacker.eggplantReady) {
             skillId = 'momo_eggplant_burst';
@@ -506,23 +439,24 @@ class Battle3v3Engine {
 
         if (skill.id === 'ndaihyo_mind') {
             const healRate = skill.healRate || 0.20;
-            const teamList = (this.getCharacterTeam(attacker) === 'ally') ? this.allies : this.enemies;
+            const teamList = this.isAlly(attacker) ? this.allies : this.enemies;
             teamList.forEach(a => {
-                if (a.hp > 0) {
+                if (this.isLiving(a)) {
                     const hAmt = Math.floor(a.maxHp * healRate);
                     a.hp = Math.min(a.maxHp, a.hp + hAmt);
-                    this.triggerEffect(this.getCharacterTeam(a) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
+                    this.triggerEffect(this.isAlly(a) ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
                     triggerNewBattleCharacterEffect(a, 'heal', `+${hAmt}`);
                 }
             });
-            if (defender) {
-                defender.buffAtk = Math.max(1.0, defender.buffAtk);
-                defender.buffDef = Math.max(1.0, defender.buffDef);
-                defender.buffAtkTurns = 0;
-                this.triggerEffect(this.getCharacterTeam(defender) === 'ally' ? 'Player' : 'Enemy', 'buff', 'デバフ解除');
-                triggerNewBattleCharacterEffect(defender, 'buff', 'クレンズ');
-            }
-            const targetName = defender ? defender.charName : '味方';
+            const cleanseTarget = (defender && this.isSameTeam(attacker, defender) && this.isLiving(defender)) ? defender : attacker;
+            cleanseTarget.buffAtk = Math.max(1.0, cleanseTarget.buffAtk);
+            cleanseTarget.buffDef = Math.max(1.0, cleanseTarget.buffDef);
+            cleanseTarget.buffAtkTurns = 0;
+            cleanseTarget.evaDebuff = 0;
+            cleanseTarget.stunTurns = 0;
+            this.triggerEffect(this.isAlly(cleanseTarget) ? 'Player' : 'Enemy', 'buff', 'デバフ解除');
+            triggerNewBattleCharacterEffect(cleanseTarget, 'buff', 'クレンズ');
+            const targetName = cleanseTarget.charName;
             this.log(`N高代表 は消しゴム回復を使用した！ 味方全体のHPが回復し、${targetName}のデバフが解除された！`, 'text-emerald-400 font-bold');
             audioSystem.playHeal();
             return;
@@ -557,6 +491,34 @@ class Battle3v3Engine {
             return;
         }
 
+        if (skill.type === 'asaiomizu_dig_skill' || skill.id === 'asaiomizu_dig') {
+            const dummyAttack = { name: '髪をかきあげる', type: 'attack', power: 1.15, isNormalAttack: true };
+            const isAllyDig = this.getCharacterTeam(attacker) === 'ally';
+            if (isAllyDig) {
+                this.applyDamageSkill(attacker, defender, dummyAttack);
+                attacker.digActive = true;
+                attacker.digUsedTurn = this.turn;
+                this.logTeam(attacker, `はディグを発動！（通常攻撃に偽装しつつ相手の攻撃を待ち構える）`, 'text-cyan-300 font-bold');
+                this.triggerEffect(this.isAlly(attacker) ? 'Player' : 'Enemy', 'buff', 'ディグ構え');
+            } else {
+                this.applyDamageSkill(attacker, defender, dummyAttack);
+                attacker.digActive = true;
+                attacker.digUsedTurn = this.turn;
+                this.logTeam(attacker, `の 「髪をかきあげる」！`, 'text-slate-200 font-bold');
+                this.triggerEffect(this.isAlly(attacker) ? 'Player' : 'Enemy', 'damage', 'ヒット');
+            }
+            return;
+        }
+
+        if (skill.type === 'asaiomizu_club_skill' || skill.id === 'asaiomizu_club') {
+            attacker.critRateBonus = (attacker.critRateBonus || 0) + 0.40;
+            attacker.asaiomizuCritTurns = 2;
+            this.log(`🎵 ${attacker.charName} は「クラブに行く」でアゲアゲに踊り狂う！2ターンの間、クリティカル率が大幅向上！`, 'text-cyan-300 font-bold');
+            this.triggerEffect(this.isAlly(attacker) ? 'Player' : 'Enemy', 'buff', 'クリティカル大幅UP!');
+            audioSystem.playBuff();
+            return;
+        }
+
         if (skill.id === 'pasha_roll') {
             if ((attacker.pashaRollUsedCount || 0) >= 2) {
                 this.log(`⚠️ ${attacker.charName} の カメラロール は1試合に最大2回までしか使用できません！`, 'text-amber-300 font-bold');
@@ -571,142 +533,22 @@ class Battle3v3Engine {
                     const hAmt = Math.floor(a.maxHp * healRate);
                     a.hp = Math.min(a.maxHp, a.hp + hAmt);
                     this.triggerEffect(this.getCharacterTeam(a) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
-                    triggerNewBattleCharacterEffect(a, 'heal', `+${hAmt}`);
                 }
             });
-
-            this.log(`${attacker.charName}はカメラロールを使用した！ 味方全体のHPが大きく回復した！`, 'text-emerald-400 font-bold text-base');
+            if (defender) {
+                defender.buffAtk = Math.max(1.0, defender.buffAtk);
+                defender.buffDef = Math.max(1.0, defender.buffDef);
+                defender.buffAtkTurns = 0;
+                this.triggerEffect(this.getCharacterTeam(defender) === 'ally' ? 'Player' : 'Enemy', 'buff', 'デバフ解除');
+                triggerNewBattleCharacterEffect(defender, 'buff', 'クレンズ');
+            }
+            const targetName = defender ? defender.charName : '味方';
+            this.log(`N高代表 は消しゴム回復を使用した！ 味方全体のHPが回復し、${targetName}のデバフが解除された！`, 'text-emerald-400 font-bold');
             audioSystem.playHeal();
-            if (typeof triggerCameraFlashGlobalEffect === 'function') {
-                triggerCameraFlashGlobalEffect();
-            }
-            if (typeof this.triggerCutin === 'function') {
-                this.triggerCutin('📸 カメラロール発動！', '味方全体が大回復 ＆ 思い出のシャッター！');
-            }
-
-            const deadAllies = teamList.filter(a => a.hp <= 0);
-            const maxReviveTotal = 2;
-            if (deadAllies.length > 0 && (attacker.pashaRollReviveCount || 0) < maxReviveTotal) {
-                if (Math.random() < 0.30) {
-                    attacker.pashaRollReviveCount = (attacker.pashaRollReviveCount || 0) + 1;
-                    const targetDead = deadAllies[Math.floor(Math.random() * deadAllies.length)];
-                    const revivedHp = Math.floor(targetDead.maxHp * 0.40);
-                    targetDead.hp = revivedHp;
-
-                    this.triggerEffect(this.getCharacterTeam(targetDead) === 'ally' ? 'Player' : 'Enemy', 'heal', '復活！');
-                    triggerNewBattleCharacterEffect(targetDead, 'heal', '復活！');
-                    if (typeof triggerNewBattleCharacterEffect === 'function') {
-                        triggerNewBattleCharacterEffect(targetDead, 'buff', '復活');
-                    }
-                    const remainingRevive = maxReviveTotal - attacker.pashaRollReviveCount;
-                    if (typeof this.triggerCutin === 'function') {
-                        this.triggerCutin('✨ カメラロールの奇跡！', `${targetDead.charName}がHP40%で復活！`);
-                    }
-                    this.log(`カメラロールの奇跡が起きた！ 倒れていた${targetDead.charName}がHP40%で復活した！（残り復活回数: ${remainingRevive}回）`, 'text-yellow-300 font-bold text-base');
-                }
-            }
             return;
         }
 
-        if (skill.id === 'pasha_darkness') {
-            const target = defender || attacker;
-            target.darknessPowerTurns = 3;
-            const hAmt = Math.floor(Math.random() * 21) + 10;
-            target.hp = Math.min(target.maxHp, target.hp + hAmt);
-            this.log(`🦇 ${attacker.charName} は暗黒封印を解除し、${target.charName} に暗黒パワーを付与した！ HPが ${hAmt} 回復し、3ターンの間毎ターン開始時にHPがランダム回復する！`, 'text-purple-300 font-bold text-base');
-            audioSystem.playSpecial();
-            this.triggerEffect(this.getCharacterTeam(target) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
-            if (typeof triggerNewBattleCharacterEffect === 'function') {
-                triggerNewBattleCharacterEffect(target, 'heal', `+${hAmt}`);
-                triggerNewBattleCharacterEffect(target, 'buff', '暗黒パワー');
-            }
-            if (typeof this.triggerCutin === 'function') {
-                this.triggerCutin('🦇 暗黒封印解除！', `${target.charName} に暗黒パワー付与＆持続回復！`);
-            }
-            return;
-        }
-
-        if (skill.id === 'iwaba_rap') {
-            const teamList = (this.getCharacterTeam(attacker) === 'ally') ? this.allies : this.enemies;
-            if (teamList) {
-                teamList.forEach(a => {
-                    if (a.hp > 0) {
-                        a.buffDef *= 1.40;
-                        a.defendBuffTurns = 3;
-                        this.triggerEffect(this.getCharacterTeam(a) === 'ally' ? 'Player' : 'Enemy', 'buff', '防御UP!');
-                        triggerNewBattleCharacterEffect(a, 'buff', '防御UP!');
-                    }
-                });
-            } else {
-                attacker.buffDef *= 1.40;
-                attacker.defendBuffTurns = 3;
-            }
-            this.log(`🎤 ${attacker.charName} の【フリースタイル】！ 魂のラップで3ターンの間、味方全員の防御力が大幅に強化された！`, 'text-emerald-300 font-bold text-base');
-            audioSystem.playBuff();
-            if (typeof this.triggerCutin === 'function') {
-                this.triggerCutin('🎤 フリースタイル発動！', '魂のラップで味方全員の防御力大幅強化！');
-            }
-            return;
-        }
-
-        if (skill.id === 'iwaba_song') {
-            const target = defender || attacker;
-            target.tempEvadeNext = true;
-            this.log(`🎵 ${attacker.charName} の【ソウルソング】！ 魂の歌声が響き渡り、${target.charName} は次の相手からの攻撃を1回だけ完全に無効化するバリアを纏った！`, 'text-emerald-300 font-bold text-base');
-            audioSystem.playSpecial();
-            this.triggerEffect(this.getCharacterTeam(target) === 'ally' ? 'Player' : 'Enemy', 'buff', '無効化バリア');
-            triggerNewBattleCharacterEffect(target, 'buff', '無効化バリア[1回]');
-            if (typeof this.triggerCutin === 'function') {
-                this.triggerCutin('🎵 ソウルソング発動！', `${target.charName} に攻撃1回無効化バリア付与！`);
-            }
-            return;
-        }
-
-        if (skill.id === 'iwaba_bath') {
-            const teamList = (this.getCharacterTeam(attacker) === 'ally') ? this.allies : this.enemies;
-            if (teamList) {
-                teamList.forEach(a => {
-                    if (a.hp > 0) {
-                        const hAmt = Math.floor(a.maxHp * 0.20);
-                        a.hp = Math.min(a.maxHp, a.hp + hAmt);
-                        a.eva = Math.min(60, (a.eva || 10) + 10);
-                        this.triggerEffect(this.getCharacterTeam(a) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
-                        triggerNewBattleCharacterEffect(a, 'heal', `+${hAmt}`);
-                    }
-                });
-            } else {
-                const hAmt = Math.floor(attacker.maxHp * 0.20);
-                attacker.hp = Math.min(attacker.maxHp, attacker.hp + hAmt);
-                attacker.eva = Math.min(60, (attacker.eva || 10) + 10);
-            }
-            this.log(`♨️ ${attacker.charName} の【岩盤浴ブースト】！ 温まり効果で味方全員のHPが回復し回避率が上昇した！`, 'text-emerald-300 font-bold text-base');
-            audioSystem.playHeal();
-            if (typeof this.triggerCutin === 'function') {
-                this.triggerCutin('♨️ 岩盤浴ブースト！', '味方全員のHP回復 ＆ 回避率上昇！');
-            }
-            return;
-        }
-
-        if (skill.type === 'heal' || skill.type === 'heal_cleanse' || skill.type === 'heal_buff' || skill.id === 'courtney_aegu' || skill.type === 'courtney_aegu_skill' || skill.type === 'momo_chie_skill') {
-            const healRate = skill.healRate || 0.35;
-            const hAmt = Math.floor(attacker.maxHp * healRate);
-            attacker.hp = Math.min(attacker.maxHp, attacker.hp + hAmt);
-            this.log(`💚 ${attacker.charName} は HPを ${hAmt} 回復！`, 'text-emerald-400 font-bold');
-            this.triggerEffect(this.getCharacterTeam(attacker) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
-            audioSystem.playHeal();
-            if (skill.id === 'courtney_aegu' || skill.type === 'courtney_aegu_skill') {
-                attacker.tempEvadeNext = true;
-                this.triggerEffect(this.getCharacterTeam(attacker) === 'ally' ? 'Player' : 'Enemy', 'buff', '完全回避構え');
-            }
-            if (skill.type === 'heal_buff' || skill.type === 'momo_chie_skill') {
-                attacker.buffDef *= 1.35;
-                attacker.eva = Math.min(60, (attacker.eva || 10) + 15);
-                this.triggerEffect(this.getCharacterTeam(attacker) === 'ally' ? 'Player' : 'Enemy', 'buff', '回避・防御UP!');
-            }
-            return;
-        }
-
-        if (skill.targetType === 'all_enemies' || skill.id === 'ndaihyo_tactics' || skill.id === 'eggplant_burst') {
+        if (skill.targetType === 'all_enemies' || skill.id === 'ndaihyo_tactics' || skill.id === 'pasha_flash' || skill.id === 'eggplant_burst') {
             const targetTeam = (this.getCharacterTeam(attacker) === 'ally') ? this.enemies : this.allies;
             targetTeam.forEach(e => {
                 if (e.hp > 0) {
@@ -786,10 +628,10 @@ class Battle3v3Engine {
 
         if (defender.tempEvadeNext && !isStealth) {
             defender.tempEvadeNext = false;
-            this.log(`✨ ${defender.charName} は【ソウルソング】の無効化バリアにより、相手からの攻撃を1回完全に無効化した！`, 'text-emerald-300 font-bold text-base');
+            this.log(`✨ ${defender.charName} は「アエグ」等の効果により次の攻撃を完全に回避した！`, 'text-pink-300 font-bold');
             audioSystem.playEvade();
-            triggerNewBattleCharacterEffect(defender, 'miss', '完全無効化!');
-            this.triggerEffect(this.getCharacterTeam(defender) === 'ally' ? 'Player' : 'Enemy', 'miss', '完全無効化!');
+            triggerNewBattleCharacterEffect(defender, 'miss', '回避');
+            this.triggerEffect(this.getCharacterTeam(defender) === 'ally' ? 'Player' : 'Enemy', 'miss', '絶対回避!');
             return;
         }
 
@@ -814,27 +656,27 @@ class Battle3v3Engine {
             this.log(`🖤 ${attacker.charName} の「ステルスオブダーク」！ 相手の回避を完全に無視して命中！ 自身の回避率が 1% アップ（現在: ${attacker.eva}%）`, 'text-purple-300 font-bold');
         }
 
+        if (defender.id === 'asaiomizu' && defender.digActive) {
+            if (skill.type === 'attack' || skill.type === 'special' || skill.type === 'debuff_attack' || skill.type === 'eggplant_burst' || (skill.power && skill.power > 0)) {
+                defender.recordedSkill = { ...skill };
+                defender.digActive = false;
+                this.log(`${defender.charName} は相手の [${skill.name}] をコピーした！`, 'text-cyan-300 font-bold');
+                this.triggerEffect(this.isAlly(defender) ? 'Player' : 'Enemy', 'buff', 'スキルコピー成功！');
+                if (typeof triggerNewBattleCharacterEffect === 'function') {
+                    triggerNewBattleCharacterEffect(defender, 'buff', 'コピー成功！');
+                }
+            }
+        }
+
         let baseDmg = (attacker.atk * (skill.power || 1.0) * attacker.buffAtk) - (defender.def * 0.4 * defender.buffDef);
         let damage = Math.max(8, Math.floor(baseDmg + (Math.random() * 4 - 2)));
 
         let effectiveCritRate = (attacker.critRate || 0.05) + (attacker.critRateBonus || 0);
-        if (attacker.id === 'pasha' && attacker.pashaPassiveActive) {
-            effectiveCritRate += 0.15;
-        }
         if (Math.random() < effectiveCritRate) {
             damage = Math.floor(damage * 1.5);
             audioSystem.playCrit();
             this.log(`🔥✨ クリティカルヒット (${damage})！！`, 'text-yellow-300 font-bold');
             triggerNewBattleCharacterEffect(defender, 'crit', 'クリティカル！');
-        }
-
-        let extraHitTriggered = false;
-        if (attacker.id === 'iwaba' && skill.isNormalAttack) {
-            if (Math.random() < 0.2) {
-                extraHitTriggered = true;
-                let extraDmg = Math.floor(damage * 0.6);
-                damage += extraDmg;
-            }
         }
 
         defender.hp = Math.max(0, defender.hp - damage);
@@ -844,19 +686,7 @@ class Battle3v3Engine {
             triggerNewBattleCharacterEffect(defender, 'def', '防御');
             this.triggerEffect(side, 'def', '防御');
         }
-        triggerNewBattleCharacterEffect(defender, 'damage', `-${damage}`);
-        let damageLog = skill.isNormalAttack ? `⚔️ ${attacker.charName}の${skill.name}！ ${defender.charName} に ${damage} のダメージ！` : `⚔ ${defender.charName} に ${damage} のダメージ！`;
-        if (attacker.id === 'ndaihyo' && skill.isNormalAttack) {
-            damageLog = `N高代表 の【バッティング】！ ${defender.charName} に ${damage} のダメージ！`;
-        } else if (attacker.id === 'pasha' && skill.isNormalAttack) {
-            damageLog = `パシャ憎 の【睨みつける】！ ${defender.charName} に ${damage} のダメージ！`;
-        } else if (attacker.id === 'iwaba' && skill.isNormalAttack) {
-            damageLog = `岩盤星人 の【ブレイクダンス】！ ${defender.charName} に ${damage} のダメージ！`;
-        }
-        if (extraHitTriggered) {
-            this.log(`【連動発動！】 岩盤星人 のノリノリな連続ダンス攻撃がヒット！`, 'text-emerald-300 font-bold');
-        }
-        this.log(damageLog, 'text-red-400 font-bold');
+        this.log(`⚔ ${defender.charName} に ${damage} のダメージ！`, 'text-red-400 font-bold');
         this.triggerEffect(side, 'damage', `-${damage}`);
         audioSystem.playHit();
         triggerNewBattleShake(defender);
@@ -914,15 +744,11 @@ class Battle3v3Engine {
         this.turn++;
         const allFighters = [...this.allies, ...this.enemies];
         allFighters.forEach(p => {
+            if (p.tempEvadeNext) p.tempEvadeNext = false;
             Object.keys(p.cooldowns).forEach(key => {
                 if (p.cooldowns[key] > 0) p.cooldowns[key]--;
             });
-            if (p.defendBuffTurns > 0) {
-                p.defendBuffTurns--;
-                if (p.defendBuffTurns === 0) {
-                    p.buffDef = 1.0;
-                }
-            }
+            if (p.defendBuffTurns > 0) p.defendBuffTurns--;
             if (p.buffAtkTurns > 0) {
                 p.buffAtkTurns--;
                 if (p.buffAtkTurns === 0) p.buffAtk = 1.0;
@@ -945,15 +771,6 @@ class Battle3v3Engine {
 
     triggerEffect(side, type, text) {
         if (this.onVisualEffect) this.onVisualEffect(side, type, text);
-        let targetChar = null;
-        if (side === 'Player') {
-            targetChar = this.currentAttacker && this.getCharacterTeam(this.currentAttacker) === 'ally' ? this.currentAttacker : this.p1;
-        } else if (side === 'Enemy') {
-            targetChar = this.currentAttacker && this.getCharacterTeam(this.currentAttacker) === 'enemy' ? this.currentAttacker : (this.enemies && this.enemies[0] ? this.enemies[0] : null);
-        }
-        if (targetChar && typeof triggerNewBattleCharacterEffect === 'function') {
-            triggerNewBattleCharacterEffect(targetChar, type, text);
-        }
     }
 }
 
@@ -961,7 +778,7 @@ function selectNewBattleTarget(targetIdx, isAllySide) {
     if (!activeNewBattle) return;
     const skill = activeNewBattle.p1.skills.find(s => s.id === newBattleTargetSelectSkillId) || activeNewBattle.p1.skills.find(s => s.isNormalAttack);
     if (skill && skill.targetType === 'single_ally' && !isAllySide) return;
-    if (skill && (skill.targetType === 'single_enemy' || skill.id === 'pasha_flash') && isAllySide) return;
+    if (skill && skill.targetType === 'single_enemy' && isAllySide) return;
 
     activeNewBattle.p1TargetIndex = targetIdx;
     newBattleViewMode = 'main';
@@ -1167,13 +984,13 @@ function handleNewBattleEnd() {
     const p2 = activeNewBattle.p2;
 
     setTimeout(() => {
-        const existing = document.getElementById('battle-result-overlay');
-        if (existing) existing.remove();
+        const stage = document.getElementById('screen-container');
+        if (!stage) return;
 
         const livingAllies = activeNewBattle.allies.filter(a => a.hp > 0);
         if (livingAllies.length === 0) {
             audioSystem.playDefeat();
-            const html = `
+            stage.innerHTML += `
                 <div id="battle-result-overlay" class="fixed inset-0 bg-black/90 z-[9999] flex flex-col items-center justify-center p-4 sm:p-6 text-center opacity-0 transition-opacity duration-1000">
                     <div class="pixel-box-dark p-6 sm:p-8 bg-slate-950/95 border-red-500 shadow-2xl max-w-md w-full flex flex-col items-center">
                         <div class="text-4xl sm:text-6xl font-pixel font-black text-red-500 mb-3 animate-pulse">LOSE</div>
@@ -1184,14 +1001,13 @@ function handleNewBattleEnd() {
                     </div>
                 </div>
             `;
-            document.body.insertAdjacentHTML('beforeend', html);
             setTimeout(() => {
                 const overlay = document.getElementById('battle-result-overlay');
                 if (overlay) overlay.classList.remove('opacity-0');
             }, 50);
         } else {
             audioSystem.playVictory();
-            const html = `
+            stage.innerHTML += `
                 <div id="battle-result-overlay" class="fixed inset-0 bg-black/90 z-[9999] flex flex-col items-center justify-center p-4 sm:p-6 text-center animate-cutin">
                     <div class="pixel-box-gold p-6 sm:p-8 bg-amber-950/95 border-amber-400 shadow-2xl max-w-md w-full flex flex-col items-center">
                         <div class="text-4xl sm:text-6xl font-pixel font-black text-amber-300 mb-2 animate-bounce">WIN</div>
@@ -1202,7 +1018,6 @@ function handleNewBattleEnd() {
                     </div>
                 </div>
             `;
-            document.body.insertAdjacentHTML('beforeend', html);
         }
     }, 1000);
 }
@@ -1315,12 +1130,11 @@ function renderNewBattleScreen() {
         const skills = p1.skills.filter(s => !s.isNormalAttack);
         let skillsHtml = skills.map(s => {
             const cd = p1.cooldowns[s.id] || 0;
-            const isPashaRollLimit = (s.id === 'pasha_roll' && (p1.pashaRollUsedCount || 0) >= 2);
-            const disabled = cd > 0 || isPashaRollLimit;
+            const disabled = cd > 0;
             return `
                 <button onclick="${disabled ? '' : `executeNewBattleAction('${s.id}')`}" class="pixel-box bg-slate-900 border ${disabled ? 'border-slate-700 opacity-60 cursor-not-allowed' : 'border-emerald-400 hover:border-emerald-300 cursor-pointer'} p-3 text-left shadow flex flex-col justify-between w-full">
                     <div class="flex justify-between items-center w-full mb-1">
-                        <span class="font-pixel text-xs text-emerald-300 font-bold">${s.name} ${cd > 0 ? `(CT:${cd})` : ''} ${s.id === 'pasha_roll' ? `(残り使用: ${2 - (p1.pashaRollUsedCount || 0)}回)` : ''}</span>
+                        <span class="font-pixel text-xs text-emerald-300 font-bold">${s.name} ${cd > 0 ? `(CT:${cd})` : ''}</span>
                     </div>
                     <div class="text-[11px] text-slate-200 font-mono">${s.desc}</div>
                 </button>
@@ -1405,18 +1219,18 @@ function renderNewBattleScreen() {
                     ${enemies.map((c, posIdx) => {
                         const pct = Math.max(0, Math.min(100, Math.round((c.hp / c.maxHp) * 100)));
                         const img = getCharImg(c, false);
-                        const isSelectable = newBattleViewMode === 'target_select' && (newBattleTargetSelectType === 'single_enemy' || newBattleTargetSelectSkillId === 'pasha_flash') && c.hp > 0;
-                        const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${posIdx}, false)" style="cursor: pointer;"` : '';
+                        const isSelectable = newBattleViewMode === 'target_select' && newBattleTargetSelectType === 'single_enemy' && c.hp > 0;
+                        const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${posIdx}, false)"` : '';
                         return `
                             <div id="new-enemy-char-${posIdx}" ${clickableAttr} 
                                  data-char-team="enemy" data-char-idx="${posIdx}"
-                                 class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center w-24 h-32 relative ${c.hp <= 0 ? 'opacity-40 grayscale' : ''} ${isSelectable ? 'ring-4 ring-amber-400 animate-pulse bg-amber-950/40 rounded p-1' : ''}">
+                                 class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center w-24 h-32 relative ${c.hp <= 0 ? 'opacity-40 grayscale' : ''}">
                                 <div class="w-full bg-black/85 px-1 py-0.5 rounded border border-white/20 text-[8px] text-red-300">
                                     <span>${c.charName}</span>: <span class="font-mono">${c.hp}/${c.maxHp}</span>
                                     <div class="w-full bg-slate-900 h-1 rounded overflow-hidden"><div class="bg-red-500 h-full" style="width: ${pct}%;"></div></div>
                                 </div>
                                  <div id="new-enemy-img-${posIdx}" class="w-full flex-1 flex items-center justify-center ${c.isShaking ? 'char-shake' : ''}">
-                                     <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain pointer-events-none" style="transform: scaleX(-1);">
+                                     <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain" style="transform: scaleX(-1);">
                                  </div>
                             </div>
                         `;
@@ -1497,9 +1311,9 @@ function executeNewBattleAction(actionType) {
 
     isNewBattleSkillModalOpen = false;
     const skill = activeNewBattle.p1.skills.find(s => s.id === actionType);
-    if (skill && (skill.targetType === 'single_enemy' || skill.targetType === 'single_ally' || skill.id === 'pasha_flash')) {
+    if (skill && (skill.targetType === 'single_enemy' || skill.targetType === 'single_align')) {
         newBattleTargetSelectSkillId = actionType;
-        newBattleTargetSelectType = skill.targetType === 'single_ally' ? 'single_ally' : 'single_enemy';
+        newBattleTargetSelectType = skill.targetType;
         newBattleViewMode = 'target_select';
         renderNewBattleScreen();
         return;
@@ -1532,7 +1346,7 @@ function getNewBattleCharacterDOMElement(char) {
 
 function triggerNewBattleCharacterEffect(targetChar, type, text) {
     const targetEl = getNewBattleCharacterDOMElement(targetChar);
-    console.log("エフェクト実行 (battle-3v3.js):", { targetChar, type, text, targetEl });
+    console.log("回避/クリティカルエフェクト実行 (battle-3v3.js):", { targetChar, type, text, targetEl });
     if (!targetEl) return;
 
     const pop = document.createElement('div');
@@ -1547,12 +1361,6 @@ function triggerNewBattleCharacterEffect(targetChar, type, text) {
         color = 'text-yellow-300 text-xs sm:text-sm font-bold font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
     } else if (type === 'def' || type === 'defense') {
         color = 'text-blue-300 text-xs sm:text-sm font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
-    } else if (type === 'damage') {
-        color = 'text-red-400 text-sm sm:text-base font-bold font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
-    } else if (type === 'heal') {
-        color = 'text-emerald-400 text-sm sm:text-base font-bold font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
-    } else if (type === 'buff') {
-        color = 'text-amber-300 text-xs sm:text-sm font-bold font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
     }
 
     pop.classList.add(...color.split(' '));
@@ -1563,8 +1371,6 @@ function triggerNewBattleCharacterEffect(targetChar, type, text) {
     pop.style.left = `${rect.left + rect.width / 2}px`;
     if (type === 'miss' || type === 'crit' || type === 'def' || type === 'defense') {
         pop.style.top = `${rect.top + rect.height / 3}px`;
-    } else if (type === 'damage' || type === 'heal') {
-        pop.style.top = `${rect.top + rect.height / 4}px`;
     } else {
         pop.style.top = `${rect.top - 10}px`;
     }
@@ -1724,15 +1530,6 @@ function hideBattleCharTooltip() {
         tooltip.style.display = 'none';
     }
 }
-
-function triggerCameraFlashGlobalEffect() {
-    audioSystem.playSpecial();
-    const flashEl = document.createElement('div');
-    flashEl.className = 'fixed inset-0 bg-white animate-screen-flash z-[99999]';
-    document.body.appendChild(flashEl);
-    setTimeout(() => flashEl.remove(), 500);
-}
-window.triggerCameraFlashGlobalEffect = triggerCameraFlashGlobalEffect;
 
 window.showBattleCharTooltip = showBattleCharTooltip;
 window.hideBattleCharTooltip = hideBattleCharTooltip;
