@@ -1,3 +1,14 @@
+        @keyframes screen-flash {
+            0% { background-color: rgba(255, 255, 255, 0); }
+            30% { background-color: rgba(255, 255, 255, 0.9); }
+            100% { background-color: rgba(255, 255, 255, 0); }
+        }
+        .animate-screen-flash {
+            animation: screen-flash 0.5s ease-out forwards;
+            pointer-events: none;
+            z-index: 99999;
+        }
+
         /* 画像の長押し・保存・ドラッグ・選択の防止 */
         img, canvas, [style*="background-image"] {
             -webkit-touch-callout: none !important;
@@ -23,7 +34,6 @@
             }
         }
 
-        
         html, body {
             font-family: 'DotGothic16', monospace, sans-serif;
             background-color: #090a10;
@@ -34,14 +44,10 @@
             height: 100%;
             width: 100dvw;
             height: 100dvh;
-            min-height: 100dvh;
+            min-height: 100vh;
             margin: 0;
             padding: 0;
             touch-action: none;
-            padding-top: env(safe-area-inset-top);
-            padding-right: env(safe-area-inset-right);
-            padding-bottom: env(safe-area-inset-bottom);
-            padding-left: env(safe-area-inset-left);
             box-sizing: border-box;
         }
 
@@ -66,8 +72,9 @@
         #screen-container,
         #modal-body,
         #settings-slide-panel,
-        .overflow-y-auto {
-            touch-action: pan-y !important;
+        .overflow-y-auto,
+        .overflow-x-auto {
+            touch-action: pan-x pan-y !important;
             -webkit-overflow-scrolling: touch;
         }
 
@@ -268,16 +275,14 @@
 
         @media (orientation: landscape) {
             html, body {
-                padding-top: env(safe-area-inset-top) !important;
-                padding-right: env(safe-area-inset-right) !important;
-                padding-bottom: env(safe-area-inset-bottom) !important;
-                padding-left: env(safe-area-inset-left) !important;
                 margin: 0 !important;
+                padding: 0 !important;
                 width: 100% !important;
                 height: 100% !important;
                 width: 100dvw !important;
                 height: 100dvh !important;
-                min-height: 100dvh !important;
+                max-width: 100% !important;
+                max-height: 100% !important;
                 overflow: hidden !important;
                 touch-action: none !important;
                 box-sizing: border-box !important;
@@ -294,12 +299,16 @@
                 height: 100% !important;
                 width: 100dvw !important;
                 height: 100dvh !important;
+                max-width: 100% !important;
+                max-height: 100% !important;
                 display: flex !important;
                 flex-direction: column !important;
                 justify-content: space-between !important;
+                align-items: center !important;
                 overflow: hidden !important;
                 touch-action: none !important;
                 box-sizing: border-box !important;
+                margin: 0 !important;
             }
             #screen-container {
                 overflow: hidden !important;
@@ -309,11 +318,12 @@
                 flex: 1 !important;
                 display: flex !important;
                 flex-direction: column !important;
-                align-items: stretch !important;
-                justify-content: space-between !important;
+                align-items: center !important;
+                justify-content: center !important;
                 width: 100% !important;
                 max-width: 100% !important;
                 box-sizing: border-box !important;
+                margin: 0 auto !important;
             }
             #screen-container > div {
                 width: 100% !important;
@@ -325,6 +335,8 @@
                 display: flex !important;
                 flex-direction: column !important;
                 justify-content: space-between !important;
+                align-items: center !important;
+                margin: 0 auto !important;
             }
             .landscape-battle-container {
                 display: flex !important;
@@ -338,14 +350,19 @@
                 touch-action: none !important;
                 padding: 2px 4px !important;
                 box-sizing: border-box !important;
+                margin: 0 auto !important;
             }
             .landscape-battle-upper {
                 width: 100% !important;
                 max-width: 900px !important;
+                margin-left: auto !important;
+                margin-right: auto !important;
             }
             .landscape-battle-lower {
                 width: 100% !important;
                 max-width: 900px !important;
+                margin-left: auto !important;
+                margin-right: auto !important;
             }
         }
 
@@ -389,19 +406,28 @@
 
         #battle-result-overlay {
             position: fixed !important;
-            inset: 0 !important;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            width: 100dvw !important;
+            height: 100dvh !important;
             display: flex !important;
             flex-direction: column !important;
             align-items: center !important;
             justify-content: center !important;
             z-index: 9999 !important;
             box-sizing: border-box !important;
+            background-color: rgba(0, 0, 0, 0.9) !important;
         }
 
         @media (orientation: landscape) {
             #battle-result-overlay {
                 position: fixed !important;
-                inset: 0 !important;
+                top: 50% !important;
+                left: 50% !important;
+                transform: translate(-50%, -50%) !important;
+                width: 100dvw !important;
+                height: 100dvh !important;
                 display: flex !important;
                 flex-direction: column !important;
                 align-items: center !important;
@@ -410,8 +436,10 @@
                 box-sizing: border-box !important;
             }
             #battle-result-overlay > div {
-                max-height: 90dvh !important;
+                max-height: 85dvh !important;
+                max-width: 90vw !important;
                 overflow-y: auto !important;
+                margin: auto !important;
             }
         }
 
