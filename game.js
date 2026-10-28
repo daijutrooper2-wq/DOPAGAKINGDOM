@@ -2893,8 +2893,10 @@ pasha_dark: {
                         const opponents = this.enemies.filter(e => e.hp > 0);
                         if (opponents.length > 0) {
                             let defender = opponents[0];
-                            const skill = this.p1.skills.find(s => s.id === ally1Action) || this.p1.skills[0];
-                            const targetList = (skill.targetType === 'single_ally') ? this.allies.filter(a => a.hp > 0) : opponents;
+                            const skill = (ally1Action === 'asaiomizu_copied' && this.p1.recordedSkill) 
+                                ? { ...this.p1.recordedSkill, id: 'asaiomizu_copied', name: `📋【コピー】${this.p1.recordedSkill.name}` }
+                                : (this.p1.skills.find(s => s.id === ally1Action) || this.p1.skills[0]);
+                            const targetList = (skill.targetType === 'single_ally') ? this.allies.filter(a => a.hp > 0) : ((skill.targetType === 'self') ? [this.p1] : opponents);
                             if (this.p1TargetIndex !== null && targetList[this.p1TargetIndex]) {
                                 defender = targetList[this.p1TargetIndex];
                             } else if (targetList.length > 0) {
@@ -2924,7 +2926,12 @@ pasha_dark: {
                             const defaultOpponent = targetPool[0] || (isAllyTeam ? this.enemies[0] : this.allies[0]);
                             const skillId = this.botAdapter.getDecision(attacker, defaultOpponent);
 
-                            const opponents = isAllyTeam ? this.enemies.filter(e => e.hp > 0) : this.allies.filter(a => a.hp > 0);
+                            const skill = (skillId === 'asaiomizu_copied' && attacker.recordedSkill) 
+                                ? { ...attacker.recordedSkill, id: 'asaiomizu_copied', name: `📋【コピー】${attacker.recordedSkill.name}` }
+                                : (attacker.skills.find(s => s.id === skillId) || attacker.skills[0]);
+                            const teamListRec = isAllyTeam ? this.allies : this.enemies;
+                            const opposingTeam = isAllyTeam ? this.enemies : this.allies;
+                            const opponents = (skill.targetType === 'single_ally') ? teamListRec.filter(a => a.hp > 0) : ((skill.targetType === 'self') ? [attacker] : opposingTeam.filter(e => e.hp > 0));
                             if (opponents.length === 0) break;
                             let defender = opponents[Math.floor(Math.random() * opponents.length)];
 
@@ -4375,7 +4382,12 @@ case 'dopa_juggler_skill':
 
         function selectNewBattleTarget(targetIdx, isAllySide) {
             if (!activeNewBattle) return;
-            const skill = activeNewBattle.p1.skills.find(s => s.id === newBattleTargetSelectSkillId) || activeNewBattle.p1.skills.find(s => s.isNormalAttack);
+            let skill = null;
+            if (newBattleTargetSelectSkillId === 'asaiomizu_copied') {
+                skill = activeNewBattle.p1.recordedSkill ? { ...activeNewBattle.p1.recordedSkill, id: 'asaiomizu_copied' } : { id: 'asaiomizu_copied', targetType: 'single_enemy' };
+            } else {
+                skill = activeNewBattle.p1.skills.find(s => s.id === newBattleTargetSelectSkillId) || activeNewBattle.p1.skills.find(s => s.isNormalAttack);
+            }
             if (!skill) return;
 
             const isAllySkill = (skill.targetType === 'single_ally');
@@ -5259,7 +5271,9 @@ case 'dopa_juggler_skill':
 
             isNewBattleSkillModalOpen = false;
 
-            const skill = activeNewBattle.p1.skills.find(s => s.id === actionType) || (actionType === activeNewBattle.p1.skills.find(s => s.isNormalAttack)?.id ? activeNewBattle.p1.skills.find(s => s.isNormalAttack) : null);
+            const skill = (actionType === 'asaiomizu_copied' && activeNewBattle.p1.recordedSkill) 
+                ? activeNewBattle.p1.recordedSkill 
+                : (activeNewBattle.p1.skills.find(s => s.id === actionType) || (actionType === activeNewBattle.p1.skills.find(s => s.isNormalAttack)?.id ? activeNewBattle.p1.skills.find(s => s.isNormalAttack) : null));
             if (activeNewBattle.isNewBattle && skill && (skill.targetType === 'single_enemy' || skill.targetType === 'single_ally' || skill.id === 'pasha_flash')) {
                 newBattleTargetSelectSkillId = actionType;
                 newBattleTargetSelectType = skill.targetType === 'single_ally' ? 'single_ally' : 'single_enemy';

@@ -396,8 +396,10 @@ class Battle3v3Engine {
             const opponents = this.enemies.filter(e => e.hp > 0);
             if (opponents.length > 0) {
                 let defender = opponents[0];
-                const skill = this.p1.skills.find(s => s.id === ally1Action) || this.p1.skills[0];
-                const targetList = (skill.targetType === 'single_ally') ? this.allies.filter(a => a.hp > 0) : opponents;
+                const skill = (ally1Action === 'asaiomizu_copied' && this.p1.recordedSkill) 
+                    ? { ...this.p1.recordedSkill, id: 'asaiomizu_copied', name: `📋【コピー】${this.p1.recordedSkill.name}` }
+                    : (this.p1.skills.find(s => s.id === ally1Action) || this.p1.skills[0]);
+                const targetList = (skill.targetType === 'single_ally') ? this.allies.filter(a => a.hp > 0) : ((skill.targetType === 'self') ? [this.p1] : opponents);
                 if (this.p1TargetIndex !== null && targetList[this.p1TargetIndex]) {
                     defender = targetList[this.p1TargetIndex];
                 } else if (targetList.length > 0) {
@@ -426,10 +428,12 @@ class Battle3v3Engine {
                 const defaultOpponent = targetPool[0] || (isAllyTeam ? this.enemies[0] : this.allies[0]);
                 const skillId = this.botAdapter.getDecision(attacker, defaultOpponent);
 
-                const skill = attacker.skills.find(s => s.id === skillId) || attacker.skills[0];
+                const skill = (skillId === 'asaiomizu_copied' && attacker.recordedSkill) 
+                    ? { ...attacker.recordedSkill, id: 'asaiomizu_copied', name: `📋【コピー】${attacker.recordedSkill.name}` }
+                    : (attacker.skills.find(s => s.id === skillId) || attacker.skills[0]);
                 const teamList = isAllyTeam ? this.allies : this.enemies;
                 const opposingTeam = isAllyTeam ? this.enemies : this.allies;
-                const opponents = (skill.targetType === 'single_ally') ? teamList.filter(a => a.hp > 0) : opposingTeam.filter(e => e.hp > 0);
+                const opponents = (skill.targetType === 'single_ally') ? teamList.filter(a => a.hp > 0) : ((skill.targetType === 'self') ? [attacker] : opposingTeam.filter(e => e.hp > 0));
                 if (opponents.length === 0) break;
                 let defender = opponents[Math.floor(Math.random() * opponents.length)];
 
@@ -695,6 +699,34 @@ class Battle3v3Engine {
 
             const targetName = stunTarget ? stunTarget.charName : '敵';
             this.log(`${attacker.charName}はカメラフラッシュを放った！ 敵全体に小ダメージを与え、${targetName}を1ターンの間行動不能にした！`, 'text-yellow-300 font-bold');
+            return;
+        }
+
+        if (skill.type === 'asaiomizu_dig_skill' || skill.id === 'asaiomizu_dig') {
+            const dummyAttack = { name: '髪をかきあげる', type: 'attack', power: 1.15, isNormalAttack: true };
+            const isAllyDig = this.getCharacterTeam(attacker) === 'ally';
+            if (isAllyDig) {
+                this.applyDamageSkill(attacker, defender, dummyAttack);
+                attacker.digActive = true;
+                attacker.digUsedTurn = this.turn;
+                this.logTeam(attacker, `はディグを発動！（通常攻撃に偽装しつつ相手の攻撃を待ち構える）`, 'text-cyan-300 font-bold');
+                this.triggerEffect(this.isAlly(attacker) ? 'Player' : 'Enemy', 'buff', 'ディグ構え');
+            } else {
+                this.applyDamageSkill(attacker, defender, dummyAttack);
+                attacker.digActive = true;
+                attacker.digUsedTurn = this.turn;
+                this.logTeam(attacker, `の 「髪をかきあげる」！`, 'text-slate-200 font-bold');
+                this.triggerEffect(this.isAlly(attacker) ? 'Player' : 'Enemy', 'damage', 'ヒット');
+            }
+            return;
+        }
+
+        if (skill.type === 'asaiomizu_club_skill' || skill.id === 'asaiomizu_club') {
+            attacker.critRateBonus = (attacker.critRateBonus || 0) + 0.40;
+            attacker.asaiomizuCritTurns = 2;
+            this.log(`🎵 ${attacker.charName} は「クラブに行く」でアゲアゲに踊り狂う！2ターンの間、クリティカル率が大幅向上！`, 'text-cyan-300 font-bold');
+            this.triggerEffect(this.isAlly(attacker) ? 'Player' : 'Enemy', 'buff', 'クリティカル大幅UP!');
+            audioSystem.playBuff();
             return;
         }
 
@@ -1012,6 +1044,18 @@ class Battle3v3Engine {
             if (defender.tempEvadeNext) defender.tempEvadeNext = false;
             attacker.eva = Math.min(60, (attacker.eva || 10) + 1);
             this.log(`🖤 ${attacker.charName} の「ステルスオブダーク」！ 相手の回避を完全に無視して命中！ 自身の回避率が 1% アップ（現在: ${attacker.eva}%）`, 'text-purple-300 font-bold');
+        }
+
+        if (defender.id === 'asaiomizu' && defender.digActive) {
+            if (skill.type === 'attack' || skill.type === 'special' || skill.type === 'debuff_attack' || skill.type === 'eggplant_burst' || (skill.power && skill.power > 0)) {
+                defender.recordedSkill = { ...skill };
+                defender.digActive = false;
+                this.log(`${defender.charName} は相手の [${skill.name}] をコピーした！`, 'text-cyan-300 font-bold');
+                this.triggerEffect(this.isAlly(defender) ? 'Player' : 'Enemy', 'buff', 'スキルコピー成功！');
+                if (typeof triggerNewBattleCharacterEffect === 'function') {
+                    triggerNewBattleCharacterEffect(defender, 'buff', 'コピー成功！');
+                }
+            }
         }
 
         let baseDmg = (attacker.atk * (skill.power || 1.0) * attacker.buffAtk) - (defender.def * 0.4 * defender.buffDef);
