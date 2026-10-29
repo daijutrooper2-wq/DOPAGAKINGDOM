@@ -4965,7 +4965,7 @@ case 'dopa_juggler_skill':
                                     const img = getCharImg(c, false);
                                     const isLeader = origIdx === 0;
                                     const isTargetSelecting = (newBattleViewMode === 'target_select');
-                                    const isSelectable = isTargetSelecting && newBattleTargetSelectType === 'single_enemy' && c.hp > 0;
+                                     const isSelectable = isTargetSelecting && (newBattleTargetSelectType === 'single_enemy' || newBattleTargetSelectSkillId === 'asaiomizu_copied') && c.hp > 0;
                                     const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${origIdx}, false)"` : '';
                                     const isCurrentActor = currentActor === c;
 
@@ -5196,7 +5196,7 @@ case 'dopa_juggler_skill':
             } else {
                 skill = activeNewBattle.p1.skills.find(s => s.id === actionType) || (actionType === activeNewBattle.p1.skills.find(s => s.isNormalAttack)?.id ? activeNewBattle.p1.skills.find(s => s.isNormalAttack) : null);
             }
-            if (activeNewBattle.isNewBattle && skill && (skill.targetType === 'single_enemy' || skill.targetType === 'single_ally' || skill.id === 'pasha_flash')) {
+            if (activeNewBattle.isNewBattle && skill && (skill.targetType === 'single_enemy' || skill.targetType === 'single_ally' || skill.id === 'pasha_flash' || (!['self', 'all_enemies', 'all_allies'].includes(skill.targetType) && skill.type !== 'heal' && skill.type !== 'buff'))) {
                 newBattleTargetSelectSkillId = actionType;
                 newBattleTargetSelectType = skill.targetType === 'single_ally' ? 'single_ally' : 'single_enemy';
                 newBattleViewMode = 'target_select';
