@@ -2276,6 +2276,7 @@ pasha_dark: {
                 this.p1Action = null;
                 this.p2Action = null;
                 this.p1TargetIndex = null;
+                this.p1TargetChar = null;
 
                 this.botAdapter = isOnline ? null : new BotInputAdapter();
 
@@ -2893,7 +2894,11 @@ pasha_dark: {
                             const recordedRec = this.p1.recordedSkill || (this.allies ? this.allies.find(a => a.id === 'asaiomizu' && a.recordedSkill)?.recordedSkill : null);
                             const skill = (ally1Action === 'asaiomizu_copied' && recordedRec) ? { targetType: recordedRec.targetType || 'single_enemy', ...recordedRec } : (this.p1.skills.find(s => s.id === ally1Action) || this.p1.skills[0]);
                             const targetList = (skill.targetType === 'single_ally') ? this.allies.filter(a => a.hp > 0) : opponents;
-                            if (this.p1TargetIndex !== null && targetList[this.p1TargetIndex]) {
+                            if (this.p1TargetChar && this.p1TargetChar.hp > 0 && targetList.includes(this.p1TargetChar)) {
+                                defender = this.p1TargetChar;
+                            } else if (this.p1TargetIndex !== null && this.enemies[this.p1TargetIndex] && this.enemies[this.p1TargetIndex].hp > 0 && targetList.includes(this.enemies[this.p1TargetIndex])) {
+                                defender = this.enemies[this.p1TargetIndex];
+                            } else if (this.p1TargetIndex !== null && targetList[this.p1TargetIndex]) {
                                 defender = targetList[this.p1TargetIndex];
                             } else if (targetList.length > 0) {
                                 defender = targetList[Math.floor(Math.random() * targetList.length)];
@@ -3000,6 +3005,7 @@ pasha_dark: {
                 this.p1Action = null;
                 this.p2Action = null;
                 this.p1TargetIndex = null;
+                this.p1TargetChar = null;
                 this.waitingForOpponent = false;
 
                 if (this.onStateChange) this.onStateChange(this);
@@ -4316,6 +4322,7 @@ case 'dopa_juggler_skill':
             if ((tType === 'single_enemy' || newBattleTargetSelectSkillId === 'asaiomizu_copied') && isAllySide && tType !== 'single_ally') return;
 
             activeNewBattle.p1TargetIndex = targetIdx;
+            activeNewBattle.p1TargetChar = isAllySide ? activeNewBattle.allies[targetIdx] : activeNewBattle.enemies[targetIdx];
             newBattleViewMode = 'main';
             activeNewBattle.submitAction(1, newBattleTargetSelectSkillId);
             renderNewBattleScreen();

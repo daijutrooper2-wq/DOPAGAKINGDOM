@@ -52,6 +52,7 @@ class Battle3v3Engine {
         this.p1Action = null;
         this.p2Action = null;
         this.p1TargetIndex = null;
+        this.p1TargetChar = null;
 
         this.botAdapter = new BotInputAdapter();
 
@@ -363,7 +364,11 @@ class Battle3v3Engine {
                 const recordedRec = this.p1.recordedSkill || (this.allies ? this.allies.find(a => a.id === 'asaiomizu' && a.recordedSkill)?.recordedSkill : null);
                 const skill = (ally1Action === 'asaiomizu_copied' && recordedRec) ? { targetType: recordedRec.targetType || 'single_enemy', ...recordedRec } : (this.p1.skills.find(s => s.id === ally1Action) || this.p1.skills[0]);
                 const targetList = (skill.targetType === 'single_ally') ? this.allies.filter(a => a.hp > 0) : opponents;
-                if (this.p1TargetIndex !== null && targetList[this.p1TargetIndex]) {
+                if (this.p1TargetChar && this.p1TargetChar.hp > 0 && targetList.includes(this.p1TargetChar)) {
+                    defender = this.p1TargetChar;
+                } else if (this.p1TargetIndex !== null && this.enemies[this.p1TargetIndex] && this.enemies[this.p1TargetIndex].hp > 0 && targetList.includes(this.enemies[this.p1TargetIndex])) {
+                    defender = this.enemies[this.p1TargetIndex];
+                } else if (this.p1TargetIndex !== null && targetList[this.p1TargetIndex]) {
                     defender = targetList[this.p1TargetIndex];
                 } else if (targetList.length > 0) {
                     defender = targetList[Math.floor(Math.random() * targetList.length)];
@@ -417,6 +422,7 @@ class Battle3v3Engine {
         }
 
         this.p1TargetIndex = null;
+        this.p1TargetChar = null;
         this.endTurnPhase();
 
         this.currentAttacker = null;
@@ -424,6 +430,7 @@ class Battle3v3Engine {
         this.turnJustStarted = true;
         this.p1Action = null;
         this.p1TargetIndex = null;
+        this.p1TargetChar = null;
 
         if (this.onStateChange) this.onStateChange(this);
         if (!this.battleEnded) {
@@ -1021,6 +1028,7 @@ function selectNewBattleTarget(targetIdx, isAllySide) {
     if ((tType === 'single_enemy' || newBattleTargetSelectSkillId === 'asaiomizu_copied') && isAllySide && tType !== 'single_ally') return;
 
     activeNewBattle.p1TargetIndex = targetIdx;
+    activeNewBattle.p1TargetChar = isAllySide ? activeNewBattle.allies[targetIdx] : activeNewBattle.enemies[targetIdx];
     newBattleViewMode = 'main';
     activeNewBattle.submitAction(1, newBattleTargetSelectSkillId);
     renderNewBattleScreen();
@@ -1293,6 +1301,7 @@ function handleNewBattleContinueChoice(action) {
         activeNewBattle.waitingForChoice = false;
         activeNewBattle.p1Action = null;
         activeNewBattle.p1TargetIndex = null;
+        activeNewBattle.p1TargetChar = null;
 
         activeNewBattle.log(`🔄 ${activeNewBattle.p1.charName} に操作権が引き継がれた！`, 'text-amber-300 font-bold');
         audioSystem.playBuff();
