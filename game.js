@@ -3347,6 +3347,7 @@ pasha_dark: {
                     this.triggerCutin(`👑 王位継承発動！！`, `${chosenMaster.name}の力 × 4 ＝ ${inheritDmg} ダメージ！`);
                     
                     defender.hp = Math.max(0, defender.hp - inheritDmg);
+                    if (typeof triggerNewBattleShake === 'function') triggerNewBattleShake(defender);
     
                     this.log(`👑🔥 ドパガキングの「王位継承」発動！！ ${chosenMaster.name}の力を借りて ${defender.charName} に ${inheritDmg} の大ダメージを与えた！！`, 'text-amber-400 font-black text-base');
                     this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'damage', `-${inheritDmg}`);
@@ -3386,6 +3387,7 @@ case 'dopa_juggler_skill':
             // 0～50の完全ランダムダメージ
             const jugglerDmg = Math.floor(Math.random() * 51);
             defender.hp = Math.max(0, defender.hp - jugglerDmg);
+            if (typeof triggerNewBattleShake === 'function') triggerNewBattleShake(defender);
 
             this.log(`🃏 ドパガキングの「ジャグラー」！ 完全ランダムダメージ ⇒ ${defender.charName} に ${jugglerDmg} のダメージ！`, 'text-purple-300 font-bold');
             this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'damage', `-${jugglerDmg}`);
@@ -3411,6 +3413,7 @@ case 'dopa_juggler_skill':
             // 95%で自分に10ダメージ、5%で相手に1000ダメージ
             if (Math.random() < 0.05) {
                 defender.hp = Math.max(0, defender.hp - 1000);
+                if (typeof triggerNewBattleShake === 'function') triggerNewBattleShake(defender);
 
                 this.log(`✨⚡【神頼み 5%的中！！】 ${defender.charName} に 1000 の超絶ダメージ！！`, 'text-yellow-300 font-black font-pixel text-base');
                 this.triggerCutin('⚡ 神頼み 5%的中！！', '奇跡の1000ダメージ炸裂！');
@@ -3438,6 +3441,7 @@ case 'dopa_juggler_skill':
                         audioSystem.playSpecial();
                         this.triggerEffect(attacker === this.p1 ? 'Player' : 'Enemy', 'damage', `🔥 ${releaseDmg} DMG!`);
                         defender.hp = Math.max(0, defender.hp - releaseDmg);
+                        if (typeof triggerNewBattleShake === 'function') triggerNewBattleShake(defender);
         
                         this.log(`💖🔥 コートニーの 「FEEL SO HOT ///」解放！！ (溜め ${charges}回) ⇒ ${defender.charName} に ${releaseDmg} の爆発ダメージ！！`, 'text-pink-400 font-black text-base');
                         attacker.courtneyChargeCount = 0;
@@ -3445,6 +3449,7 @@ case 'dopa_juggler_skill':
                     case 'courtney_yoseru_skill':
                         let yoseruDmg = Math.max(8, Math.floor(attacker.atk * 0.9 - defender.def * 0.3));
                         defender.hp = Math.max(0, defender.hp - yoseruDmg);
+                        if (typeof triggerNewBattleShake === 'function') triggerNewBattleShake(defender);
                         defender.buffDef = 0.0;
         
                         this.log(`💋 ${attacker.charName} の「ヨセル」！ ${yoseruDmg} ダメージを与え、1ターンの間 ${defender.charName} の防御力を 0 にした！`, 'text-pink-300 font-bold');
@@ -3640,6 +3645,7 @@ case 'dopa_juggler_skill':
                     attacker.pashaKillerUsed = true;
                     const killerDamage = Math.max(1, Math.floor(defender.hp * 0.5));
                     defender.hp = Math.max(0, defender.hp - killerDamage);
+                    if (typeof triggerNewBattleShake === 'function') triggerNewBattleShake(defender);
                     const targetSide = defender === this.p1 ? 'Player' : 'Enemy';
 
                     this.log(`🎯💥【パシャ憎キラー発動！！】`, 'text-yellow-300 font-black font-pixel text-sm text-center');
@@ -3747,6 +3753,7 @@ case 'dopa_juggler_skill':
                 this.log(`${damageLog}${isCrit ? ' (🔥会心)' : ''}${this.isSuddenDeath ? ' (🔥サドンデスUP)' : ''}`, 'text-red-400 font-bold');
                 this.triggerEffect(side, 'damage', `-${damage}`);
                 audioSystem.playHit();
+                if (typeof triggerNewBattleShake === 'function') triggerNewBattleShake(defender);
                 if (this.checkActiveAllyStatus()) return;
 
                 if (defender.hp <= 0 && defender.id === 'momo' && !defender.momoRevived) {
