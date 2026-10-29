@@ -4642,6 +4642,7 @@ case 'dopa_juggler_skill':
                 activeNewBattle.waitingForChoice = false;
                 activeNewBattle.p1Action = null;
                 activeNewBattle.p1TargetIndex = null;
+                activeNewBattle.p1TargetChar = null;
 
                 activeNewBattle.log(`🔄 ${activeNewBattle.p1.charName} に操作権が引き継がれた！`, 'text-amber-300 font-bold');
                 if (activeNewBattle.onCutin) {
