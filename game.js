@@ -4330,6 +4330,9 @@ case 'dopa_juggler_skill':
 
         function renderNewBattleCharSelectScreen(sortOrder = 'default', sortDir = 'desc', onlyOwned = false) {
             audioSystem.playSelect();
+            const existingOverlay = document.getElementById('battle-result-overlay');
+            if (existingOverlay) existingOverlay.remove();
+
             const container = document.getElementById('screen-container');
             if (container) container.scrollTop = 0;
 
