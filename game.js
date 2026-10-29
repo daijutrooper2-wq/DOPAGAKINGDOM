@@ -2890,7 +2890,8 @@ pasha_dark: {
                         const opponents = this.enemies.filter(e => e.hp > 0);
                         if (opponents.length > 0) {
                             let defender = opponents[0];
-                            const skill = (ally1Action === 'asaiomizu_copied' && this.p1.recordedSkill) ? { targetType: this.p1.recordedSkill.targetType || 'single_enemy', ...this.p1.recordedSkill } : (this.p1.skills.find(s => s.id === ally1Action) || this.p1.skills[0]);
+                            const recordedRec = this.p1.recordedSkill || (this.allies ? this.allies.find(a => a.id === 'asaiomizu' && a.recordedSkill)?.recordedSkill : null);
+                            const skill = (ally1Action === 'asaiomizu_copied' && recordedRec) ? { targetType: recordedRec.targetType || 'single_enemy', ...recordedRec } : (this.p1.skills.find(s => s.id === ally1Action) || this.p1.skills[0]);
                             const targetList = (skill.targetType === 'single_ally') ? this.allies.filter(a => a.hp > 0) : opponents;
                             if (this.p1TargetIndex !== null && targetList[this.p1TargetIndex]) {
                                 defender = targetList[this.p1TargetIndex];
@@ -4303,14 +4304,16 @@ case 'dopa_juggler_skill':
         function selectNewBattleTarget(targetIdx, isAllySide) {
             if (!activeNewBattle) return;
             let skill = null;
-            if (newBattleTargetSelectSkillId === 'asaiomizu_copied' && activeNewBattle.p1.recordedSkill) {
-                const rec = activeNewBattle.p1.recordedSkill;
-                skill = { targetType: rec.targetType || 'single_enemy' };
+            const recordedRec = (activeNewBattle.p1 && activeNewBattle.p1.recordedSkill) || (activeNewBattle.allies ? activeNewBattle.allies.find(a => a.id === 'asaiomizu' && a.recordedSkill)?.recordedSkill : null);
+            if (newBattleTargetSelectSkillId === 'asaiomizu_copied' && recordedRec) {
+                const rec = recordedRec;
+                skill = { targetType: rec.targetType || 'single_enemy', ...rec };
             } else {
                 skill = activeNewBattle.p1.skills.find(s => s.id === newBattleTargetSelectSkillId) || activeNewBattle.p1.skills.find(s => s.isNormalAttack);
             }
-            if (skill && skill.targetType === 'single_ally' && !isAllySide) return;
-            if (skill && (skill.targetType === 'single_enemy' || skill.id === 'pasha_flash') && isAllySide) return;
+            const tType = skill ? (skill.targetType || 'single_enemy') : 'single_enemy';
+            if (tType === 'single_ally' && !isAllySide) return;
+            if ((tType === 'single_enemy' || newBattleTargetSelectSkillId === 'asaiomizu_copied') && isAllySide && tType !== 'single_ally') return;
 
             activeNewBattle.p1TargetIndex = targetIdx;
             newBattleViewMode = 'main';
@@ -4760,8 +4763,9 @@ case 'dopa_juggler_skill':
                         skills.push(s);
                     }
                 });
-                if (p1.id === 'asaiomizu' && p1.recordedSkill) {
-                    const rec = p1.recordedSkill;
+                const asaiomizuAlly = (p1.id === 'asaiomizu' && p1.recordedSkill) ? p1 : (activeNewBattle && activeNewBattle.allies ? activeNewBattle.allies.find(a => a.id === 'asaiomizu' && a.recordedSkill) : null);
+                if (asaiomizuAlly && asaiomizuAlly.recordedSkill) {
+                    const rec = asaiomizuAlly.recordedSkill;
                     skills.unshift({
                         id: 'asaiomizu_copied',
                         name: `📋【コピー】${rec.name}`,
@@ -5181,8 +5185,9 @@ case 'dopa_juggler_skill':
             isNewBattleSkillModalOpen = false;
 
             let skill = null;
-            if (actionType === 'asaiomizu_copied' && activeNewBattle.p1.recordedSkill) {
-                const rec = activeNewBattle.p1.recordedSkill;
+            const recordedRec = (activeNewBattle.p1 && activeNewBattle.p1.recordedSkill) || (activeNewBattle.allies ? activeNewBattle.allies.find(a => a.id === 'asaiomizu' && a.recordedSkill)?.recordedSkill : null);
+            if (actionType === 'asaiomizu_copied' && recordedRec) {
+                const rec = recordedRec;
                 skill = {
                     id: 'asaiomizu_copied',
                     name: `📋【コピー】${rec.name}`,
