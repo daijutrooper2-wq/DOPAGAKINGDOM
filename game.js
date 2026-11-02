@@ -3956,7 +3956,7 @@ case 'dopa_juggler_skill':
         }
 
         function getCharacterDOMElement(char) {
-            if (!activeNewBattle) {
+            if (!activeNewBattle || !char) {
                 if (activeBattle) {
                     if (char === activeBattle.p1) return document.getElementById('p1-canvas');
                     if (char === activeBattle.p2) return document.getElementById('p2-canvas');
@@ -3964,15 +3964,19 @@ case 'dopa_juggler_skill':
                 return document.getElementById('p1-canvas') || document.getElementById('screen-container');
             }
 
-            if (activeNewBattle.allies && activeNewBattle.allies.includes(char)) {
-                const idx = activeNewBattle.allies.indexOf(char);
-                const el = document.getElementById(`ally-char-${idx}`);
-                if (el) return el;
+            if (activeNewBattle.allies) {
+                const idx = activeNewBattle.allies.findIndex(a => a === char || (a && char && a.id === char.id));
+                if (idx !== -1) {
+                    const el = document.getElementById(`ally-char-${idx}`);
+                    if (el) return el;
+                }
             }
-            if (activeNewBattle.enemies && activeNewBattle.enemies.includes(char)) {
-                const idx = activeNewBattle.enemies.indexOf(char);
-                const el = document.getElementById(`enemy-char-${idx}`);
-                if (el) return el;
+            if (activeNewBattle.enemies) {
+                const idx = activeNewBattle.enemies.findIndex(e => e === char || (e && char && e.id === char.id));
+                if (idx !== -1) {
+                    const el = document.getElementById(`enemy-char-${idx}`);
+                    if (el) return el;
+                }
             }
 
             return document.getElementById('screen-container');
