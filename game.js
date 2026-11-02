@@ -3161,6 +3161,9 @@ pasha_dark: {
                             const hAmt = Math.floor(a.maxHp * healRate);
                             a.hp = Math.min(a.maxHp, a.hp + hAmt);
                             this.triggerEffect(this.getCharacterTeam(a) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
+                            if (typeof triggerNewBattleCharacterEffect === 'function') {
+                                triggerNewBattleCharacterEffect(a, 'heal', `+${hAmt}`);
+                            }
                         }
                     });
                     const targetAlly = (defender && this.getCharacterTeam(defender) === this.getCharacterTeam(attacker) && defender.hp > 0) ? defender : attacker;
