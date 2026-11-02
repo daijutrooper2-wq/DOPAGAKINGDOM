@@ -3955,6 +3955,20 @@ case 'dopa_juggler_skill':
             }
         }
 
+        
+        function getCharacterShakeElement(char) {
+            if (!activeNewBattle || !char) return null;
+            if (activeNewBattle.allies) {
+                const idx = activeNewBattle.allies.findIndex(a => a === char || (a && char && a.id === char.id));
+                if (idx !== -1) return document.getElementById(`ally-shake-${idx}`);
+            }
+            if (activeNewBattle.enemies) {
+                const idx = activeNewBattle.enemies.findIndex(e => e === char || (e && char && e.id === char.id));
+                if (idx !== -1) return document.getElementById(`enemy-shake-${idx}`);
+            }
+            return null;
+        }
+
         function getCharacterDOMElement(char) {
             if (!activeNewBattle || !char) {
                 if (activeBattle) {
@@ -4958,8 +4972,8 @@ case 'dopa_juggler_skill':
                                                      </div>
                                                  </div>
 
-                                               <!-- 全身スプライト（四角い枠線なし・背景直接配置） -->
-                                               <div class="w-full flex-1 flex items-center justify-center relative drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)] ${c.isShaking ? 'char-shake' : ''}">
+                                                <!-- 全身スプライト（四角い枠線なし・背景直接配置） -->
+                                                <div id="ally-shake-${origIdx}" class="w-full flex-1 flex items-center justify-center relative drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)]">
                                                    <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain">
                                                    ${isLeader && posIdx === 0 ? '<div class="absolute bottom-0 right-0 bg-emerald-600 text-white px-1.5 py-0.5 rounded text-[8px] font-pixel shadow">LEADER</div>' : ''}
                                                    <!-- スタンプ風バッジ（左下あたり） -->
@@ -5033,7 +5047,7 @@ case 'dopa_juggler_skill':
                                                 </div>
 
                                               <!-- 全身スプライト（四角い枠線なし・背景直接配置） -->
-                                              <div class="w-full flex-1 flex items-center justify-center relative drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)]">
+                                              <div id="enemy-shake-${origIdx}" class="w-full flex-1 flex items-center justify-center relative drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)]">
                                                   <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain" style="${flipStyle}">
                                                   ${isLeader && posIdx === 0 ? '<div class="absolute bottom-0 left-0 bg-red-600 text-white px-1.5 py-0.5 rounded text-[8px] font-pixel shadow">BOSS</div>' : ''}
                                                   <!-- スタンプ風バッジ（左下あたり） -->

@@ -1699,7 +1699,7 @@ function getNewBattleCharacterKey(char) {
 
 function triggerNewBattleShake(targetChar) {
     if (!targetChar) return;
-    const el = typeof getCharacterDOMElement === 'function' ? getCharacterDOMElement(targetChar) : null;
+    const el = typeof getCharacterShakeElement === 'function' ? getCharacterShakeElement(targetChar) : null;
     if (el) {
         el.classList.remove('char-shake');
         void el.offsetWidth;
