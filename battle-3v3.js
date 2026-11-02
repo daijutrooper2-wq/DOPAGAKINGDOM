@@ -533,15 +533,20 @@ class Battle3v3Engine {
                     triggerNewBattleCharacterEffect(a, 'heal', `+${hAmt}`);
                 }
             });
-            if (defender) {
-                defender.buffAtk = Math.max(1.0, defender.buffAtk);
-                defender.buffDef = Math.max(1.0, defender.buffDef);
-                defender.buffAtkTurns = 0;
-                this.triggerEffect(this.getCharacterTeam(defender) === 'ally' ? 'Player' : 'Enemy', 'buff', 'デバフ解除');
-                triggerNewBattleCharacterEffect(defender, 'buff', 'クレンズ');
+            const targetAlly = (defender && this.getCharacterTeam(defender) === this.getCharacterTeam(attacker) && defender.hp > 0) ? defender : attacker;
+            const hadDebuff = (targetAlly.buffAtk < 1.0) || (targetAlly.buffDef < 1.0) || ((targetAlly.stunTurns || 0) > 0);
+            targetAlly.buffAtk = Math.max(1.0, targetAlly.buffAtk);
+            targetAlly.buffDef = Math.max(1.0, targetAlly.buffDef);
+            targetAlly.buffAtkTurns = 0;
+            targetAlly.stunTurns = 0;
+            this.triggerEffect(this.getCharacterTeam(targetAlly) === 'ally' ? 'Player' : 'Enemy', 'buff', 'デバフ解除');
+            triggerNewBattleCharacterEffect(targetAlly, 'buff', 'クレンズ');
+            const targetName = targetAlly.charName;
+            if (hadDebuff) {
+                this.log(`N高代表 は消しゴム回復を使用した！ 味方全体のHPが回復し、${targetName}のデバフが完全に解除された！`, 'text-emerald-400 font-bold');
+            } else {
+                this.log(`N高代表 は消しゴム回復を使用した！ 味方全体のHPが回復し、${targetName}のデバフ解除を行った（対象にデバフなし）`, 'text-emerald-400 font-bold');
             }
-            const targetName = defender ? defender.charName : '味方';
-            this.log(`N高代表 は消しゴム回復を使用した！ 味方全体のHPが回復し、${targetName}のデバフが解除された！`, 'text-emerald-400 font-bold');
             audioSystem.playHeal();
             return;
         }
