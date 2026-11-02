@@ -1690,10 +1690,10 @@ window.triggerNewBattleShake = triggerNewBattleShake;
 
 function getNewBattleCharacterKey(char) {
     if (!activeNewBattle || !char) return null;
-    const allyIdx = activeNewBattle.allies.findIndex(a => a === char || (a && char && a.id === char.id && a.name === char.name));
-    if (allyIdx !== -1) return `ally_${allyIdx}`;
-    const enemyIdx = activeNewBattle.enemies.findIndex(e => e === char || (e && char && e.id === char.id && e.name === char.name));
+    const enemyIdx = activeNewBattle.enemies.findIndex(e => e === char);
     if (enemyIdx !== -1) return `enemy_${enemyIdx}`;
+    const allyIdx = activeNewBattle.allies.findIndex(a => a === char);
+    if (allyIdx !== -1) return `ally_${allyIdx}`;
     return null;
 }
 

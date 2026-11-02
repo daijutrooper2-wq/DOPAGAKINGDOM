@@ -3958,13 +3958,13 @@ case 'dopa_juggler_skill':
         
         function getCharacterShakeElement(char) {
             if (!activeNewBattle || !char) return null;
-            if (activeNewBattle.allies) {
-                const idx = activeNewBattle.allies.findIndex(a => a === char || (a && char && a.id === char.id));
-                if (idx !== -1) return document.getElementById(`ally-shake-${idx}`);
-            }
             if (activeNewBattle.enemies) {
-                const idx = activeNewBattle.enemies.findIndex(e => e === char || (e && char && e.id === char.id));
-                if (idx !== -1) return document.getElementById(`enemy-shake-${idx}`);
+                const idx = activeNewBattle.enemies.findIndex(e => e === char);
+                if (idx !== -1) return document.getElementById(`enemy-shake-${idx}`) || document.getElementById(`new-enemy-char-${idx}`);
+            }
+            if (activeNewBattle.allies) {
+                const idx = activeNewBattle.allies.findIndex(a => a === char);
+                if (idx !== -1) return document.getElementById(`ally-shake-${idx}`) || document.getElementById(`new-ally-char-${idx}`);
             }
             return null;
         }
@@ -3978,17 +3978,17 @@ case 'dopa_juggler_skill':
                 return document.getElementById('p1-canvas') || document.getElementById('screen-container');
             }
 
-            if (activeNewBattle.allies) {
-                const idx = activeNewBattle.allies.findIndex(a => a === char || (a && char && a.id === char.id));
+            if (activeNewBattle.enemies) {
+                const idx = activeNewBattle.enemies.findIndex(e => e === char);
                 if (idx !== -1) {
-                    const el = document.getElementById(`ally-char-${idx}`);
+                    const el = document.getElementById(`enemy-char-${idx}`) || document.getElementById(`new-enemy-char-${idx}`);
                     if (el) return el;
                 }
             }
-            if (activeNewBattle.enemies) {
-                const idx = activeNewBattle.enemies.findIndex(e => e === char || (e && char && e.id === char.id));
+            if (activeNewBattle.allies) {
+                const idx = activeNewBattle.allies.findIndex(a => a === char);
                 if (idx !== -1) {
-                    const el = document.getElementById(`enemy-char-${idx}`);
+                    const el = document.getElementById(`ally-char-${idx}`) || document.getElementById(`new-ally-char-${idx}`);
                     if (el) return el;
                 }
             }
