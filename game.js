@@ -3101,10 +3101,10 @@ pasha_dark: {
                         name: `📋【コピー】${rec.name}`,
                         type: rec.type || 'attack',
                         power: rec.power || 1.0,
-                        targetType: rec.targetType || 'single_enemy',
                         isNormalAttack: false,
                         cooldown: 0,
-                        ...rec
+                        ...rec,
+                        targetType: 'single_enemy'
                     };
                 } else {
                     skill = attacker.skills.find(s => s.id === skillId);
@@ -3362,7 +3362,7 @@ pasha_dark: {
 
                 if (defender.id === 'asaiomizu' && defender.digActive && defender.digUsedTurn === this.turn) {
                     if (skill.type === 'attack' || skill.type === 'special' || skill.type === 'debuff_attack' || skill.type === 'eggplant_burst' || (skill.power && skill.power > 0)) {
-                        defender.recordedSkill = { ...skill };
+                        defender.recordedSkill = { ...skill, targetType: 'single_enemy' };
                         defender.digActive = false;
                         this.log(`${defender.charName} は受けていた相手の攻撃技 [${skill.name}] を内部保存した！`, 'text-cyan-300 font-bold');
                         this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'buff', 'スキルコピー成功！');
@@ -5229,10 +5229,10 @@ case 'dopa_juggler_skill':
                     name: `📋【コピー】${rec.name}`,
                     type: rec.type || 'attack',
                     power: rec.power || 1.0,
-                    targetType: rec.targetType || 'single_enemy',
                     isNormalAttack: false,
                     cooldown: 0,
-                    ...rec
+                    ...rec,
+                    targetType: 'single_enemy'
                 };
             } else {
                 skill = activeNewBattle.p1.skills.find(s => s.id === actionType) || (actionType === activeNewBattle.p1.skills.find(s => s.isNormalAttack)?.id ? activeNewBattle.p1.skills.find(s => s.isNormalAttack) : null);

@@ -483,10 +483,10 @@ class Battle3v3Engine {
                 name: `📋【コピー】${rec.name}`,
                 type: rec.type || 'attack',
                 power: rec.power || 1.0,
-                targetType: rec.targetType || 'single_enemy',
                 isNormalAttack: false,
                 cooldown: 0,
-                ...rec
+                ...rec,
+                targetType: 'single_enemy'
             };
         } else {
             skill = attacker.skills.find(s => s.id === skillId);
@@ -827,7 +827,7 @@ class Battle3v3Engine {
     applyDamageSkill(attacker, defender, skill, isCounter = false) {
         if (defender.id === 'asaiomizu' && defender.digActive && defender.digUsedTurn === this.turn) {
             if (skill.type === 'attack' || skill.type === 'special' || skill.type === 'debuff_attack' || skill.type === 'eggplant_burst' || (skill.power && skill.power > 0)) {
-                defender.recordedSkill = { ...skill };
+                defender.recordedSkill = { ...skill, targetType: 'single_enemy' };
                 defender.digActive = false;
                 this.log(`${defender.charName} は受けていた相手の攻撃技 [${skill.name}] を内部保存した！`, 'text-cyan-300 font-bold');
                 this.triggerEffect(this.getCharacterTeam(defender) === 'ally' ? 'Player' : 'Enemy', 'buff', 'スキルコピー成功！');
