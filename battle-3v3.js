@@ -1699,15 +1699,21 @@ function getNewBattleCharacterKey(char) {
 
 function triggerNewBattleShake(targetChar) {
     if (!targetChar) return;
-    const el = typeof getCharacterShakeElement === 'function' ? getCharacterShakeElement(targetChar) : null;
-    if (el) {
-        el.classList.remove('char-shake');
-        void el.offsetWidth;
-        el.classList.add('char-shake');
-        setTimeout(() => {
-            el.classList.remove('char-shake');
-        }, 350);
+    targetChar.isShaking = true;
+    if (activeNewBattle && activeNewBattle.onStateChange) {
+        activeNewBattle.onStateChange(activeNewBattle);
+    } else if (typeof renderNewBattleScreen === 'function') {
+        renderNewBattleScreen();
     }
+
+    setTimeout(() => {
+        targetChar.isShaking = false;
+        if (activeNewBattle && activeNewBattle.onStateChange) {
+            activeNewBattle.onStateChange(activeNewBattle);
+        } else if (typeof renderNewBattleScreen === 'function') {
+            renderNewBattleScreen();
+        }
+    }, 350);
 }
 
 let battleTooltipTimer = null;
