@@ -908,7 +908,7 @@ class Battle3v3Engine {
             triggerNewBattleCharacterEffect(defender, 'def', '防御');
             this.triggerEffect(side, 'def', '防御');
         }
-        triggerNewBattleCharacterEffect(defender, 'damage', `-${damage}`);
+        triggerNewBattleCharacterEffect(defender, isCounter ? 'counter_damage' : 'damage', `-${damage}`);
         let damageLog = skill.isNormalAttack ? `⚔️ ${attacker.charName}の${skill.name}！ ${defender.charName} に ${damage} のダメージ！` : `⚔ ${defender.charName} に ${damage} のダメージ！`;
         if (attacker.id === 'ndaihyo' && skill.isNormalAttack) {
             damageLog = `N高代表 の【バッティング】！ ${defender.charName} に ${damage} のダメージ！`;
@@ -921,7 +921,7 @@ class Battle3v3Engine {
             this.log(`【連動発動！】 岩盤星人 のノリノリな連続ダンス攻撃がヒット！`, 'text-emerald-300 font-bold');
         }
         this.log(damageLog, 'text-red-400 font-bold');
-        this.triggerEffect(side, 'damage', `-${damage}`);
+        this.triggerEffect(side, isCounter ? 'counter_damage' : 'damage', `-${damage}`);
         audioSystem.playHit();
         triggerNewBattleShake(defender);
 
@@ -935,7 +935,7 @@ class Battle3v3Engine {
     executeCounter(defender, attacker) {
         if (defender.hp <= 0) return;
         this.log(`⚡ ${defender.charName}のカウンター発動！ ${attacker.charName} に少量ダメージを与えた！`, 'text-cyan-300 font-bold');
-        triggerNewBattleCharacterEffect(defender, 'buff', 'カウンター');
+        triggerNewBattleCharacterEffect(defender, 'counter', 'カウンター');
         const counterSkill = defender.skills.find(s => s.isNormalAttack) || defender.skills[0];
         this.applyDamageSkill(defender, attacker, counterSkill, true);
     }
@@ -1667,6 +1667,10 @@ function triggerNewBattleCharacterEffect(targetChar, type, text) {
         color = 'text-emerald-400 text-sm sm:text-base font-bold font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
     } else if (type === 'buff') {
         color = 'text-amber-300 text-xs sm:text-sm font-bold font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
+    } else if (type === 'counter') {
+        color = 'text-cyan-300 text-xs sm:text-sm font-bold font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
+    } else if (type === 'counter_damage') {
+        color = 'text-cyan-400 text-sm sm:text-base font-bold font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
     }
 
     pop.classList.add(...color.split(' '));

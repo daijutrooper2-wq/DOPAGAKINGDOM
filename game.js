@@ -3762,7 +3762,7 @@ case 'dopa_juggler_skill':
                     triggerCharacterEffect(defender, 'def', '防御');
                     this.triggerEffect(side, 'def', '防御');
                 }
-                triggerCharacterEffect(defender, 'damage', `-${damage}`);
+                triggerCharacterEffect(defender, isCounter ? 'counter_damage' : 'damage', `-${damage}`);
                 let damageLog = `⚔ ${defender.charName} に ${damage} のダメージ！`;
                 if (attacker.id === 'ndaihyo' && skill.isNormalAttack) {
                     damageLog = `N高代表 の【バッティング】！ ${defender.charName} に ${damage} のダメージ！`;
@@ -3775,7 +3775,7 @@ case 'dopa_juggler_skill':
                     this.log(`【連動発動！】 岩盤星人 のノリノリな連続ダンス攻撃がヒット！`, 'text-emerald-300 font-bold');
                 }
                 this.log(`${damageLog}${isCrit ? ' (🔥会心)' : ''}${this.isSuddenDeath ? ' (🔥サドンデスUP)' : ''}`, 'text-red-400 font-bold');
-                this.triggerEffect(side, 'damage', `-${damage}`);
+                this.triggerEffect(side, isCounter ? 'counter_damage' : 'damage', `-${damage}`);
                 audioSystem.playHit();
                 if (typeof triggerNewBattleShake === 'function') triggerNewBattleShake(defender);
                 if (this.checkActiveAllyStatus()) return;
@@ -3798,7 +3798,7 @@ case 'dopa_juggler_skill':
             executeCounter(defender, attacker) {
                 if (defender.hp <= 0) return;
                 this.log(`⚡ ${defender.charName}のカウンター発動！ ${attacker.charName} に少量ダメージを与えた！`, 'text-cyan-300 font-bold');
-                triggerCharacterEffect(defender, 'buff', 'カウンター');
+                triggerCharacterEffect(defender, 'counter', 'カウンター');
                 const counterSkill = defender.skills.find(s => s.isNormalAttack) || defender.skills[0];
                 this.applyDamageSkill(defender, attacker, counterSkill, true);
             }
@@ -4037,6 +4037,10 @@ case 'dopa_juggler_skill':
                 color = 'text-emerald-400 text-base sm:text-lg drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
             } else if (type === 'buff') {
                 color = 'text-amber-300 text-base sm:text-lg drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
+            } else if (type === 'counter') {
+                color = 'text-cyan-300 text-xs sm:text-sm font-bold font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
+            } else if (type === 'counter_damage') {
+                color = 'text-cyan-400 text-base sm:text-lg drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
             } else if (type === 'miss') {
                 color = 'text-sky-300 text-xs sm:text-sm font-pixel drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]';
             } else if (type === 'crit') {
