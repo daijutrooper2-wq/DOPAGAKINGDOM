@@ -4970,19 +4970,19 @@ case 'dopa_juggler_skill':
 
                                       let posClasses = '';
                                       let sizeClasses = '';
-                                      if (posIdx === 0) {
-                                          // 先頭（一番手前・中央）へシャッフル＆前面強調（少し下へずらして後ろの仲間との重なりを防止）
-                                          posClasses = 'absolute left-1/2 -translate-x-1/2 top-[62%] -translate-y-1/2 z-30 scale-110';
-                                          sizeClasses = 'w-24 h-32 sm:w-30 sm:h-40 md:w-36 md:h-48';
-                                      } else if (posIdx === 1) {
-                                          // 2番目（左側密着・少し下＆サイズアップ）
-                                          posClasses = 'absolute left-1 sm:left-4 md:left-8 top-[48%] -translate-y-1/2 z-25 opacity-95 scale-105';
-                                          sizeClasses = 'w-20 h-28 sm:w-24 sm:h-34 md:w-28 md:h-38';
-                                      } else {
-                                          // 3番目（右側密着・少し下＆サイズアップ）
-                                          posClasses = 'absolute right-1 sm:right-4 md:right-8 top-[48%] -translate-y-1/2 z-25 opacity-95 scale-105';
-                                          sizeClasses = 'w-20 h-28 sm:w-24 sm:h-34 md:w-28 md:h-38';
-                                      }
+                                       if (posIdx === 0) {
+                                           // 先頭（一番手前・中央）へシャッフル＆前面強調（少し下へずらして後ろの仲間との重なりを防止）
+                                           posClasses = 'absolute left-1/2 -translate-x-1/2 top-[62%] -translate-y-1/2 z-30 scale-110';
+                                           sizeClasses = 'w-24 h-32 sm:w-30 sm:h-40 md:w-36 md:h-48';
+                                       } else if (posIdx === 1) {
+                                           // 2番目（左側密着・少し下＆サイズアップ）
+                                           posClasses = 'absolute left-1 sm:left-4 md:left-8 top-[48%] -translate-y-1/2 z-35 opacity-95 scale-105';
+                                           sizeClasses = 'w-20 h-28 sm:w-24 sm:h-34 md:w-28 md:h-38';
+                                       } else {
+                                           // 3番目（右側密着・少し下＆サイズアップ）
+                                           posClasses = 'absolute right-1 sm:right-4 md:right-8 top-[48%] -translate-y-1/2 z-35 opacity-95 scale-105';
+                                           sizeClasses = 'w-20 h-28 sm:w-24 sm:h-34 md:w-28 md:h-38';
+                                       }
 
                                        const interactiveStyle = isSelectable ? 'cursor-pointer ring-4 ring-amber-400 bg-amber-950/40 rounded-xl' : '';
                                        const deadStyle = c.hp <= 0 ? 'opacity-40 grayscale' : '';
@@ -5046,16 +5046,16 @@ case 'dopa_juggler_skill':
 
                                       let posClasses = '';
                                       let sizeClasses = '';
-                                      if (posIdx === 0) {
-                                          posClasses = 'absolute left-1/2 -translate-x-1/2 top-[62%] -translate-y-1/2 z-30 scale-110';
-                                          sizeClasses = 'w-24 h-32 sm:w-30 sm:h-40 md:w-36 md:h-48';
-                                      } else if (posIdx === 1) {
-                                          posClasses = 'absolute right-1 sm:right-4 md:right-8 top-[48%] -translate-y-1/2 z-25 opacity-95 scale-105';
-                                          sizeClasses = 'w-20 h-28 sm:w-24 sm:h-34 md:w-28 md:h-38';
-                                      } else {
-                                          posClasses = 'absolute left-1 sm:left-4 md:left-8 top-[48%] -translate-y-1/2 z-25 opacity-95 scale-105';
-                                          sizeClasses = 'w-20 h-28 sm:w-24 sm:h-34 md:w-28 md:h-38';
-                                      }
+                                       if (posIdx === 0) {
+                                           posClasses = 'absolute left-1/2 -translate-x-1/2 top-[62%] -translate-y-1/2 z-30 scale-110';
+                                           sizeClasses = 'w-24 h-32 sm:w-30 sm:h-40 md:w-36 md:h-48';
+                                       } else if (posIdx === 1) {
+                                           posClasses = 'absolute right-1 sm:right-4 md:right-8 top-[48%] -translate-y-1/2 z-35 opacity-95 scale-105';
+                                           sizeClasses = 'w-20 h-28 sm:w-24 sm:h-34 md:w-28 md:h-38';
+                                       } else {
+                                           posClasses = 'absolute left-1 sm:left-4 md:left-8 top-[48%] -translate-y-1/2 z-35 opacity-95 scale-105';
+                                           sizeClasses = 'w-20 h-28 sm:w-24 sm:h-34 md:w-28 md:h-38';
+                                       }
 
                                       const interactiveStyle = isSelectable ? 'cursor-pointer ring-4 ring-amber-400 bg-amber-950/40 rounded-xl' : '';
                                       const deadStyle = c.hp <= 0 ? 'opacity-40 grayscale' : '';
