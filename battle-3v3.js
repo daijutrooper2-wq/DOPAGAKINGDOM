@@ -529,8 +529,11 @@ class Battle3v3Engine {
                 if (a.hp > 0) {
                     const hAmt = Math.floor(a.maxHp * healRate);
                     a.hp = Math.min(a.maxHp, a.hp + hAmt);
-                    this.triggerEffect(this.getCharacterTeam(a) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
-                    triggerNewBattleCharacterEffect(a, 'heal', `+${hAmt}`);
+                    if (typeof triggerNewBattleCharacterEffect === 'function') {
+                        triggerNewBattleCharacterEffect(a, 'heal', `+${hAmt}`);
+                    } else if (typeof triggerCharacterEffect === 'function') {
+                        triggerCharacterEffect(a, 'heal', `+${hAmt}`);
+                    }
                 }
             });
             const targetAlly = (defender && this.getCharacterTeam(defender) === this.getCharacterTeam(attacker) && defender.hp > 0) ? defender : attacker;
@@ -539,8 +542,11 @@ class Battle3v3Engine {
             targetAlly.buffDef = Math.max(1.0, targetAlly.buffDef);
             targetAlly.buffAtkTurns = 0;
             targetAlly.stunTurns = 0;
-            this.triggerEffect(this.getCharacterTeam(targetAlly) === 'ally' ? 'Player' : 'Enemy', 'buff', 'デバフ解除');
-            triggerNewBattleCharacterEffect(targetAlly, 'buff', 'クレンズ');
+            if (typeof triggerNewBattleCharacterEffect === 'function') {
+                triggerNewBattleCharacterEffect(targetAlly, 'buff', 'クレンズ');
+            } else if (typeof triggerCharacterEffect === 'function') {
+                triggerCharacterEffect(targetAlly, 'buff', 'デバフ解除');
+            }
             const targetName = targetAlly.charName;
             if (hadDebuff) {
                 this.log(`N高代表 は消しゴム回復を使用した！ 味方全体のHPが回復し、${targetName}のデバフが完全に解除された！`, 'text-emerald-400 font-bold');
@@ -1629,11 +1635,11 @@ function getNewBattleCharacterDOMElement(char) {
     if (!activeNewBattle) return null;
     if (activeNewBattle.allies && activeNewBattle.allies.includes(char)) {
         const idx = activeNewBattle.allies.indexOf(char);
-        return document.getElementById(`new-ally-char-${idx}`);
+        return document.getElementById(`new-ally-char-${idx}`) || document.getElementById(`ally-char-${idx}`);
     }
     if (activeNewBattle.enemies && activeNewBattle.enemies.includes(char)) {
         const idx = activeNewBattle.enemies.indexOf(char);
-        return document.getElementById(`new-enemy-char-${idx}`);
+        return document.getElementById(`new-enemy-char-${idx}`) || document.getElementById(`enemy-char-${idx}`);
     }
     return null;
 }

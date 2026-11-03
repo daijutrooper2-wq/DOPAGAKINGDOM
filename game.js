@@ -3163,8 +3163,9 @@ pasha_dark: {
                         if (a.hp > 0) {
                             const hAmt = Math.floor(a.maxHp * healRate);
                             a.hp = Math.min(a.maxHp, a.hp + hAmt);
-                            this.triggerEffect(this.getCharacterTeam(a) === 'ally' ? 'Player' : 'Enemy', 'heal', `+${hAmt}`);
-                            if (typeof triggerNewBattleCharacterEffect === 'function') {
+                            if (typeof triggerCharacterEffect === 'function') {
+                                triggerCharacterEffect(a, 'heal', `+${hAmt}`);
+                            } else if (typeof triggerNewBattleCharacterEffect === 'function') {
                                 triggerNewBattleCharacterEffect(a, 'heal', `+${hAmt}`);
                             }
                         }
@@ -3175,7 +3176,11 @@ pasha_dark: {
                     targetAlly.buffDef = Math.max(1.0, targetAlly.buffDef);
                     targetAlly.buffAtkTurns = 0;
                     targetAlly.stunTurns = 0;
-                    this.triggerEffect(this.getCharacterTeam(targetAlly) === 'ally' ? 'Player' : 'Enemy', 'buff', 'デバフ解除');
+                    if (typeof triggerCharacterEffect === 'function') {
+                        triggerCharacterEffect(targetAlly, 'buff', 'デバフ解除');
+                    } else if (typeof triggerNewBattleCharacterEffect === 'function') {
+                        triggerNewBattleCharacterEffect(targetAlly, 'buff', 'デバフ解除');
+                    }
                     const targetName = targetAlly.charName;
                     if (hadDebuff) {
                         this.log(`N高代表 は消しゴム回復を使用した！ 味方全体のHPが回復し、${targetName}のデバフが完全に解除された！`, 'text-emerald-400 font-bold');
