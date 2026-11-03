@@ -364,14 +364,13 @@ class Battle3v3Engine {
                 const recordedRec = this.p1.recordedSkill || (this.allies ? this.allies.find(a => a.id === 'asaiomizu' && a.recordedSkill)?.recordedSkill : null);
                 const skill = (ally1Action === 'asaiomizu_copied' && recordedRec) ? { ...recordedRec, targetType: 'single_enemy' } : (this.p1.skills.find(s => s.id === ally1Action) || this.p1.skills[0]);
                 const targetList = (skill.targetType === 'single_ally') ? this.allies.filter(a => a.hp > 0) : opponents;
+                const targetTeamArr = (skill.targetType === 'single_ally') ? this.allies : this.enemies;
                 if (this.p1TargetChar && this.p1TargetChar.hp > 0 && targetList.includes(this.p1TargetChar)) {
                     defender = this.p1TargetChar;
-                } else if (this.p1TargetIndex !== null && this.enemies[this.p1TargetIndex] && this.enemies[this.p1TargetIndex].hp > 0 && targetList.includes(this.enemies[this.p1TargetIndex])) {
-                    defender = this.enemies[this.p1TargetIndex];
-                } else if (this.p1TargetIndex !== null && targetList[this.p1TargetIndex]) {
-                    defender = targetList[this.p1TargetIndex];
+                } else if (this.p1TargetIndex !== null && targetTeamArr[this.p1TargetIndex] && targetTeamArr[this.p1TargetIndex].hp > 0 && targetList.includes(targetTeamArr[this.p1TargetIndex])) {
+                    defender = targetTeamArr[this.p1TargetIndex];
                 } else if (targetList.length > 0) {
-                    defender = targetList[Math.floor(Math.random() * targetList.length)];
+                    defender = targetList[0];
                 }
 
                 this.executePlayerAction(this.p1, defender, ally1Action);
