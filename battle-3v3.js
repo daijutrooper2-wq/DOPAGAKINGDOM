@@ -1611,7 +1611,7 @@ function executeNewBattleAction(actionType) {
     } else {
         skill = activeNewBattle.p1.skills.find(s => s.id === actionType) || (actionType === activeNewBattle.p1.skills.find(s => s.isNormalAttack)?.id ? activeNewBattle.p1.skills.find(s => s.isNormalAttack) : null);
     }
-    if (skill && (skill.targetType === 'single_enemy' || skill.targetType === 'single_ally' || skill.id === 'pasha_flash' || (!['self', 'all_enemies', 'all_allies'].includes(skill.targetType) && skill.type !== 'heal' && skill.type !== 'buff'))) {
+    if (skill && (skill.targetType === 'single_enemy' || skill.targetType === 'single_ally' || skill.id === 'pasha_flash' || actionType === 'asaiomizu_copied' || (!['self', 'all_enemies', 'all_allies'].includes(skill.targetType) && skill.type !== 'heal' && skill.type !== 'buff'))) {
         newBattleTargetSelectSkillId = actionType;
         newBattleTargetSelectType = skill.targetType === 'single_ally' ? 'single_ally' : 'single_enemy';
         newBattleViewMode = 'target_select';

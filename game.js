@@ -3646,6 +3646,14 @@ case 'dopa_juggler_skill':
             }
 
             applyDamageSkill(attacker, defender, skill, isCounter = false) {
+                if (defender.id === 'asaiomizu' && defender.digActive && defender.digUsedTurn === this.turn) {
+                    if (skill && (skill.type === 'attack' || skill.type === 'special' || skill.type === 'debuff_attack' || skill.type === 'eggplant_burst' || (skill.power && skill.power > 0))) {
+                        defender.recordedSkill = { ...skill, targetType: 'single_enemy' };
+                        defender.digActive = false;
+                        this.log(`${defender.charName} は受けていた相手の攻撃技 [${skill.name}] を内部保存した！`, 'text-cyan-300 font-bold');
+                        this.triggerEffect(defender === this.p1 ? 'Player' : 'Enemy', 'buff', 'スキルコピー成功！');
+                    }
+                }
                 const isStealth = (skill.id === 'pasha_dark_stealth');
 
                 if (defender.tempEvadeNext && !isStealth) {
@@ -5253,7 +5261,7 @@ case 'dopa_juggler_skill':
             } else {
                 skill = activeNewBattle.p1.skills.find(s => s.id === actionType) || (actionType === activeNewBattle.p1.skills.find(s => s.isNormalAttack)?.id ? activeNewBattle.p1.skills.find(s => s.isNormalAttack) : null);
             }
-            if (activeNewBattle.isNewBattle && skill && (skill.targetType === 'single_enemy' || skill.targetType === 'single_ally' || skill.id === 'pasha_flash' || (!['self', 'all_enemies', 'all_allies'].includes(skill.targetType) && skill.type !== 'heal' && skill.type !== 'buff'))) {
+            if (activeNewBattle.isNewBattle && skill && (skill.targetType === 'single_enemy' || skill.targetType === 'single_ally' || skill.id === 'pasha_flash' || actionType === 'asaiomizu_copied' || (!['self', 'all_enemies', 'all_allies'].includes(skill.targetType) && skill.type !== 'heal' && skill.type !== 'buff'))) {
                 newBattleTargetSelectSkillId = actionType;
                 newBattleTargetSelectType = skill.targetType === 'single_ally' ? 'single_ally' : 'single_enemy';
                 newBattleViewMode = 'target_select';
