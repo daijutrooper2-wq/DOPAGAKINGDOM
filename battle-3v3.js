@@ -1030,7 +1030,7 @@ function selectNewBattleTarget(targetIdx, isAllySide) {
     const recordedRec = (activeNewBattle.p1 && activeNewBattle.p1.recordedSkill) || (activeNewBattle.allies ? activeNewBattle.allies.find(a => a.id === 'asaiomizu' && a.recordedSkill)?.recordedSkill : null);
     if (newBattleTargetSelectSkillId === 'asaiomizu_copied' && recordedRec) {
         const rec = recordedRec;
-        skill = { targetType: rec.targetType || 'single_enemy', ...rec };
+        skill = { ...rec, targetType: 'single_enemy' };
     } else {
         skill = activeNewBattle.p1.skills.find(s => s.id === newBattleTargetSelectSkillId) || activeNewBattle.p1.skills.find(s => s.isNormalAttack);
     }
@@ -1399,17 +1399,17 @@ function renderNewBattleScreen() {
         const asaiomizuAlly = (p1.id === 'asaiomizu' && p1.recordedSkill) ? p1 : (activeNewBattle && activeNewBattle.allies ? activeNewBattle.allies.find(a => a.id === 'asaiomizu' && a.recordedSkill) : null);
         if (asaiomizuAlly && asaiomizuAlly.recordedSkill) {
             const rec = asaiomizuAlly.recordedSkill;
-            skills.unshift({
-                id: 'asaiomizu_copied',
-                name: `📋【コピー】${rec.name}`,
-                type: rec.type || 'attack',
-                power: rec.power || 1.0,
-                targetType: rec.targetType || 'single_enemy',
-                isNormalAttack: false,
-                cooldown: 0,
-                desc: `【ディグコピー技】${rec.name}（${rec.desc || '相手からコピーしたスキル'}）`,
-                ...rec
-            });
+             skills.unshift({
+                 id: 'asaiomizu_copied',
+                 name: `📋【コピー】${rec.name}`,
+                 type: rec.type || 'attack',
+                 power: rec.power || 1.0,
+                 isNormalAttack: false,
+                 cooldown: 0,
+                 desc: `【ディグコピー技】${rec.name}（${rec.desc || '相手からコピーしたスキル'}）`,
+                 ...rec,
+                 targetType: 'single_enemy'
+             });
         }
         let skillsHtml = skills.map(s => {
             const cd = p1.cooldowns[s.id] || 0;
@@ -1598,16 +1598,16 @@ function executeNewBattleAction(actionType) {
     const recordedRec = (activeNewBattle.p1 && activeNewBattle.p1.recordedSkill) || (activeNewBattle.allies ? activeNewBattle.allies.find(a => a.id === 'asaiomizu' && a.recordedSkill)?.recordedSkill : null);
     if (actionType === 'asaiomizu_copied' && recordedRec) {
         const rec = recordedRec;
-        skill = {
-            id: 'asaiomizu_copied',
-            name: `📋【コピー】${rec.name}`,
-            type: rec.type || 'attack',
-            power: rec.power || 1.0,
-            targetType: rec.targetType || 'single_enemy',
-            isNormalAttack: false,
-            cooldown: 0,
-            ...rec
-        };
+         skill = {
+             id: 'asaiomizu_copied',
+             name: `📋【コピー】${rec.name}`,
+             type: rec.type || 'attack',
+             power: rec.power || 1.0,
+             isNormalAttack: false,
+             cooldown: 0,
+             ...rec,
+             targetType: 'single_enemy'
+         };
     } else {
         skill = activeNewBattle.p1.skills.find(s => s.id === actionType) || (actionType === activeNewBattle.p1.skills.find(s => s.isNormalAttack)?.id ? activeNewBattle.p1.skills.find(s => s.isNormalAttack) : null);
     }
