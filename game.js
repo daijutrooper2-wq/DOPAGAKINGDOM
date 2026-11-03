@@ -2927,7 +2927,10 @@ pasha_dark: {
                             const defaultOpponent = targetPool[0] || (isAllyTeam ? this.enemies[0] : this.allies[0]);
                             const skillId = this.botAdapter.getDecision(attacker, defaultOpponent);
 
-                            const opponents = isAllyTeam ? this.enemies.filter(e => e.hp > 0) : this.allies.filter(a => a.hp > 0);
+                            const skill = attacker.skills.find(s => s.id === skillId) || attacker.skills[0];
+                            const tList = isAllyTeam ? this.allies : this.enemies;
+                            const opposingTeam = isAllyTeam ? this.enemies : this.allies;
+                            const opponents = (skill.targetType === 'single_ally') ? tList.filter(a => a.hp > 0) : opposingTeam.filter(e => e.hp > 0);
                             if (opponents.length === 0) break;
                             let defender = opponents[Math.floor(Math.random() * opponents.length)];
 
