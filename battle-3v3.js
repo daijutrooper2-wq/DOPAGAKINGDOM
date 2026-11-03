@@ -402,6 +402,13 @@ class Battle3v3Engine {
                 const opponents = (skill.targetType === 'single_ally') ? teamList.filter(a => a.hp > 0) : opposingTeam.filter(e => e.hp > 0);
                 if (opponents.length === 0) break;
                 let defender = opponents[Math.floor(Math.random() * opponents.length)];
+                if (isAllyTeam && skill.targetType !== 'single_ally') {
+                    if (this.p1TargetChar && this.p1TargetChar.hp > 0 && opponents.includes(this.p1TargetChar)) {
+                        defender = this.p1TargetChar;
+                    } else if (this.p1TargetIndex !== null && this.enemies[this.p1TargetIndex] && opponents.includes(this.enemies[this.p1TargetIndex])) {
+                        defender = this.enemies[this.p1TargetIndex];
+                    }
+                }
 
                 this.executePlayerAction(attacker, defender, skillId);
                 if (this.onStateChange) this.onStateChange(this);
