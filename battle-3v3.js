@@ -362,7 +362,7 @@ class Battle3v3Engine {
             if (opponents.length > 0) {
                 let defender = opponents[0];
                 const recordedRec = this.p1.recordedSkill || (this.allies ? this.allies.find(a => a.id === 'asaiomizu' && a.recordedSkill)?.recordedSkill : null);
-                const skill = (ally1Action === 'asaiomizu_copied' && recordedRec) ? { targetType: recordedRec.targetType || 'single_enemy', ...recordedRec } : (this.p1.skills.find(s => s.id === ally1Action) || this.p1.skills[0]);
+                const skill = (ally1Action === 'asaiomizu_copied' && recordedRec) ? { ...recordedRec, targetType: 'single_enemy' } : (this.p1.skills.find(s => s.id === ally1Action) || this.p1.skills[0]);
                 const targetList = (skill.targetType === 'single_ally') ? this.allies.filter(a => a.hp > 0) : opponents;
                 if (this.p1TargetChar && this.p1TargetChar.hp > 0 && targetList.includes(this.p1TargetChar)) {
                     defender = this.p1TargetChar;
