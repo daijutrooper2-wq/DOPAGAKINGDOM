@@ -1494,9 +1494,9 @@ function renderNewBattleScreen() {
                             const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${origIdx}, true)"` : '';
                             let posClasses = 'flex flex-col items-center justify-end relative transition-all duration-300 ';
                             if (posType === 'center') {
-                                posClasses += 'w-[36%] h-[82%] z-30 scale-105';
+                                posClasses += 'w-[36%] h-[82%] z-30 scale-105 translate-y-3';
                             } else {
-                                posClasses += 'w-[30%] h-[72%] z-25 opacity-95 -translate-y-3';
+                                posClasses += 'w-[30%] h-[72%] z-25 opacity-95 -translate-y-6';
                             }
                             const interactiveStyle = isSelectable ? 'cursor-pointer ring-4 ring-amber-400 bg-amber-950/40 rounded-xl' : '';
                             const deadStyle = c.hp <= 0 ? 'opacity-40 grayscale' : '';
@@ -1539,9 +1539,9 @@ function renderNewBattleScreen() {
                             const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${origIdx}, false)" style="cursor: pointer;"` : '';
                             let posClasses = 'flex flex-col items-center justify-end relative transition-all duration-300 ';
                             if (posType === 'center') {
-                                posClasses += 'w-[36%] h-[82%] z-30 scale-105';
+                                posClasses += 'w-[36%] h-[82%] z-30 scale-105 translate-y-3';
                             } else {
-                                posClasses += 'w-[30%] h-[72%] z-25 opacity-95 -translate-y-3';
+                                posClasses += 'w-[30%] h-[72%] z-25 opacity-95 -translate-y-6';
                             }
                             const interactiveStyle = isSelectable ? 'cursor-pointer ring-4 ring-amber-400 bg-amber-950/40 rounded-xl' : '';
                             const deadStyle = c.hp <= 0 ? 'opacity-40 grayscale' : '';
