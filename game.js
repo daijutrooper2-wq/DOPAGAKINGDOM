@@ -4974,7 +4974,7 @@ case 'dopa_juggler_skill':
 
                                      let posClasses = 'flex flex-col items-center justify-end relative transition-all duration-300 ';
                                      if (posType === 'center') {
-                                         posClasses += 'w-[36%] h-[82%] z-30 scale-105';
+                                         posClasses += 'w-[36%] h-[82%] z-30 scale-105 translate-y-3';
                                       } else {
                                           posClasses += 'w-[30%] h-[72%] z-25 opacity-95 -translate-y-6';
                                       }
@@ -5041,7 +5041,7 @@ case 'dopa_juggler_skill':
 
                                      let posClasses = 'flex flex-col items-center justify-end relative transition-all duration-300 ';
                                      if (posType === 'center') {
-                                         posClasses += 'w-[36%] h-[82%] z-30 scale-105';
+                                         posClasses += 'w-[36%] h-[82%] z-30 scale-105 translate-y-3';
                                       } else {
                                           posClasses += 'w-[30%] h-[72%] z-25 opacity-95 -translate-y-6';
                                       }
