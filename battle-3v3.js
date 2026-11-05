@@ -1478,53 +1478,91 @@ function renderNewBattleScreen() {
 
             <div class="flex-1 flex items-center justify-between px-2 py-2 relative z-10 overflow-visible w-full">
                 <!-- 味方チーム -->
-                <div class="relative w-[47%] h-full flex items-center justify-center">
+                <div class="relative w-[47%] h-full flex items-end justify-between px-1 pb-2">
                     <div class="absolute left-1 top-1 text-[9px] text-emerald-400 font-pixel font-bold z-30">🛡️ 味方</div>
-                    ${allies.map((c, posIdx) => {
-                        const pct = Math.max(0, Math.min(100, Math.round((c.hp / c.maxHp) * 100)));
-                        const img = getCharImg(c, true);
-                        const isSelectable = newBattleViewMode === 'target_select' && newBattleTargetSelectType === 'single_ally' && c.hp > 0;
-                        const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${posIdx}, true)"` : '';
-                        return `
-                            <div id="new-ally-char-${posIdx}" ${clickableAttr} 
-                                 data-char-team="ally" data-char-idx="${posIdx}"
-                                 class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center w-24 h-32 relative ${c.hp <= 0 ? 'opacity-40 grayscale' : ''}">
-                                <div class="w-full bg-black/85 px-1 py-0.5 rounded border border-white/20 text-[8px] text-emerald-300">
-                                    <span>${c.charName}</span>: <span class="font-mono">${c.hp}/${c.maxHp}</span>
-                                    <div class="w-full bg-slate-900 h-1 rounded overflow-hidden"><div class="bg-emerald-400 h-full" style="width: ${pct}%;"></div></div>
+                    ${(() => {
+                        const visualOrder = [
+                            { c: allies[1], origIdx: 1, posType: 'left' },
+                            { c: allies[0], origIdx: 0, posType: 'center' },
+                            { c: allies[2], origIdx: 2, posType: 'right' }
+                        ];
+                        return visualOrder.map(({ c, origIdx, posType }) => {
+                            if (!c) return '';
+                            const pct = Math.max(0, Math.min(100, Math.round((c.hp / c.maxHp) * 100)));
+                            const img = getCharImg(c, true);
+                            const isSelectable = newBattleViewMode === 'target_select' && newBattleTargetSelectType === 'single_ally' && c.hp > 0;
+                            const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${origIdx}, true)"` : '';
+                            let posClasses = 'flex flex-col items-center justify-end relative transition-all duration-300 ';
+                            if (posType === 'center') {
+                                posClasses += 'w-[36%] h-[82%] z-30 scale-105';
+                            } else {
+                                posClasses += 'w-[30%] h-[72%] z-25 opacity-95';
+                            }
+                            const interactiveStyle = isSelectable ? 'cursor-pointer ring-4 ring-amber-400 bg-amber-950/40 rounded-xl' : '';
+                            const deadStyle = c.hp <= 0 ? 'opacity-40 grayscale' : '';
+                            return `
+                                <div id="new-ally-char-${origIdx}" ${clickableAttr} 
+                                     data-char-team="ally" data-char-idx="${origIdx}"
+                                     class="${posClasses} ${interactiveStyle} ${deadStyle}">
+                                    <div class="absolute -top-5 left-1/2 -translate-x-1/2 w-[95%] min-w-[65px] z-40 bg-black/85 px-1 py-0.5 rounded border border-white/20 text-[8px] text-emerald-300 flex flex-col items-center">
+                                        <div class="flex justify-between items-center w-full">
+                                            <span class="truncate">${c.charName}</span>
+                                            <span class="font-mono">${c.hp}/${c.maxHp}</span>
+                                        </div>
+                                        <div class="w-full bg-slate-900 h-1 rounded overflow-hidden mt-0.5"><div class="bg-emerald-400 h-full" style="width: ${pct}%;"></div></div>
+                                    </div>
+                                     <div id="new-ally-img-${origIdx}" class="w-full flex-1 flex items-center justify-center ${c.isShaking ? 'char-shake' : ''}">
+                                         <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain">
+                                     </div>
                                 </div>
-                                 <div id="new-ally-img-${posIdx}" class="w-full flex-1 flex items-center justify-center ${c.isShaking ? 'char-shake' : ''}">
-                                     <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain">
-                                 </div>
-                            </div>
-                        `;
-                    }).join('')}
+                            `;
+                        }).join('');
+                    })()}
                 </div>
 
                 <div class="text-amber-400 font-pixel font-black text-lg">VS</div>
 
                 <!-- 敵チーム -->
-                <div class="relative w-[47%] h-full flex items-center justify-center">
+                <div class="relative w-[47%] h-full flex items-end justify-between px-1 pb-2">
                     <div class="absolute right-1 top-1 text-[9px] text-red-400 font-pixel font-bold z-30">⚔️ 敵</div>
-                    ${enemies.map((c, posIdx) => {
-                        const pct = Math.max(0, Math.min(100, Math.round((c.hp / c.maxHp) * 100)));
-                        const img = getCharImg(c, false);
-                        const isSelectable = newBattleViewMode === 'target_select' && (newBattleTargetSelectType === 'single_enemy' || newBattleTargetSelectSkillId === 'pasha_flash' || newBattleTargetSelectSkillId === 'asaiomizu_copied') && c.hp > 0;
-                        const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${posIdx}, false)" style="cursor: pointer;"` : '';
-                        return `
-                            <div id="new-enemy-char-${posIdx}" ${clickableAttr} 
-                                 data-char-team="enemy" data-char-idx="${posIdx}"
-                                 class="absolute top-1/2 -translate-y-1/2 flex flex-col items-center w-24 h-32 relative ${c.hp <= 0 ? 'opacity-40 grayscale' : ''} ${isSelectable ? 'ring-4 ring-amber-400 animate-pulse bg-amber-950/40 rounded p-1' : ''}">
-                                <div class="w-full bg-black/85 px-1 py-0.5 rounded border border-white/20 text-[8px] text-red-300">
-                                    <span>${c.charName}</span>: <span class="font-mono">${c.hp}/${c.maxHp}</span>
-                                    <div class="w-full bg-slate-900 h-1 rounded overflow-hidden"><div class="bg-red-500 h-full" style="width: ${pct}%;"></div></div>
+                    ${(() => {
+                        const visualOrder = [
+                            { c: enemies[2], origIdx: 2, posType: 'left' },
+                            { c: enemies[0], origIdx: 0, posType: 'center' },
+                            { c: enemies[1], origIdx: 1, posType: 'right' }
+                        ];
+                        return visualOrder.map(({ c, origIdx, posType }) => {
+                            if (!c) return '';
+                            const pct = Math.max(0, Math.min(100, Math.round((c.hp / c.maxHp) * 100)));
+                            const img = getCharImg(c, false);
+                            const isSelectable = newBattleViewMode === 'target_select' && (newBattleTargetSelectType === 'single_enemy' || newBattleTargetSelectSkillId === 'pasha_flash' || newBattleTargetSelectSkillId === 'asaiomizu_copied') && c.hp > 0;
+                            const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${origIdx}, false)" style="cursor: pointer;"` : '';
+                            let posClasses = 'flex flex-col items-center justify-end relative transition-all duration-300 ';
+                            if (posType === 'center') {
+                                posClasses += 'w-[36%] h-[82%] z-30 scale-105';
+                            } else {
+                                posClasses += 'w-[30%] h-[72%] z-25 opacity-95';
+                            }
+                            const interactiveStyle = isSelectable ? 'cursor-pointer ring-4 ring-amber-400 bg-amber-950/40 rounded-xl' : '';
+                            const deadStyle = c.hp <= 0 ? 'opacity-40 grayscale' : '';
+                            return `
+                                <div id="new-enemy-char-${origIdx}" ${clickableAttr} 
+                                     data-char-team="enemy" data-char-idx="${origIdx}"
+                                     class="${posClasses} ${interactiveStyle} ${deadStyle}">
+                                    <div class="absolute -top-5 left-1/2 -translate-x-1/2 w-[95%] min-w-[65px] z-40 bg-black/85 px-1 py-0.5 rounded border border-white/20 text-[8px] text-red-300 flex flex-col items-center">
+                                        <div class="flex justify-between items-center w-full">
+                                            <span class="truncate">${c.charName}</span>
+                                            <span class="font-mono">${c.hp}/${c.maxHp}</span>
+                                        </div>
+                                        <div class="w-full bg-slate-900 h-1 rounded overflow-hidden mt-0.5"><div class="bg-red-500 h-full" style="width: ${pct}%;"></div></div>
+                                    </div>
+                                     <div id="new-enemy-img-${origIdx}" class="w-full flex-1 flex items-center justify-center ${c.isShaking ? 'char-shake' : ''}">
+                                         <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain pointer-events-none" style="transform: scaleX(-1);">
+                                     </div>
                                 </div>
-                                 <div id="new-enemy-img-${posIdx}" class="w-full flex-1 flex items-center justify-center ${c.isShaking ? 'char-shake' : ''}">
-                                     <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain pointer-events-none" style="transform: scaleX(-1);">
-                                 </div>
-                            </div>
-                        `;
-                    }).join('')}
+                            `;
+                        }).join('');
+                    })()}
                 </div>
             </div>
 

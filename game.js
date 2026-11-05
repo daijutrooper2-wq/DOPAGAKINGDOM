@@ -4949,76 +4949,66 @@ case 'dopa_juggler_skill':
                         </div>
                     </div>
 
-                    <!-- 2. 中央エリア：味方3体と敵3体の密着隊列バトルステージ (シャッフル・前面移動 & 枠線撤去) -->
+                    <!-- 2. 中央エリア：味方3体と敵3体の独立した3カラム隊列バトルステージ (重なり・当たり判定重複を完全に解消) -->
                     <div class="flex-1 flex items-center justify-between px-2 sm:px-6 py-2 relative z-10 overflow-visible w-full max-w-full">
-                        <!-- 左側：味方チーム -->
-                        <div class="relative w-[47%] sm:w-[48%] h-full flex items-center justify-center">
+                        <!-- 左側：味方チーム (3カラム分離レイアウト) -->
+                        <div class="relative w-[47%] sm:w-[48%] h-full flex items-end justify-between px-1 sm:px-2 pb-2">
                             <div class="absolute left-1 top-1 text-[9px] text-emerald-400 font-pixel font-bold z-30">🛡️ 味方チーム (隊列)</div>
                              ${(() => {
                                  const currentActor = activeNewBattle.currentAttacker;
-                                 const ordered = allies;
+                                 const visualOrder = [
+                                     { c: allies[1], origIdx: 1, posType: 'left' },
+                                     { c: allies[0], origIdx: 0, posType: 'center' },
+                                     { c: allies[2], origIdx: 2, posType: 'right' }
+                                 ];
 
-                                 return ordered.map((c, posIdx) => {
-                                     const origIdx = posIdx;
-                                    const pct = Math.max(0, Math.min(100, Math.round((c.hp / c.maxHp) * 100)));
-                                    const img = getCharImg(c, true);
-                                    const isLeader = origIdx === 0;
-                                    const isTargetSelecting = (newBattleViewMode === 'target_select');
-                                    const isSelectable = isTargetSelecting && newBattleTargetSelectType === 'single_ally' && c.hp > 0;
-                                    const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${origIdx}, true)"` : '';
-                                    const isCurrentActor = currentActor === c;
+                                 return visualOrder.map(({ c, origIdx, posType }) => {
+                                     if (!c) return '';
+                                     const pct = Math.max(0, Math.min(100, Math.round((c.hp / c.maxHp) * 100)));
+                                     const img = getCharImg(c, true);
+                                     const isLeader = origIdx === 0;
+                                     const isTargetSelecting = (newBattleViewMode === 'target_select');
+                                     const isSelectable = isTargetSelecting && newBattleTargetSelectType === 'single_ally' && c.hp > 0;
+                                     const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${origIdx}, true)"` : '';
+                                     const isCurrentActor = currentActor === c;
 
-                                      let posClasses = '';
-                                      let sizeClasses = '';
-                                       if (posIdx === 0) {
-                                           // 先頭（一番手前・中央）へシャッフル＆前面強調（少し下へずらして後ろの仲間との重なりを防止）
-                                           posClasses = 'absolute left-1/2 -translate-x-1/2 top-[62%] -translate-y-1/2 z-30 scale-110';
-                                           sizeClasses = 'w-24 h-32 sm:w-30 sm:h-40 md:w-36 md:h-48';
-                                       } else if (posIdx === 1) {
-                                           // 2番目（左側密着・少し下＆サイズアップ）
-                                           posClasses = 'absolute left-1 sm:left-4 md:left-8 top-[48%] -translate-y-1/2 z-35 opacity-95 scale-105';
-                                           sizeClasses = 'w-20 h-28 sm:w-24 sm:h-34 md:w-28 md:h-38';
-                                       } else {
-                                           // 3番目（右側密着・少し下＆サイズアップ）
-                                           posClasses = 'absolute right-1 sm:right-4 md:right-8 top-[48%] -translate-y-1/2 z-35 opacity-95 scale-105';
-                                           sizeClasses = 'w-20 h-28 sm:w-24 sm:h-34 md:w-28 md:h-38';
-                                       }
+                                     let posClasses = 'flex flex-col items-center justify-end relative transition-all duration-300 ';
+                                     if (posType === 'center') {
+                                         posClasses += 'w-[36%] h-[82%] z-30 scale-105';
+                                     } else {
+                                         posClasses += 'w-[30%] h-[72%] z-25 opacity-95';
+                                     }
 
-                                       const interactiveStyle = isSelectable ? 'cursor-pointer ring-4 ring-amber-400 bg-amber-950/40 rounded-xl' : '';
-                                       const deadStyle = c.hp <= 0 ? 'opacity-40 grayscale' : '';
+                                     const interactiveStyle = isSelectable ? 'cursor-pointer ring-4 ring-amber-400 bg-amber-950/40 rounded-xl' : '';
+                                     const deadStyle = c.hp <= 0 ? 'opacity-40 grayscale' : '';
+                                     const hpBarPosClass = 'absolute -top-6 left-1/2 -translate-x-1/2 w-[95%] min-w-[65px] z-40 flex flex-col items-center bg-black/85 backdrop-blur-md px-1 py-0.5 rounded border border-white/20 shadow-lg';
 
-                                        const hpBarWidthClass = 'w-[80%] min-w-[70px] sm:w-[85%]';
-                                        const hpBarPosClass = posIdx === 0 
-                                            ? `absolute top-1.5 left-1/2 -translate-x-1/2 ${hpBarWidthClass} z-40 flex flex-col items-center bg-black/85 backdrop-blur-md px-1 py-0.5 rounded border border-white/20 shadow-lg` 
-                                            : `absolute bottom-full mb-0.5 left-1/2 -translate-x-1/2 ${hpBarWidthClass} z-40 flex flex-col items-center bg-black/85 backdrop-blur-md px-1 py-0.5 rounded border border-white/20 shadow-lg`;
-
-                                         return `
-                                             <div id="ally-char-${origIdx}" ${clickableAttr} data-char-team="ally" data-char-idx="${origIdx}" class="${posClasses} ${sizeClasses} flex flex-col items-center justify-end transition-all duration-500 ${interactiveStyle} ${deadStyle}">
-                                                ${isCurrentActor ? '<div class="absolute bottom-full mb-7 left-1/2 -translate-x-1/2 text-amber-400 font-bold text-sm sm:text-lg animate-arrow-float z-50 drop-shadow-md">▼</div>' : ''}
-                                                
-                                                 <!-- 頭上のステータスUI（完全頭上固定・フロート表示） -->
-                                                 <div class="${hpBarPosClass}">
-                                                     <div class="flex justify-between items-center w-full text-[8px] sm:text-[9px] font-bold text-emerald-300 px-0.5">
-                                                         <span class="truncate">${c.charName}</span>
-                                                         <span class="font-mono">${c.hp}/${c.maxHp}</span>
-                                                     </div>
-                                                     <div class="w-full bg-slate-900 h-1 rounded-full overflow-hidden my-0.5 border border-white/20">
-                                                         <div class="bg-emerald-400 h-full hp-bar-fill shadow-[0_0_4px_rgba(52,211,153,0.8)]" style="width: ${pct}%;"></div>
-                                                     </div>
+                                     return `
+                                         <div id="ally-char-${origIdx}" ${clickableAttr} data-char-team="ally" data-char-idx="${origIdx}" class="${posClasses} ${interactiveStyle} ${deadStyle}">
+                                            ${isCurrentActor ? '<div class="absolute -top-12 left-1/2 -translate-x-1/2 text-amber-400 font-bold text-sm animate-arrow-float z-50 drop-shadow-md">▼</div>' : ''}
+                                            
+                                             <!-- 頭上のステータスUI -->
+                                             <div class="${hpBarPosClass}">
+                                                 <div class="flex justify-between items-center w-full text-[8px] sm:text-[9px] font-bold text-emerald-300 px-0.5">
+                                                     <span class="truncate">${c.charName}</span>
+                                                     <span class="font-mono">${c.hp}/${c.maxHp}</span>
                                                  </div>
+                                                 <div class="w-full bg-slate-900 h-1 rounded-full overflow-hidden my-0.5 border border-white/20">
+                                                     <div class="bg-emerald-400 h-full hp-bar-fill shadow-[0_0_4px_rgba(52,211,153,0.8)]" style="width: ${pct}%;"></div>
+                                                 </div>
+                                             </div>
 
-                                                <!-- 全身スプライト（四角い枠線なし・背景直接配置） -->
-                                                <div id="ally-shake-${origIdx}" class="w-full flex-1 flex items-center justify-center relative drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)] ${c.isShaking ? 'char-shake' : ''}">
-                                                   <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain">
-                                                   ${isLeader && posIdx === 0 ? '<div class="absolute bottom-0 right-0 bg-emerald-600 text-white px-1.5 py-0.5 rounded text-[8px] font-pixel shadow">LEADER</div>' : ''}
-                                                   <!-- スタンプ風バッジ（左下あたり） -->
-                                                   <div class="absolute bottom-1 left-1 z-30 flex flex-col gap-0.5 items-start pointer-events-none">
-                                                       ${getStatusBadgesHtml(c, true)}
-                                                   </div>
+                                            <!-- 全身スプライト -->
+                                            <div id="ally-shake-${origIdx}" class="w-full flex-1 flex items-center justify-center relative drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)] ${c.isShaking ? 'char-shake' : ''}">
+                                               <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain">
+                                               ${isLeader ? '<div class="absolute bottom-0 right-0 bg-emerald-600 text-white px-1 py-0.5 rounded text-[7px] font-pixel shadow">LEADER</div>' : ''}
+                                               <div class="absolute bottom-1 left-1 z-30 flex flex-col gap-0.5 items-start pointer-events-none">
+                                                   ${getStatusBadgesHtml(c, true)}
                                                </div>
-                                          </div>
-                                      `;
-                                  }).join('');
+                                           </div>
+                                      </div>
+                                  `;
+                                 }).join('');
                             })()}
                         </div>
 
@@ -5027,71 +5017,64 @@ case 'dopa_juggler_skill':
                             <div class="text-amber-400 font-pixel font-black text-lg sm:text-2xl drop-shadow-[0_0_10px_rgba(251,191,36,0.8)] animate-pulse">VS</div>
                         </div>
 
-                        <!-- 右側：敵チーム -->
-                        <div class="relative w-[47%] sm:w-[48%] h-full flex items-center justify-center">
+                        <!-- 右側：敵チーム (3カラム分離レイアウト) -->
+                        <div class="relative w-[47%] sm:w-[48%] h-full flex items-end justify-between px-1 sm:px-2 pb-2">
                             <div class="absolute right-1 top-1 text-[9px] text-red-400 font-pixel font-bold z-30 text-right">⚔️ 敵チーム</div>
                              ${(() => {
                                  const currentActor = activeNewBattle.currentAttacker;
-                                 const ordered = enemies;
+                                 const visualOrder = [
+                                     { c: enemies[2], origIdx: 2, posType: 'left' },
+                                     { c: enemies[0], origIdx: 0, posType: 'center' },
+                                     { c: enemies[1], origIdx: 1, posType: 'right' }
+                                 ];
 
-                                 return ordered.map((c, posIdx) => {
-                                     const origIdx = posIdx;
-                                    const pct = Math.max(0, Math.min(100, Math.round((c.hp / c.maxHp) * 100)));
-                                    const img = getCharImg(c, false);
-                                    const isLeader = origIdx === 0;
-                                    const isTargetSelecting = (newBattleViewMode === 'target_select');
+                                 return visualOrder.map(({ c, origIdx, posType }) => {
+                                     if (!c) return '';
+                                     const pct = Math.max(0, Math.min(100, Math.round((c.hp / c.maxHp) * 100)));
+                                     const img = getCharImg(c, false);
+                                     const isLeader = origIdx === 0;
+                                     const isTargetSelecting = (newBattleViewMode === 'target_select');
                                      const isSelectable = isTargetSelecting && (newBattleTargetSelectType === 'single_enemy' || newBattleTargetSelectSkillId === 'asaiomizu_copied') && c.hp > 0;
-                                    const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${origIdx}, false)"` : '';
-                                    const isCurrentActor = currentActor === c;
+                                     const clickableAttr = isSelectable ? `onclick="selectNewBattleTarget(${origIdx}, false)"` : '';
+                                     const isCurrentActor = currentActor === c;
+                                     const flipStyle = 'transform: scaleX(-1);';
 
-                                      let posClasses = '';
-                                      let sizeClasses = '';
-                                       if (posIdx === 0) {
-                                           posClasses = 'absolute left-1/2 -translate-x-1/2 top-[62%] -translate-y-1/2 z-30 scale-110';
-                                           sizeClasses = 'w-24 h-32 sm:w-30 sm:h-40 md:w-36 md:h-48';
-                                       } else if (posIdx === 1) {
-                                           posClasses = 'absolute right-1 sm:right-4 md:right-8 top-[48%] -translate-y-1/2 z-35 opacity-95 scale-105';
-                                           sizeClasses = 'w-20 h-28 sm:w-24 sm:h-34 md:w-28 md:h-38';
-                                       } else {
-                                           posClasses = 'absolute left-1 sm:left-4 md:left-8 top-[48%] -translate-y-1/2 z-35 opacity-95 scale-105';
-                                           sizeClasses = 'w-20 h-28 sm:w-24 sm:h-34 md:w-28 md:h-38';
-                                       }
+                                     let posClasses = 'flex flex-col items-center justify-end relative transition-all duration-300 ';
+                                     if (posType === 'center') {
+                                         posClasses += 'w-[36%] h-[82%] z-30 scale-105';
+                                     } else {
+                                         posClasses += 'w-[30%] h-[72%] z-25 opacity-95';
+                                     }
 
-                                      const interactiveStyle = isSelectable ? 'cursor-pointer ring-4 ring-amber-400 bg-amber-950/40 rounded-xl' : '';
-                                      const deadStyle = c.hp <= 0 ? 'opacity-40 grayscale' : '';
-                                      const flipStyle = 'transform: scaleX(-1);';
+                                     const interactiveStyle = isSelectable ? 'cursor-pointer ring-4 ring-amber-400 bg-amber-950/40 rounded-xl' : '';
+                                     const deadStyle = c.hp <= 0 ? 'opacity-40 grayscale' : '';
+                                     const hpBarPosClass = 'absolute -top-6 left-1/2 -translate-x-1/2 w-[95%] min-w-[65px] z-40 flex flex-col items-center bg-black/85 backdrop-blur-md px-1 py-0.5 rounded border border-white/20 shadow-lg';
 
-                                       const hpBarWidthClass = 'w-[80%] min-w-[70px] sm:w-[85%]';
-                                       const hpBarPosClass = posIdx === 0 
-                                           ? `absolute top-1.5 left-1/2 -translate-x-1/2 ${hpBarWidthClass} z-40 flex flex-col items-center bg-black/85 backdrop-blur-md px-1 py-0.5 rounded border border-white/20 shadow-lg` 
-                                           : `absolute bottom-full mb-0.5 left-1/2 -translate-x-1/2 ${hpBarWidthClass} z-40 flex flex-col items-center bg-black/85 backdrop-blur-md px-1 py-0.5 rounded border border-white/20 shadow-lg`;
+                                     return `
+                                         <div id="enemy-char-${origIdx}" ${clickableAttr} data-char-team="enemy" data-char-idx="${origIdx}" class="${posClasses} ${interactiveStyle} ${deadStyle}">
+                                           ${isCurrentActor ? '<div class="absolute -top-12 left-1/2 -translate-x-1/2 text-amber-400 font-bold text-sm animate-arrow-float z-50 drop-shadow-md">▼</div>' : ''}
+                                           
+                                             <!-- 頭上のステータスUI -->
+                                             <div class="${hpBarPosClass}">
+                                                 <div class="flex justify-between items-center w-full text-[8px] sm:text-[9px] font-bold text-red-300 px-0.5">
+                                                     <span class="truncate">${c.charName}</span>
+                                                     <span class="font-mono">${c.hp}/${c.maxHp}</span>
+                                                 </div>
+                                                 <div class="w-full bg-slate-900 h-1 rounded-full overflow-hidden my-0.5 border border-white/20">
+                                                     <div class="bg-red-500 h-full hp-bar-fill shadow-[0_0_4px_rgba(239,68,68,0.8)]" style="width: ${pct}%;"></div>
+                                                 </div>
+                                             </div>
 
-                                         return `
-                                             <div id="enemy-char-${origIdx}" ${clickableAttr} data-char-team="enemy" data-char-idx="${origIdx}" class="${posClasses} ${sizeClasses} flex flex-col items-center justify-end transition-all duration-500 ${interactiveStyle} ${deadStyle}">
-                                               ${isCurrentActor ? '<div class="absolute bottom-full mb-7 left-1/2 -translate-x-1/2 text-amber-400 font-bold text-sm sm:text-lg animate-arrow-float z-50 drop-shadow-md">▼</div>' : ''}
-                                               
-                                                <!-- 頭上のステータスUI（完全頭上固定・フロート表示） -->
-                                                <div class="${hpBarPosClass}">
-                                                    <div class="flex justify-between items-center w-full text-[8px] sm:text-[9px] font-bold text-red-300 px-0.5">
-                                                        <span class="truncate">${c.charName}</span>
-                                                        <span class="font-mono">${c.hp}/${c.maxHp}</span>
-                                                    </div>
-                                                    <div class="w-full bg-slate-900 h-1 rounded-full overflow-hidden my-0.5 border border-white/20">
-                                                        <div class="bg-red-500 h-full hp-bar-fill shadow-[0_0_4px_rgba(239,68,68,0.8)]" style="width: ${pct}%;"></div>
-                                                    </div>
-                                                </div>
-
-                                              <!-- 全身スプライト（四角い枠線なし・背景直接配置） -->
-                                              <div id="enemy-shake-${origIdx}" class="w-full flex-1 flex items-center justify-center relative drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)] ${c.isShaking ? 'char-shake' : ''}">
-                                                  <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain" style="${flipStyle}">
-                                                  ${isLeader && posIdx === 0 ? '<div class="absolute bottom-0 left-0 bg-red-600 text-white px-1.5 py-0.5 rounded text-[8px] font-pixel shadow">BOSS</div>' : ''}
-                                                  <!-- スタンプ風バッジ（左下あたり） -->
-                                                  <div class="absolute bottom-1 left-1 z-30 flex flex-col gap-0.5 items-start pointer-events-none">
-                                                      ${getStatusBadgesHtml(c, false)}
-                                                  </div>
-                                              </div>
-                                         </div>
-                                     `;
+                                           <!-- 全身スプライト -->
+                                           <div id="enemy-shake-${origIdx}" class="w-full flex-1 flex items-center justify-center relative drop-shadow-[0_8px_8px_rgba(0,0,0,0.8)] ${c.isShaking ? 'char-shake' : ''}">
+                                               <img src="${img}" alt="${c.charName}" class="w-full h-full object-contain" style="${flipStyle}">
+                                               ${isLeader ? '<div class="absolute bottom-0 left-0 bg-red-600 text-white px-1 py-0.5 rounded text-[7px] font-pixel shadow">BOSS</div>' : ''}
+                                               <div class="absolute bottom-1 left-1 z-30 flex flex-col gap-0.5 items-start pointer-events-none">
+                                                   ${getStatusBadgesHtml(c, false)}
+                                               </div>
+                                           </div>
+                                      </div>
+                                  `;
                                  }).join('');
                             })()}
                         </div>
