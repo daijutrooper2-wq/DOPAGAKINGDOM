@@ -4975,9 +4975,9 @@ case 'dopa_juggler_skill':
                                      let posClasses = 'flex flex-col items-center justify-end relative transition-all duration-300 ';
                                      if (posType === 'center') {
                                          posClasses += 'w-[36%] h-[82%] z-30 scale-105';
-                                     } else {
-                                         posClasses += 'w-[30%] h-[72%] z-25 opacity-95';
-                                     }
+                                      } else {
+                                          posClasses += 'w-[30%] h-[72%] z-25 opacity-95 -translate-y-3';
+                                      }
 
                                      const interactiveStyle = isSelectable ? 'cursor-pointer ring-4 ring-amber-400 bg-amber-950/40 rounded-xl' : '';
                                      const deadStyle = c.hp <= 0 ? 'opacity-40 grayscale' : '';
@@ -5042,9 +5042,9 @@ case 'dopa_juggler_skill':
                                      let posClasses = 'flex flex-col items-center justify-end relative transition-all duration-300 ';
                                      if (posType === 'center') {
                                          posClasses += 'w-[36%] h-[82%] z-30 scale-105';
-                                     } else {
-                                         posClasses += 'w-[30%] h-[72%] z-25 opacity-95';
-                                     }
+                                      } else {
+                                          posClasses += 'w-[30%] h-[72%] z-25 opacity-95 -translate-y-3';
+                                      }
 
                                      const interactiveStyle = isSelectable ? 'cursor-pointer ring-4 ring-amber-400 bg-amber-950/40 rounded-xl' : '';
                                      const deadStyle = c.hp <= 0 ? 'opacity-40 grayscale' : '';
